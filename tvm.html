@@ -237,7 +237,7 @@
                         } else {
                             const fv_pv = pv * Math.pow(1 + i_monthly, n);
                             const fv_annuity = pmt * (Math.pow(1 + i_monthly, n) - 1) / i_monthly;
-                            calculatedValue = -(fv_pv + fv_annuity);
+                            calculatedValue = fv_pv + fv_annuity; // FIXED: no negative sign!
                         }
                         setResult('fv', calculatedValue);
                         break;
