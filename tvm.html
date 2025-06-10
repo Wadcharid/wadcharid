@@ -1,193 +1,187 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เครื่องคำนวณ TVM รายเดือน (ตรงสูตรสากล)</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f4f4f4; margin: 0; }
-        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center; }
-        h1 { color: #333; margin-bottom: 25px; }
-        .input-group { display: flex; align-items: center; margin-bottom: 15px; text-align: left; }
-        .input-group label { width: 150px; margin-right: 15px; font-weight: bold; color: #555; }
-        .input-group input[type="number"] { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; width: 150px; text-align: right; transition: background-color 1s; }
-        .input-group input[data-calculated="true"] { color: #28a745; font-weight: bold; background-color: #eaffea; transition: background-color 1.2s; }
-        .input-group input:not([data-calculated="true"]) { color: #333; font-weight: normal; background-color: #fff; }
-        .input-group button { padding: 10px 15px; margin-left: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; white-space: nowrap; }
-        .input-group button:hover { background-color: #0056b3; }
-        .clear-button { margin-top: 20px; padding: 12px 25px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        .clear-button:hover { background-color: #c82333; }
-        .note { margin-top: 20px; font-size: 0.93em; color: #666; }
-        .warn { color: #a94442; background-color: #ffecec; border-radius: 4px; padding: 6px; margin: 6px 0 12px 0; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TVM Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    h1 {
+      color: #c00;
+      margin-bottom: 10px;
+    }
+    .mode {
+      margin-bottom: 20px;
+    }
+    .mode label {
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    td {
+      padding: 6px 4px;
+      vertical-align: middle;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+    }
+    button.calc-btn {
+      padding: 6px 10px;
+      margin-left: 4px;
+      cursor: pointer;
+    }
+    .actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+    button#reset {
+      padding: 8px 20px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-    <h1>เครื่องคำนวณ Time Value of Money (TVM) รายเดือน</h1>
-    <div class="warn">
-        ⚠️ Convention: PMT ใส่ "บวก" ถ้ารับเงินเข้า (เช่น กรณีเงินกู้หรือออม), FV จะออก "ติดลบ" (เป็นเงินก้อนที่คุณจะได้รับ/ชำระในอนาคต)
-    </div>
-    <div class="input-group">
-        <label for="pv">Present Value (PV):</label>
-        <input type="number" id="pv" step="any" placeholder="ป้อนค่า PV" oninput="clearCalculatedState('pv')">
-        <button onclick="calculate('pv')">คำนวณ PV</button>
-    </div>
-    <div class="input-group">
-        <label for="payment">Monthly Payment (PMT):</label>
-        <input type="number" id="payment" step="any" placeholder="ป้อนค่า PMT ต่อเดือน" oninput="clearCalculatedState('payment')">
-        <button onclick="calculate('payment')">คำนวณ PMT</button>
-    </div>
-    <div class="input-group">
-        <label for="fv">Future Value (FV):</label>
-        <input type="number" id="fv" step="any" placeholder="ป้อนค่า FV" oninput="clearCalculatedState('fv')">
-        <button onclick="calculate('fv')">คำนวณ FV</button>
-    </div>
-    <div class="input-group">
-        <label for="interest">Annual Interest (%):</label>
-        <input type="number" id="interest" step="any" placeholder="ป้อนค่าดอกเบี้ยต่อปี (%)" oninput="clearCalculatedState('interest')">
-        <button onclick="calculate('interest')">คำนวณ % ดอกเบี้ย</button>
-    </div>
-    <div class="input-group">
-        <label for="period">Number of Months (N):</label>
-        <input type="number" id="period" step="any" placeholder="ป้อนจำนวนเดือน" oninput="clearCalculatedState('period')">
-        <button onclick="calculate('period')">คำนวณ N</button>
-    </div>
-    <button class="clear-button" onclick="clearAll()">ล้างข้อมูลทั้งหมด</button>
-    <p class="note">
-        **ข้อควรระวัง:** ช่องที่ต้องการคำนวณให้เว้นว่าง (ไม่ต้องใส่เลข) และกรอกข้อมูลช่องอื่นให้ครบ<br>
-        <b>Convention:</b> ใส่ PMT เป็นค่าบวก FV จะติดลบ ตาม convention TVM ทั่วโลก
-    </p>
-</div>
-<script>
-    function getNumber(id) {
-        // อ่านเลข (รวมถึง 0) จาก input
-        let v = document.getElementById(id).value;
-        if (v === "" || v === null) return null;
-        return Number(v);
+  <h1>TVM Calculator</h1>
+  <div class="mode">
+    <label>Mode:</label>
+    <label><input type="radio" name="type" value="0" checked> End</label>
+    <label><input type="radio" name="type" value="1"> Beginning</label>
+  </div>
+  <table>
+    <tr>
+      <td>Present Value</td>
+      <td><input id="pv" type="text" placeholder="PV"></td>
+      <td><button class="calc-btn" onclick="calcPV()">PV</button></td>
+    </tr>
+    <tr>
+      <td>Payments</td>
+      <td><input id="pmt" type="text" placeholder="PMT"></td>
+      <td><button class="calc-btn" onclick="calcPMT()">PMT</button></td>
+    </tr>
+    <tr>
+      <td>Future Value</td>
+      <td><input id="fv" type="text" placeholder="FV"></td>
+      <td><button class="calc-btn" onclick="calcFV()">FV</button></td>
+    </tr>
+    <tr>
+      <td>Annual Rate (%)</td>
+      <td><input id="rate" type="text" placeholder="Rate"></td>
+      <td><button class="calc-btn" onclick="calcRate()">Rate</button></td>
+    </tr>
+    <tr>
+      <td>Periods</td>
+      <td><input id="nper" type="text" placeholder="Periods"></td>
+      <td><button class="calc-btn" onclick="calcNper()">Periods</button></td>
+    </tr>
+    <tr>
+      <td>Compounding</td>
+      <td colspan="2">
+        <select id="freq">
+          <option value="1">Annual</option>
+          <option value="2">Semi-annual</option>
+          <option value="4">Quarterly</option>
+          <option value="12" selected>Monthly</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+  <div class="actions">
+    <button id="reset" onclick="resetForm()">Reset</button>
+  </div>
+
+  <script>
+    function getType() {
+      return +document.querySelector('input[name="type"]:checked').value;
     }
-    function setResult(id, value, isPeriod = false) {
-        const inputElement = document.getElementById(id);
-        if (value !== null && !isNaN(value)) {
-            if (Math.abs(value) < 1e-8) value = 0;
-            if (isPeriod) value = Math.ceil(value);
-            inputElement.value = value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            inputElement.setAttribute('data-calculated', 'true');
-        } else {
-            inputElement.value = '';
-            inputElement.removeAttribute('data-calculated');
-        }
+    function getInputs() {
+      return {
+        pv: parseFloat(document.getElementById('pv').value) || 0,
+        pmt: parseFloat(document.getElementById('pmt').value) || 0,
+        fv: parseFloat(document.getElementById('fv').value) || 0,
+        rateA: parseFloat(document.getElementById('rate').value) / 100 || 0,
+        nper: parseFloat(document.getElementById('nper').value) || 0,
+        freq: parseInt(document.getElementById('freq').value),
+        type: getType()
+      };
     }
-    function clearCalculatedState(id) {
-        const inputElement = document.getElementById(id);
-        inputElement.removeAttribute('data-calculated');
+    function fv(rate, nper, pmt, pv, type) {
+      let res = -(pv * Math.pow(1+rate, nper)
+                + pmt * (1+rate*type) * ( (Math.pow(1+rate, nper)-1)/rate ));
+      return res;
     }
-    function calculate(target) {
-        let pv = getNumber('pv');
-        let pmt = getNumber('payment');
-        let fv = getNumber('fv');
-        let i_annual = getNumber('interest');
-        let n = getNumber('period');
-        // นับช่องที่มีเลขครบ
-        let filled = ['pv','payment','fv','interest','period'].filter(id => id !== target && getNumber(id) !== null).length;
-        if (filled < 4) {
-            alert("กรุณากรอกข้อมูลให้ครบ 4 ช่อง (เว้นว่างช่องที่ต้องการคำนวณ)");
-            return;
-        }
-        let i_monthly = i_annual !== null ? (i_annual / 100) / 12 : null;
-        let calculatedValue = null;
-        switch (target) {
-            case 'pv':
-                if (n === 0) {
-                    calculatedValue = -fv;
-                } else if (i_monthly === 0) {
-                    calculatedValue = fv - (pmt * n);
-                } else {
-                    const pv_fv = fv / Math.pow(1 + i_monthly, n);
-                    const pv_annuity = pmt * (1 - Math.pow(1 + i_monthly, -n)) / i_monthly;
-                    calculatedValue = -(pv_fv + pv_annuity);
-                }
-                setResult('pv', calculatedValue);
-                break;
-            case 'payment':
-                if (n === 0) {
-                    calculatedValue = 0;
-                } else if (i_monthly === 0) {
-                    calculatedValue = (fv - pv) / n;
-                } else {
-                    if (Math.abs(Math.pow(1 + i_monthly, n) - 1) < 1e-9) {
-                        calculatedValue = 0;
-                    } else {
-                        calculatedValue = (fv - (pv * Math.pow(1 + i_monthly, n))) * i_monthly / (Math.pow(1 + i_monthly, n) - 1);
-                        calculatedValue = -calculatedValue;
-                    }
-                }
-                setResult('payment', calculatedValue);
-                break;
-            case 'fv':
-                if (n === 0) {
-                    calculatedValue = -pv;
-                } else if (i_monthly === 0) {
-                    calculatedValue = pv + (pmt * n);
-                } else {
-                    const fv_pv = pv * Math.pow(1 + i_monthly, n);
-                    const fv_annuity = pmt * (Math.pow(1 + i_monthly, n) - 1) / i_monthly;
-                    calculatedValue = -(fv_pv + fv_annuity); // <--- ตรงนี้คือ convention แบบสากล
-                }
-                setResult('fv', calculatedValue);
-                break;
-            case 'interest':
-                if (n === 0 || pmt === 0) {
-                    alert("จำนวนงวดหรือ PMT เป็นศูนย์ ไม่สามารถคำนวณดอกเบี้ยได้");
-                    setResult('interest', NaN);
-                    break;
-                }
-                let low = 0.00001, high = 0.5, guess_monthly = 0, found = false;
-                for (let k = 0; k < 1000; k++) {
-                    guess_monthly = (low + high) / 2;
-                    if (guess_monthly === 0) { low = 0.00001; continue; }
-                    const test_fv_pv = pv * Math.pow(1 + guess_monthly, n);
-                    const test_fv_annuity = pmt * (Math.pow(1 + guess_monthly, n) - 1) / guess_monthly;
-                    const current_fv = -(test_fv_pv + test_fv_annuity);
-                    if (Math.abs(current_fv - fv) < 0.01) {
-                        calculatedValue = guess_monthly * 12 * 100;
-                        found = true; break;
-                    }
-                    if (current_fv < fv) { high = guess_monthly; } else { low = guess_monthly; }
-                    if (Math.abs(high - low) < 1e-7) break;
-                }
-                setResult('interest', found ? calculatedValue : NaN);
-                if (!found) alert("ไม่สามารถคำนวณอัตราดอกเบี้ยได้ ตรวจสอบว่าค่าที่กรอกสัมพันธ์กัน (เช่น FV, PV, PMT, N)");
-                break;
-            case 'period':
-                if (i_monthly === 0) {
-                    if (pmt !== 0) {
-                        calculatedValue = (fv - pv) / pmt;
-                    } else {
-                        alert("PMT เป็นศูนย์ ไม่สามารถคำนวณจำนวนงวดได้");
-                        calculatedValue = NaN;
-                    }
-                } else {
-                    const term1 = (fv * i_monthly) + pmt;
-                    const term2 = (pv * i_monthly) + pmt;
-                    if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
-                        alert("ค่าที่กรอกอาจไม่สัมพันธ์กัน เช่น PV, FV, PMT, อัตราดอกเบี้ย ตรวจสอบอีกครั้ง");
-                        calculatedValue = NaN;
-                    } else {
-                        calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
-                    }
-                }
-                setResult('period', calculatedValue, true);
-                break;
-            default: break;
-        }
+    function pv(rate, nper, pmt, fv, type) {
+      let res = -( fv + pmt*(1+rate*type)*( (Math.pow(1+rate, nper)-1)/rate ) )
+                / Math.pow(1+rate, nper);
+      return res;
     }
-    function clearAll() {
-        ['pv','payment','fv','interest','period'].forEach(id => {
-            const inputElement = document.getElementById(id);
-            inputElement.value = '';
-            inputElement.removeAttribute('data-calculated');
-        });
+    function pmt(rate, nper, pv, fv, type) {
+      let res = -( pv*rate*Math.pow(1+rate, nper)
+                + fv*rate )
+                / ( (1+rate*type)*(Math.pow(1+rate, nper)-1) );
+      return res;
     }
-</script>
+    function nper(rate, pmt, pv, fv, type) {
+      let num = pmt*(1+rate*type)/rate + fv;
+      let den = pmt*(1+rate*type)/rate + pv;
+      return Math.log(num/den) / Math.log(1+rate);
+    }
+    function calcFV() {
+      let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
+      let r = rateA / freq;
+      let np = nper*freq;
+      let result = fv(r, np, pmt, pv, type);
+      document.getElementById('fv').value = result.toFixed(2);
+    }
+    function calcPV() {
+      let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
+      let r = rateA / freq;
+      let np = nper*freq;
+      let result = pv(r, np, pmt, fv, type);
+      document.getElementById('pv').value = result.toFixed(2);
+    }
+    function calcPMT() {
+      let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
+      let r = rateA / freq;
+      let np = nper*freq;
+      let result = pmt(r, np, pv, fv, type);
+      document.getElementById('pmt').value = result.toFixed(2);
+    }
+    function calcNper() {
+      let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
+      let r = rateA / freq;
+      let result = nper(r, pmt, pv, fv, type) / 1; // already in periods
+      document.getElementById('nper').value = result.toFixed(2);
+    }
+    function calcRate() {
+      let {pv,pmt,fv,nper,freq,type} = getInputs();
+      let N = nper*freq;
+      // solve r by Newton's method on fv(rate) = target
+      let guess = 0.05, tol=1e-8, iter=0, maxIter=100;
+      while (iter<maxIter) {
+        let f = fv(guess, N, pmt, pv, type) - fv; 
+        let df = (fv(guess+1e-6, N, pmt, pv, type) - fv(guess-1e-6, N, pmt, pv, type)) / 2e-6;
+        let newGuess = guess - f/df;
+        if (Math.abs(newGuess-guess)<tol) break;
+        guess = newGuess; iter++;
+      }
+      let annual = guess * freq * 100;
+      document.getElementById('rate').value = annual.toFixed(4);
+    }
+    function resetForm() {
+      document.querySelectorAll('input[type=text]').forEach(i=>i.value='');
+      document.getElementById('freq').value = '12';
+      document.querySelector('input[name="type"][value="0"]').checked = true;
+    }
+  </script>
 </body>
 </html>
