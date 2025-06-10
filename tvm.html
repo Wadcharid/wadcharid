@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เครื่องคำนวณ TVM รายเดือน (Bugfix Zero Input)</title>
+    <title>เครื่องคำนวณ TVM รายเดือน (ตรงสูตรสากล)</title>
     <style>
         body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f4f4f4; margin: 0; }
         .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; text-align: center; }
@@ -25,7 +25,7 @@
 <div class="container">
     <h1>เครื่องคำนวณ Time Value of Money (TVM) รายเดือน</h1>
     <div class="warn">
-        ⚠️ หมายเหตุ: PMT (เงินจ่ายต่อเดือน) ปกติให้ใส่เป็น "ค่าติดลบ" เช่น -800 ถ้าเป็นเงินจ่ายออก, PV (เงินต้น) ให้ใส่ค่าบวกเมื่อรับเงิน, FV เป็นค่าที่ต้องการในอนาคต (บวก/ลบก็ได้)
+        ⚠️ Convention: PMT ใส่ "บวก" ถ้ารับเงินเข้า (เช่น กรณีเงินกู้หรือออม), FV จะออก "ติดลบ" (เป็นเงินก้อนที่คุณจะได้รับ/ชำระในอนาคต)
     </div>
     <div class="input-group">
         <label for="pv">Present Value (PV):</label>
@@ -55,28 +55,24 @@
     <button class="clear-button" onclick="clearAll()">ล้างข้อมูลทั้งหมด</button>
     <p class="note">
         **ข้อควรระวัง:** ช่องที่ต้องการคำนวณให้เว้นว่าง (ไม่ต้องใส่เลข) และกรอกข้อมูลช่องอื่นให้ครบ<br>
-        <b>Convention:</b> เงินจ่ายใส่ค่าติดลบ, เงินรับเป็นบวก เพื่อผลลัพธ์ที่ถูกต้อง
+        <b>Convention:</b> ใส่ PMT เป็นค่าบวก FV จะติดลบ ตาม convention TVM ทั่วโลก
     </p>
 </div>
 <script>
-    const tvmValues = {
-        pv: null, payment: null, fv: null, interest: null, period: null
-    };
-    function isFilled(id) {
-        const inputElement = document.getElementById(id);
-        // เช็กว่า ช่องนั้นใส่อะไรมา (รวมถึง 0)
-        return inputElement.value !== '' && inputElement.value !== null;
+    function getNumber(id) {
+        // อ่านเลข (รวมถึง 0) จาก input
+        let v = document.getElementById(id).value;
+        if (v === "" || v === null) return null;
+        return Number(v);
     }
     function setResult(id, value, isPeriod = false) {
         const inputElement = document.getElementById(id);
         if (value !== null && !isNaN(value)) {
             if (Math.abs(value) < 1e-8) value = 0;
             if (isPeriod) value = Math.ceil(value);
-            tvmValues[id] = value;
             inputElement.value = value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             inputElement.setAttribute('data-calculated', 'true');
         } else {
-            tvmValues[id] = null;
             inputElement.value = '';
             inputElement.removeAttribute('data-calculated');
         }
@@ -84,148 +80,112 @@
     function clearCalculatedState(id) {
         const inputElement = document.getElementById(id);
         inputElement.removeAttribute('data-calculated');
-        tvmValues[id] = isFilled(id) ? Number(inputElement.value) : null;
     }
     function calculate(target) {
-        let pv = isFilled('pv') ? Number(document.getElementById('pv').value) : null;
-        let pmt = isFilled('payment') ? Number(document.getElementById('payment').value) : null;
-        let fv = isFilled('fv') ? Number(document.getElementById('fv').value) : null;
-        let i_annual = isFilled('interest') ? Number(document.getElementById('interest').value) : null;
-        let n = isFilled('period') ? Number(document.getElementById('period').value) : null;
-        let filledOtherFields = 0;
-        if (target !== 'pv' && isFilled('pv')) filledOtherFields++;
-        if (target !== 'payment' && isFilled('payment')) filledOtherFields++;
-        if (target !== 'fv' && isFilled('fv')) filledOtherFields++;
-        if (target !== 'interest' && isFilled('interest')) filledOtherFields++;
-        if (target !== 'period' && isFilled('period')) filledOtherFields++;
-        if (filledOtherFields < 4) {
+        let pv = getNumber('pv');
+        let pmt = getNumber('payment');
+        let fv = getNumber('fv');
+        let i_annual = getNumber('interest');
+        let n = getNumber('period');
+        // นับช่องที่มีเลขครบ
+        let filled = ['pv','payment','fv','interest','period'].filter(id => id !== target && getNumber(id) !== null).length;
+        if (filled < 4) {
             alert("กรุณากรอกข้อมูลให้ครบ 4 ช่อง (เว้นว่างช่องที่ต้องการคำนวณ)");
             return;
         }
-        let i_monthly = (i_annual !== null ? (i_annual / 100) / 12 : null);
+        let i_monthly = i_annual !== null ? (i_annual / 100) / 12 : null;
         let calculatedValue = null;
-        try {
-            switch (target) {
-                case 'pv':
-                    if (n === 0) {
-                        calculatedValue = -fv;
-                    } else if (i_monthly === 0) {
-                        calculatedValue = fv - (pmt * n);
-                    } else {
-                        const pv_fv = fv / Math.pow(1 + i_monthly, n);
-                        const pv_annuity = pmt * (1 - Math.pow(1 + i_monthly, -n)) / i_monthly;
-                        calculatedValue = -(pv_fv + pv_annuity);
-                    }
-                    setResult('pv', calculatedValue);
-                    break;
-                case 'payment':
-                    if (n === 0) {
+        switch (target) {
+            case 'pv':
+                if (n === 0) {
+                    calculatedValue = -fv;
+                } else if (i_monthly === 0) {
+                    calculatedValue = fv - (pmt * n);
+                } else {
+                    const pv_fv = fv / Math.pow(1 + i_monthly, n);
+                    const pv_annuity = pmt * (1 - Math.pow(1 + i_monthly, -n)) / i_monthly;
+                    calculatedValue = -(pv_fv + pv_annuity);
+                }
+                setResult('pv', calculatedValue);
+                break;
+            case 'payment':
+                if (n === 0) {
+                    calculatedValue = 0;
+                } else if (i_monthly === 0) {
+                    calculatedValue = (fv - pv) / n;
+                } else {
+                    if (Math.abs(Math.pow(1 + i_monthly, n) - 1) < 1e-9) {
                         calculatedValue = 0;
-                    } else if (i_monthly === 0) {
-                        calculatedValue = (fv - pv) / n;
                     } else {
-                        if (Math.abs(Math.pow(1 + i_monthly, n) - 1) < 1e-9) {
-                            calculatedValue = 0;
-                        } else {
-                            calculatedValue = (fv - (pv * Math.pow(1 + i_monthly, n))) * i_monthly / (Math.pow(1 + i_monthly, n) - 1);
-                            calculatedValue = -calculatedValue;
-                        }
+                        calculatedValue = (fv - (pv * Math.pow(1 + i_monthly, n))) * i_monthly / (Math.pow(1 + i_monthly, n) - 1);
+                        calculatedValue = -calculatedValue;
                     }
-                    setResult('payment', calculatedValue);
+                }
+                setResult('payment', calculatedValue);
+                break;
+            case 'fv':
+                if (n === 0) {
+                    calculatedValue = -pv;
+                } else if (i_monthly === 0) {
+                    calculatedValue = pv + (pmt * n);
+                } else {
+                    const fv_pv = pv * Math.pow(1 + i_monthly, n);
+                    const fv_annuity = pmt * (Math.pow(1 + i_monthly, n) - 1) / i_monthly;
+                    calculatedValue = -(fv_pv + fv_annuity); // <--- ตรงนี้คือ convention แบบสากล
+                }
+                setResult('fv', calculatedValue);
+                break;
+            case 'interest':
+                if (n === 0 || pmt === 0) {
+                    alert("จำนวนงวดหรือ PMT เป็นศูนย์ ไม่สามารถคำนวณดอกเบี้ยได้");
+                    setResult('interest', NaN);
                     break;
-                case 'fv':
-                    if (n === 0) {
-                        calculatedValue = -pv;
-                    } else if (i_monthly === 0) {
-                        calculatedValue = pv + (pmt * n);
+                }
+                let low = 0.00001, high = 0.5, guess_monthly = 0, found = false;
+                for (let k = 0; k < 1000; k++) {
+                    guess_monthly = (low + high) / 2;
+                    if (guess_monthly === 0) { low = 0.00001; continue; }
+                    const test_fv_pv = pv * Math.pow(1 + guess_monthly, n);
+                    const test_fv_annuity = pmt * (Math.pow(1 + guess_monthly, n) - 1) / guess_monthly;
+                    const current_fv = -(test_fv_pv + test_fv_annuity);
+                    if (Math.abs(current_fv - fv) < 0.01) {
+                        calculatedValue = guess_monthly * 12 * 100;
+                        found = true; break;
+                    }
+                    if (current_fv < fv) { high = guess_monthly; } else { low = guess_monthly; }
+                    if (Math.abs(high - low) < 1e-7) break;
+                }
+                setResult('interest', found ? calculatedValue : NaN);
+                if (!found) alert("ไม่สามารถคำนวณอัตราดอกเบี้ยได้ ตรวจสอบว่าค่าที่กรอกสัมพันธ์กัน (เช่น FV, PV, PMT, N)");
+                break;
+            case 'period':
+                if (i_monthly === 0) {
+                    if (pmt !== 0) {
+                        calculatedValue = (fv - pv) / pmt;
                     } else {
-                        const fv_pv = pv * Math.pow(1 + i_monthly, n);
-                        const fv_annuity = pmt * (Math.pow(1 + i_monthly, n) - 1) / i_monthly;
-                        calculatedValue = fv_pv + fv_annuity;
+                        alert("PMT เป็นศูนย์ ไม่สามารถคำนวณจำนวนงวดได้");
+                        calculatedValue = NaN;
                     }
-                    if (Math.abs(calculatedValue) < 1e-8) calculatedValue = 0;
-                    setResult('fv', calculatedValue);
-                    break;
-                case 'interest':
-                    if (n === 0 || pmt === 0) {
-                        alert("จำนวนงวดหรือ PMT เป็นศูนย์ ไม่สามารถคำนวณดอกเบี้ยได้");
-                        setResult('interest', NaN);
-                        break;
-                    }
-                    let low = 0.00001;
-                    let high = 0.5;
-                    let iterations = 1000;
-                    let guess_monthly = 0;
-                    let found = false;
-                    for (let k = 0; k < iterations; k++) {
-                        guess_monthly = (low + high) / 2;
-                        if (guess_monthly === 0) {
-                            low = 0.00001;
-                            continue;
-                        }
-                        const test_fv_pv = pv * Math.pow(1 + guess_monthly, n);
-                        const test_fv_annuity = pmt * (Math.pow(1 + guess_monthly, n) - 1) / guess_monthly;
-                        const current_fv = -(test_fv_pv + test_fv_annuity);
-                        if (Math.abs(current_fv - fv) < 0.01) {
-                            calculatedValue = guess_monthly * 12 * 100;
-                            found = true;
-                            break;
-                        }
-                        if (current_fv < fv) {
-                            high = guess_monthly;
-                        } else {
-                            low = guess_monthly;
-                        }
-                        if (Math.abs(high - low) < 1e-7) break;
-                    }
-                    setResult('interest', found ? calculatedValue : NaN);
-                    if (!found) alert("ไม่สามารถคำนวณอัตราดอกเบี้ยได้ ตรวจสอบว่าค่าที่กรอกสัมพันธ์กัน (เช่น FV, PV, PMT, N)");
-                    break;
-                case 'period':
-                    if (i_monthly === 0) {
-                        if (pmt !== 0) {
-                            calculatedValue = (fv - pv) / pmt;
-                        } else {
-                            alert("PMT เป็นศูนย์ ไม่สามารถคำนวณจำนวนงวดได้");
-                            calculatedValue = NaN;
-                        }
+                } else {
+                    const term1 = (fv * i_monthly) + pmt;
+                    const term2 = (pv * i_monthly) + pmt;
+                    if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
+                        alert("ค่าที่กรอกอาจไม่สัมพันธ์กัน เช่น PV, FV, PMT, อัตราดอกเบี้ย ตรวจสอบอีกครั้ง");
+                        calculatedValue = NaN;
                     } else {
-                        const term1 = (fv * i_monthly) + pmt;
-                        const term2 = (pv * i_monthly) + pmt;
-                        if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
-                             alert("ค่าที่กรอกอาจไม่สัมพันธ์กัน เช่น PV, FV, PMT, อัตราดอกเบี้ย ตรวจสอบอีกครั้ง");
-                             calculatedValue = NaN;
-                        } else {
-                             calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
-                        }
+                        calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
                     }
-                    setResult('period', calculatedValue, true);
-                    break;
-                default:
-                    break;
-            }
-        } catch (error) {
-            console.error("Error during calculation:", error);
-            alert("เกิดข้อผิดพลาดในการคำนวณ กรุณาตรวจสอบข้อมูลและดู Console (F12)");
+                }
+                setResult('period', calculatedValue, true);
+                break;
+            default: break;
         }
     }
-    document.addEventListener('DOMContentLoaded', () => {
-        const ids = ['pv', 'payment', 'fv', 'interest', 'period'];
-        ids.forEach(id => {
-            const inputElement = document.getElementById(id);
-            if (!inputElement.hasAttribute('oninput')) {
-                inputElement.addEventListener('input', () => clearCalculatedState(id));
-            }
-            tvmValues[id] = isFilled(id) ? Number(inputElement.value) : null;
-        });
-    });
     function clearAll() {
-        const ids = ['pv', 'payment', 'fv', 'interest', 'period'];
-        ids.forEach(id => {
+        ['pv','payment','fv','interest','period'].forEach(id => {
             const inputElement = document.getElementById(id);
             inputElement.value = '';
             inputElement.removeAttribute('data-calculated');
-            tvmValues[id] = null;
         });
     }
 </script>
