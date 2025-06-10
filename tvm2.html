@@ -71,89 +71,90 @@
   </div>
 
   <script>
+    // ฟอร์แมตตัวเลข
+    function formatNum(n) {
+      return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    function unformat(val) {
+      return val.toString().replace(/,/g, '');
+    }
+
     function getInputs() {
       return {
-        pv:    parseFloat(document.getElementById('pv').value) || 0,
-        pmt:   parseFloat(document.getElementById('pmt').value) || 0,
+        pv:    parseFloat(unformat(document.getElementById('pv').value)) || 0,
+        pmt:   parseFloat(unformat(document.getElementById('pmt').value)) || 0,
         pct:   (parseFloat(document.getElementById('pct').value)/100) || 0,
-        fv:    parseFloat(document.getElementById('fv').value) || 0,
+        fv:    parseFloat(unformat(document.getElementById('fv').value)) || 0,
         rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,
-        nper:  parseFloat(document.getElementById('nper').value) || 0,
+        nper:  parseFloat(unformat(document.getElementById('nper').value)) || 0,
         freq:  parseInt(document.getElementById('freq').value),
         type:  +document.querySelector('input[name="type"]:checked').value
       };
     }
 
-    // FV ของ growing annuity + PV
-    function fvCalc(r, N, pmt0, g, type, pv) {
-      if (N <= 0) return -pv;
-      if (r === g) {
-        // special case: r == g
-        return -(pv*Math.pow(1+r,N)
-               + pmt0*(1+r*type)*N*Math.pow(1+r,N-1));
+    function fvCalc(r,n,pmt0,g,type,pv) {
+      if (n<=0) return -pv;
+      if (r===g) {
+        return -(pv*Math.pow(1+r,n) + pmt0*(1+r*type)*n*Math.pow(1+r,n-1));
       }
-      const ann = pmt0*(1+r*type)*( (Math.pow(1+r,N) - Math.pow(1+g,N)) / (r - g) );
-      return -(pv*Math.pow(1+r,N) + ann);
+      const ann = pmt0*(1+r*type)*((Math.pow(1+r,n)-Math.pow(1+g,n))/(r-g));
+      return -(pv*Math.pow(1+r,n)+ann);
     }
-    // PV ของ growing annuity + FV
-    function pvCalc(r, N, pmt0, g, type, fv) {
-      if (N <= 0) return -fv;
-      if (r === g) {
-        return -(fv + pmt0*(1+r*type)*N) / Math.pow(1+r,N);
+    function pvCalc(r,n,pmt0,g,type,fv) {
+      if (n<=0) return -fv;
+      if (r===g) {
+        return -(fv + pmt0*(1+r*type)*n)/Math.pow(1+r,n);
       }
-      const ann = pmt0*(1+r*type)* (1 - Math.pow((1+g)/(1+r),N)) / (r - g);
-      return -(fv + ann) / Math.pow(1+r,N);
+      const ann = pmt0*(1+r*type)* (1-Math.pow((1+g)/(1+r),n))/(r-g);
+      return -(fv+ann)/Math.pow(1+r,n);
     }
-    // Solve initial pmt for growing annuity
-    function pmtCalc(r, N, pv, fv, g, type) {
-      if (N <= 0) return 0;
-      if (r === g) {
-        const denom = (1+r*type)*N*Math.pow(1+r,N-1);
-        return -(pv*Math.pow(1+r,N) + fv) / denom;
+    function pmtCalc(r,n,pv,fv,g,type) {
+      if (n<=0) return 0;
+      if (r===g) {
+        const denom = (1+r*type)*n*Math.pow(1+r,n-1);
+        return -(pv*Math.pow(1+r,n)+fv)/denom;
       }
-      const denom = (1+r*type)* ( (Math.pow(1+r,N) - Math.pow(1+g,N)) / (r - g) );
-      return -(pv*Math.pow(1+r,N) + fv) / denom;
-    }
-    // Nper of growing annuity
-    function nperCalc(r, pmt0, g, pv, fv, type) {
-      // complex; out of scope
-      return NaN;
+      const denom = (1+r*type)*((Math.pow(1+r,n)-Math.pow(1+g,n))/(r-g));
+      return -(pv*Math.pow(1+r,n)+fv)/denom;
     }
 
     function calcFV() {
       const {pv,pmt,pct,fv,rateA,nper,freq,type} = getInputs();
-      const r = rateA / freq;
-      const N = nper;
-      const res = fvCalc(r, N, pmt, pct, type, pv);
-      document.getElementById('fv').value = res.toFixed(2);
+      const r = rateA/freq, N=nper;
+      const res = fvCalc(r,N,pmt,pct,type,pv);
+      document.getElementById('fv').value = formatNum(res.toFixed(2));
     }
     function calcPV() {
       const {pv,pmt,pct,fv,rateA,nper,freq,type} = getInputs();
-      const r = rateA / freq;
-      const N = nper;
-      const res = pvCalc(r, N, pmt, pct, type, fv);
-      document.getElementById('pv').value = res.toFixed(2);
+      const r = rateA/freq, N=nper;
+      const res = pvCalc(r,N,pmt,pct,type,fv);
+      document.getElementById('pv').value = formatNum(res.toFixed(2));
     }
     function calcPMT() {
       const {pv,pct,fv,rateA,nper,freq,type} = getInputs();
-      const r = rateA / freq;
-      const N = nper;
-      const firstPmt = pmtCalc(r, N, pv, fv, pct, type);
-      document.getElementById('pmt').value = firstPmt.toFixed(2);
+      const r = rateA/freq, N=nper;
+      const firstPmt = pmtCalc(r,N,pv,fv,pct,type);
+      document.getElementById('pmt').value = formatNum(firstPmt.toFixed(2));
     }
     function calcNper() {
-      // ไม่รองรับ growing annuity
       document.getElementById('nper').value = 'NaN';
     }
     function calcRate() {
-      // nominal APR solve similar; omitted for brevity
       document.getElementById('rate').value = document.getElementById('rate').value;
     }
 
+    // ฟอร์แมตเมื่อออกจากช่องกรอก
+    ['pv','pmt','fv','nper'].forEach(id => {
+      document.getElementById(id).addEventListener('blur', e => {
+        const v = unformat(e.target.value);
+        if (!isNaN(v) && v!=='') e.target.value = formatNum(parseFloat(v).toFixed(2));
+      });
+    });
+
     function resetForm() {
-      ['pv','pmt','pct','fv','rate','nper'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('freq').value = '12';
-      document.querySelector('input[name="type"][value="0"]').checked = true;
+      ['pv','pmt','pct','fv','rate','nper'].forEach(id => document.getElementById(id).value='');
+      document.getElementById('freq').value='12';
+      document.querySelector('input[name="type"][value="0"]').checked=true;
     }
   </script>
 </body>
