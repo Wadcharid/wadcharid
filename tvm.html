@@ -71,27 +71,27 @@
         pv:    parseFloat(document.getElementById('pv').value) || 0,
         pmt:   parseFloat(document.getElementById('pmt').value) || 0,
         fv:    parseFloat(document.getElementById('fv').value) || 0,
-        rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,  // effective annual rate
-        nper:  parseFloat(document.getElementById('nper').value) || 0,
+        rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,  // nominal APR
+        nper:  parseFloat(document.getElementById('nper').value) || 0,         // number of periods
         freq:  parseInt(document.getElementById('freq').value),
         type:  +document.querySelector('input[name="type"]:checked').value
       };
     }
 
-    // ชื่อฟังก์ชันไม่ซ้ำตัวแปร
-    function fvCalc(r,n,pmt,pv,type) {
+    // คำวินิจฉัยไม่ซ้ำตัวแปร
+    function fvCalc(r, n, pmt, pv, type) {
       return -(pv*Math.pow(1+r,n)
              + pmt*(1+r*type)*((Math.pow(1+r,n)-1)/r));
     }
-    function pvCalc(r,n,pmt,fv,type) {
+    function pvCalc(r, n, pmt, fv, type) {
       return -(fv + pmt*(1+r*type)*((Math.pow(1+r,n)-1)/r))
              / Math.pow(1+r,n);
     }
-    function pmtCalc(r,n,pv,fv,type) {
+    function pmtCalc(r, n, pv, fv, type) {
       return -( pv*r*Math.pow(1+r,n) + fv*r )
              / ((1+r*type)*(Math.pow(1+r,n)-1));
     }
-    function nperCalc(r,pmt,pv,fv,type) {
+    function nperCalc(r, pmt, pv, fv, type) {
       let num = pmt*(1+r*type)/r + fv;
       let den = pmt*(1+r*type)/r + pv;
       return Math.log(num/den)/Math.log(1+r);
@@ -99,45 +99,45 @@
 
     function calcFV() {
       let {pv,pmt,rateA,nper,freq,type} = getInputs();
-      let r = Math.pow(1+rateA, 1/freq) - 1;      // periodic rate จาก effective annual
-      let np = nper * freq;
+      let r = rateA / freq;      // periodic rate = APR/freq
+      let N = nper;              // total periods
       document.getElementById('fv').value =
-        fvCalc(r, np, pmt, pv, type).toFixed(2);
+        fvCalc(r, N, pmt, pv, type).toFixed(2);
     }
     function calcPV() {
       let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
-      let r = Math.pow(1+rateA, 1/freq) - 1;
-      let np = nper * freq;
+      let r = rateA / freq;
+      let N = nper;
       document.getElementById('pv').value =
-        pvCalc(r, np, pmt, fv, type).toFixed(2);
+        pvCalc(r, N, pmt, fv, type).toFixed(2);
     }
     function calcPMT() {
       let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
-      let r = Math.pow(1+rateA, 1/freq) - 1;
-      let np = nper * freq;
+      let r = rateA / freq;
+      let N = nper;
       document.getElementById('pmt').value =
-        pmtCalc(r, np, pv, fv, type).toFixed(2);
+        pmtCalc(r, N, pv, fv, type).toFixed(2);
     }
     function calcNper() {
       let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
-      let r = Math.pow(1+rateA, 1/freq) - 1;
+      let r = rateA / freq;
       document.getElementById('nper').value =
         nperCalc(r, pmt, pv, fv, type).toFixed(2);
     }
     function calcRate() {
       let {pv,pmt,fv,nper,freq,type} = getInputs();
-      let N = nper * freq;
-      let guess = 0.05, tol = 1e-8, iter = 0;
-      while (iter < 100) {
+      let N = nper;
+      let guess = 0.005, tol=1e-8, iter=0;
+      while (iter<100) {
         let f = fvCalc(guess, N, pmt, pv, type) - fv;
         let df = (fvCalc(guess+1e-6, N, pmt, pv, type)
                 - fvCalc(guess-1e-6, N, pmt, pv, type)) / 2e-6;
         let ng = guess - f/df;
-        if (Math.abs(ng - guess) < tol) break;
+        if (Math.abs(ng-guess)<tol) break;
         guess = ng; iter++;
       }
-      let effA = Math.pow(1 + guess, freq) - 1;   // คืนค่าเป็น effective annual
-      document.getElementById('rate').value = (effA*100).toFixed(4);
+      let apr = guess * freq * 100;  // nominal APR (%)
+      document.getElementById('rate').value = apr.toFixed(4);
     }
 
     function resetForm() {
@@ -148,3 +148,4 @@
   </script>
 </body>
 </html>
+
