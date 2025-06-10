@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เครื่องคำนวณ TVM</title>
+    <title>เครื่องคำนวณ TVM รายเดือน</title>
     <style>
         /* CSS Styles */
         body {
@@ -102,7 +102,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>เครื่องคำนวณ Time Value of Money (TVM)</h1>
+        <h1>เครื่องคำนวณ Time Value of Money (TVM) รายเดือน</h1>
 
         <div class="input-group">
             <label for="pv">Present Value (PV):</label>
@@ -112,8 +112,8 @@
         </div>
 
         <div class="input-group">
-            <label for="payment">Payment (PMT):</label>
-            <input type="number" id="payment" step="any" placeholder="ป้อนค่า PMT">
+            <label for="payment">Monthly Payment (PMT):</label>
+            <input type="number" id="payment" step="any" placeholder="ป้อนค่า PMT ต่อเดือน">
             <button onclick="calculate('payment')">คำนวณ PMT</button>
             <span id="result-payment" class="result"></span>
         </div>
@@ -133,8 +133,8 @@
         </div>
 
         <div class="input-group">
-            <label for="period">Number of Periods (N):</label>
-            <input type="number" id="period" step="any" placeholder="ป้อนจำนวนงวด">
+            <label for="period">Number of Months (N):</label>
+            <input type="number" id="period" step="any" placeholder="ป้อนจำนวนเดือน">
             <button onclick="calculate('period')">คำนวณ N</button>
             <span id="result-period" class="result"></span>
         </div>
@@ -169,22 +169,18 @@
             let pv = getValue('pv');
             let pmt = getValue('payment');
             let fv = getValue('fv');
-            let i = getValue('interest') / 100;
+            let i_annual = getValue('interest');
             let n = getValue('period');
+
+            // Convert annual interest to monthly interest
+            let i_monthly = (i_annual / 100) / 12; // Adjusted for monthly calculation
 
             let calculatedValue = null;
 
             // Count how many of the 5 variables are non-zero (or explicitly 0 for the one to be calculated)
-            // We need 4 known variables to calculate the 5th
-            const values = [pv, pmt, fv, i, n];
+            const values = [pv, pmt, fv, i_annual, n]; // Use i_annual for counting knowns
             let knownCount = 0;
             for (let j = 0; j < values.length; j++) {
-                if (j === 0 && target === 'pv' && values[j] === 0) continue; // PV is the target, it's 0, so it's unknown
-                if (j === 1 && target === 'payment' && values[j] === 0) continue; // PMT is the target, it's 0, so it's unknown
-                if (j === 2 && target === 'fv' && values[j] === 0) continue; // FV is the target, it's 0, so it's unknown
-                if (j === 3 && target === 'interest' && values[j] === 0) continue; // Interest is the target, it's 0, so it's unknown
-                if (j === 4 && target === 'period' && values[j] === 0) continue; // Period is the target, it's 0, so it's unknown
-
                 // If the value is non-zero, or it's not the target and is 0 (meaning it's a known 0)
                 if (values[j] !== 0 || (values[j] === 0 && 
                     ((target === 'pv' && j !== 0) || 
@@ -197,11 +193,10 @@
             }
             
             // Adjust knownCount based on the target variable being 0 or empty (which implies it's the unknown)
-            // If the target variable itself is currently 0, we don't count it as a known variable
             if (target === 'pv' && pv === 0) knownCount--;
             if (target === 'payment' && pmt === 0) knownCount--;
             if (target === 'fv' && fv === 0) knownCount--;
-            if (target === 'interest' && i === 0) knownCount--;
+            if (target === 'interest' && i_annual === 0) knownCount--;
             if (target === 'period' && n === 0) knownCount--;
 
             if (knownCount < 4) {
@@ -213,14 +208,13 @@
             try {
                 switch (target) {
                     case 'pv':
-                        if (n === 0) { // If period is 0, PV = FV (no time for interest or payments to accrue)
+                        if (n === 0) {
                             calculatedValue = -fv;
-                        } else if (i === 0) { // If interest is 0, simple calculation
+                        } else if (i_monthly === 0) {
                             calculatedValue = fv - (pmt * n);
                         } else {
-                            // PV of FV + PV of Annuity
-                            const pv_fv = fv / Math.pow(1 + i, n);
-                            const pv_annuity = pmt * (1 - Math.pow(1 + i, -n)) / i;
+                            const pv_fv = fv / Math.pow(1 + i_monthly, n);
+                            const pv_annuity = pmt * (1 - Math.pow(1 + i_monthly, -n)) / i_monthly;
                             calculatedValue = -(pv_fv + pv_annuity);
                         }
                         setResult('pv', calculatedValue);
@@ -228,64 +222,57 @@
 
                     case 'payment':
                         if (n === 0) {
-                            calculatedValue = 0; // No payments if no periods
-                        } else if (i === 0) { // Simple calculation if interest is 0
+                            calculatedValue = 0;
+                        } else if (i_monthly === 0) {
                             calculatedValue = (fv - pv) / n;
                         } else {
-                            // PMT using a financial calculator formula (assuming end-of-period payments)
-                            const numerator = (pv * i) + (fv * i / (Math.pow(1 + i, n) - 1));
-                            const denominator = (1 - Math.pow(1 + i, -n));
+                            const numerator = (pv * i_monthly) + (fv * i_monthly / (Math.pow(1 + i_monthly, n) - 1));
+                            const denominator = (1 - Math.pow(1 + i_monthly, -n));
                             calculatedValue = -(numerator / denominator);
                         }
                         setResult('payment', calculatedValue);
                         break;
 
                     case 'fv':
-                        if (n === 0) { // If period is 0, FV = PV
+                        if (n === 0) {
                             calculatedValue = -pv;
-                        } else if (i === 0) { // Simple calculation if interest is 0
+                        } else if (i_monthly === 0) {
                             calculatedValue = pv + (pmt * n);
                         } else {
-                            // FV of PV + FV of Annuity
-                            const fv_pv = pv * Math.pow(1 + i, n);
-                            const fv_annuity = pmt * (Math.pow(1 + i, n) - 1) / i;
+                            const fv_pv = pv * Math.pow(1 + i_monthly, n);
+                            const fv_annuity = pmt * (Math.pow(1 + i_monthly, n) - 1) / i_monthly;
                             calculatedValue = -(fv_pv + fv_annuity);
                         }
                         setResult('fv', calculatedValue);
                         break;
 
                     case 'interest':
-                        // Iterative method (Newton-Raphson is common for financial functions)
-                        // This is a simplified iterative approach. More robust solutions are complex.
-                        // Let's use a simple binary search like approach for demonstration
-                        let low = 0.0001; // 0.01%
-                        let high = 5.0; // 500%
+                        let low = 0.00001; // 0.001% monthly
+                        let high = 0.5; // 50% monthly (enough for practical purposes)
                         let iterations = 1000;
-                        let guess = 0;
+                        let guess_monthly = 0;
                         let found = false;
 
                         for (let k = 0; k < iterations; k++) {
-                            guess = (low + high) / 2;
-                            if (guess === 0) { // Avoid division by zero
-                                low = 0.0001; // Adjust low to avoid 0
+                            guess_monthly = (low + high) / 2;
+                            if (guess_monthly === 0) {
+                                low = 0.00001;
                                 continue;
                             }
                             
-                            // Calculate hypothetical FV based on current guess 'guess'
-                            // FV = PV * (1 + i)^n + PMT * [(1 + i)^n - 1] / i
-                            const test_fv_pv = pv * Math.pow(1 + guess, n);
-                            const test_fv_annuity = pmt * (Math.pow(1 + guess, n) - 1) / guess;
-                            const current_fv = -(test_fv_pv + test_fv_annuity); // Negate for comparison consistency
+                            const test_fv_pv = pv * Math.pow(1 + guess_monthly, n);
+                            const test_fv_annuity = pmt * (Math.pow(1 + guess_monthly, n) - 1) / guess_monthly;
+                            const current_fv = -(test_fv_pv + test_fv_annuity);
 
-                            if (Math.abs(current_fv - fv) < 0.01) { // Check if guess is close enough
-                                calculatedValue = guess * 100;
+                            if (Math.abs(current_fv - fv) < 0.01) {
+                                calculatedValue = guess_monthly * 12 * 100; // Convert back to annual percentage
                                 found = true;
                                 break;
                             }
-                            if (current_fv < fv) { // If calculated FV is too low, interest is too high
-                                high = guess;
-                            } else { // If calculated FV is too high, interest is too low
-                                low = guess;
+                            if (current_fv < fv) {
+                                high = guess_monthly;
+                            } else {
+                                low = guess_monthly;
                             }
                         }
 
@@ -297,34 +284,26 @@
                         }
                         break;
 
-
                     case 'period':
-                        if (i === 0) {
+                        if (i_monthly === 0) {
                             if (pmt !== 0) {
                                 calculatedValue = (fv - pv) / pmt;
                             } else {
-                                calculatedValue = 0; // Cannot determine period if no payments and no interest
+                                calculatedValue = 0;
                             }
                         } else {
-                            // N for FV of single amount: n = log(FV/PV) / log(1 + i)
-                            // N for FV of annuity: n = log(1 + (FV * i) / PMT) / log(1 + i)
-                            // When all are present, it's more complex.
-                            // General formula for N for Ordinary Annuity with PV and FV:
-                            // n = log((FV * i + PMT) / (PV * i + PMT)) / log(1 + i)
-                            
                             // Ensure PV and FV have opposite signs for typical loan/investment scenario
-                            if (pv > 0 && fv > 0 && pmt >= 0) { // All positive values might imply outflow PV and FV, no PMT inflow to reduce period
-                                // This case might require different logic or signify an error in input signs
+                            if (pv > 0 && fv > 0 && pmt >= 0) { 
                                 alert("การป้อนค่า PV และ FV เป็นบวกพร้อมกัน อาจทำให้การคำนวณจำนวนงวดผิดพลาด");
                                 calculatedValue = 'N/A';
                             } else {
-                                const term1 = (fv * i) + pmt;
-                                const term2 = (pv * i) + pmt;
-                                if (term1 <= 0 || term2 <= 0 || (1 + i) <= 0) {
+                                const term1 = (fv * i_monthly) + pmt;
+                                const term2 = (pv * i_monthly) + pmt;
+                                if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
                                      alert("เกิดข้อผิดพลาดในการคำนวณจำนวนงวด: ค่าภายใน Logarithm ไม่ถูกต้อง");
                                      calculatedValue = 'N/A';
                                 } else {
-                                     calculatedValue = Math.log(term1 / term2) / Math.log(1 + i);
+                                     calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
                                 }
                             }
                         }
