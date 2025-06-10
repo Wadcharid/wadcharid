@@ -35,7 +35,7 @@
       <td><button class="calc-btn" onclick="calcPMT()">PMT</button></td>
     </tr>
     <tr>
-      <td>% Payment Growth</td>
+      <td>% Payment Growth (ต่อปี)</td>
       <td><input id="pct" type="text" placeholder="%Payment"></td>
       <td></td>
     </tr>
@@ -82,14 +82,17 @@
     }
 
     function getInputs() {
+      const freq = parseInt(document.getElementById('freq').value);
+      const pctAnnual = (parseFloat(document.getElementById('pct').value) / 100) || 0;
+      const g = pctAnnual / freq;  // เปอร์เซ็นต์เติบโตต่องวด
       return {
         pv:    parseFloat(unformat(document.getElementById('pv').value)) || 0,
         pmt:   parseFloat(unformat(document.getElementById('pmt').value)) || 0,
-        pct:   (parseFloat(document.getElementById('pct').value)/100) || 0,
+        pct:   g,
         fv:    parseFloat(unformat(document.getElementById('fv').value)) || 0,
         rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,
         nper:  parseFloat(unformat(document.getElementById('nper').value)) || 0,
-        freq:  parseInt(document.getElementById('freq').value),
+        freq:  freq,
         type:  +document.querySelector('input[name="type"]:checked').value
       };
     }
@@ -149,38 +152,4 @@
     function calcRate() {
       const {pv,pmt,pct,fv,nper,freq,type} = getInputs();
       const N = nper;
-      let r = 0.01; // initial guess for periodic rate
-      for (let i = 0; i < 100; i++) {
-        const f = fvCalc(r, N, pmt, pct, type, pv) - fv;
-        const dr = 1e-6;
-        const df = (fvCalc(r+dr, N, pmt, pct, type, pv) - fvCalc(r-dr, N, pmt, pct, type, pv)) / (2*dr);
-        const nr = r - f/df;
-        if (Math.abs(nr - r) < 1e-8) { r = nr; break; }
-        r = nr;
-      }
-      const apr = r * freq * 100;
-      document.getElementById('rate').value = apr.toFixed(4);
-    }
-
-    // ฟอร์แมต comma ขณะพิมพ์
-    ['pv','pmt','fv','nper'].forEach(id => {
-      const el = document.getElementById(id);
-      el.addEventListener('input', e => {
-        const pos = el.selectionEnd;
-        const raw = unformat(el.value);
-        if (raw === '') return;
-        const formatted = formatNum(raw);
-        el.value = formatted;
-        const newPos = formatted.length - (raw.length - pos);
-        el.setSelectionRange(newPos, newPos);
-      });
-    });
-
-    function resetForm() {
-      ['pv','pmt','pct','fv','rate','nper'].forEach(id => document.getElementById(id).value='');
-      document.getElementById('freq').value = '12';
-      document.querySelector('input[name="type"][value="0"]').checked = true;
-    }
-  </script>
-</body>
-</html>
+      let r = 0.01;
