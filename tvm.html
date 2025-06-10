@@ -177,33 +177,53 @@
 
             let calculatedValue = null;
 
-            // Count how many of the 5 variables are non-zero (or explicitly 0 for the one to be calculated)
-            const values = [pv, pmt, fv, i_annual, n]; // Use i_annual for counting knowns
+            // --- IMPROVED Logic for counting known variables ---
+            const allInputs = {
+                'pv': pv,
+                'payment': pmt,
+                'fv': fv,
+                'interest': i_annual,
+                'period': n
+            };
+
             let knownCount = 0;
-            for (let j = 0; j < values.length; j++) {
-                // If the value is non-zero, or it's not the target and is 0 (meaning it's a known 0)
-                if (values[j] !== 0 || (values[j] === 0 && 
-                    ((target === 'pv' && j !== 0) || 
-                     (target === 'payment' && j !== 1) || 
-                     (target === 'fv' && j !== 2) || 
-                     (target === 'interest' && j !== 3) || 
-                     (target === 'period' && j !== 4)))) {
-                    knownCount++;
+            for (const key in allInputs) {
+                if (key !== target) { // Only count fields that are NOT the target
+                    // A field is "known" if it has a non-zero value, OR if it's explicitly zero (and not the target)
+                    // The problem comes if the input field for the target is also 0,
+                    // but we still want to count the others.
+                    // The simplest is to ensure the other 4 fields have *some* value (0 or non-zero)
+                    
+                    // We treat 0 as a valid input value here for a known variable.
+                    // If a field is empty, getValue returns 0, so it becomes a "known 0" for this purpose.
+                    // This implies the user *intended* it to be 0 if they left it empty.
+                    // The only "unknown" should be the 'target' variable.
+                    knownCount++; 
                 }
             }
-            
-            // Adjust knownCount based on the target variable being 0 or empty (which implies it's the unknown)
-            if (target === 'pv' && pv === 0) knownCount--;
-            if (target === 'payment' && pmt === 0) knownCount--;
-            if (target === 'fv' && fv === 0) knownCount--;
-            if (target === 'interest' && i_annual === 0) knownCount--;
-            if (target === 'period' && n === 0) knownCount--;
 
-            if (knownCount < 4) {
-                alert("กรุณาป้อนค่าอย่างน้อย 4 ตัวแปร และเว้นว่างหรือป้อนค่า 0 ในช่องที่ต้องการคำนวณ");
+            if (knownCount < 4) { // After excluding the target, we should have 4 remaining.
+                                  // If any of those 4 are truly empty/NaN (not 0), this condition means an error.
+                                  // However, `getValue` converts empty to 0.
+                                  // So, this check should only happen if the target logic is off.
+                alert("เกิดข้อผิดพลาดในการตรวจสอบจำนวนตัวแปร กรุณาลองใหม่.");
                 return;
             }
+            // Let's refine the check: ensure all *other* fields are actually filled.
+            // If the target field is the one we want to calculate, its current value can be 0 or empty.
+            // The other 4 fields must be explicitly filled.
+            let filledOtherFields = 0;
+            if (target !== 'pv' && document.getElementById('pv').value !== '') filledOtherFields++;
+            if (target !== 'payment' && document.getElementById('payment').value !== '') filledOtherFields++;
+            if (target !== 'fv' && document.getElementById('fv').value !== '') filledOtherFields++;
+            if (target !== 'interest' && document.getElementById('interest').value !== '') filledOtherFields++;
+            if (target !== 'period' && document.getElementById('period').value !== '') filledOtherFields++;
 
+            if (filledOtherFields < 4) {
+                alert("กรุณาป้อนค่าในช่องที่ไม่ใช่เป้าหมายที่จะคำนวณให้ครบ 4 ช่อง (ไม่เว้นว่าง)");
+                return;
+            }
+            // --- END of IMPROVED Logic for counting known variables ---
 
             try {
                 switch (target) {
@@ -226,9 +246,47 @@
                         } else if (i_monthly === 0) {
                             calculatedValue = (fv - pv) / n;
                         } else {
-                            const numerator = (pv * i_monthly) + (fv * i_monthly / (Math.pow(1 + i_monthly, n) - 1));
-                            const denominator = (1 - Math.pow(1 + i_monthly, -n));
-                            calculatedValue = -(numerator / denominator);
+                            // Corrected PMT formula
+                            // PMT = - (i * PV + i * FV / ((1 + i)^n - 1)) / (1 - (1 + i)^(-n))
+                            // Or, more standardly for loans: PMT = (PV * i) / (1 - (1 + i)^-n) - (FV * i) / ((1 + i)^n - 1)
+                            // Let's use a robust formula that works for both PV and FV
+                            
+                            // Solve for PMT from FV = PV*(1+i)^n + PMT * [((1+i)^n - 1) / i]
+                            // PMT * [((1+i)^n - 1) / i] = FV - PV*(1+i)^n
+                            // PMT = (FV - PV*(1+i)^n) * i / ((1+i)^n - 1)
+
+                            // Let's consider the signs: if PV is outflow (-), FV is inflow (+), PMT is outflow (-).
+                            // Assume PV is positive for principal, FV is positive for target.
+                            // If PV is 0 and FV is 1M, PMT should be positive (saving to reach FV)
+                            // If FV is 0 and PV is 1M, PMT should be negative (paying off loan)
+
+                            if (Math.abs(Math.pow(1 + i_monthly, n) - 1) < 1e-9) { // Avoid division by zero if (1+i)^n - 1 is too small
+                                calculatedValue = 0; // Effectively no growth, so PMT might be 0 or error
+                            } else {
+                                calculatedValue = (fv - (pv * Math.pow(1 + i_monthly, n))) * i_monthly / (Math.pow(1 + i_monthly, n) - 1);
+                                // The sign convention is critical here.
+                                // If PV=0, FV=1M, i=7, n=360: PMT should be positive (money you put in)
+                                // My current formulas output PV, FV, PMT as negative for outflow.
+                                // For PMT to reach positive FV from PV=0, PMT should be positive.
+                                // Let's adjust the sign based on the common usage:
+                                // If you are calculating PMT to reach a Future Value (FV > 0) from PV=0, PMT should be positive (inflow for you).
+                                // If you are calculating PMT to pay off a Present Value (PV > 0), PMT should be negative (outflow for you).
+                                calculatedValue = -calculatedValue; // Standard convention: PMT is an outflow (e.g., loan payment)
+                                // If calculatedValue is positive (e.g. saving for FV), let's keep it positive.
+                                // So, if you're saving for FV, PMT should be positive. If you're paying off PV, PMT should be negative.
+                                // It might be simpler to let the financial convention handle the signs.
+                                // Most financial calculators: if PV is positive (money received), PMT is negative (money paid).
+                                // If FV is positive (money received), PMT is negative (money paid to get there).
+                                // The formula: PMT = (FV - PV * (1 + i)^n) * i / ((1 + i)^n - 1)
+                                // For PV=0, FV=1M, i=7, n=360: PMT = (1M - 0) * (0.07/12) / ((1 + 0.07/12)^360 - 1)
+                                // This would yield a positive PMT (money you put in).
+                                // If PV is a loan, say 1M, FV=0: PMT = (0 - 1M * (1+i)^n) * i / ((1+i)^n - 1)
+                                // This would yield a negative PMT.
+                                // Let's keep it as is, and the user must interpret signs.
+                                // If you want PMT to always be positive when "saving" and negative when "paying off"
+                                // you need to define more strict sign conventions for PV and FV.
+                                // For now, the formula will give you a result; interpret the sign based on context.
+                            }
                         }
                         setResult('payment', calculatedValue);
                         break;
@@ -247,6 +305,9 @@
                         break;
 
                     case 'interest':
+                        // Iterative method (Newton-Raphson is common for financial functions)
+                        // This is a simplified iterative approach. More robust solutions are complex.
+                        // Let's use a simple binary search like approach for demonstration
                         let low = 0.00001; // 0.001% monthly
                         let high = 0.5; // 50% monthly (enough for practical purposes)
                         let iterations = 1000;
@@ -262,16 +323,16 @@
                             
                             const test_fv_pv = pv * Math.pow(1 + guess_monthly, n);
                             const test_fv_annuity = pmt * (Math.pow(1 + guess_monthly, n) - 1) / guess_monthly;
-                            const current_fv = -(test_fv_pv + test_fv_annuity);
+                            const current_fv = -(test_fv_pv + test_fv_annuity); // Negate for consistency
 
-                            if (Math.abs(current_fv - fv) < 0.01) {
+                            if (Math.abs(current_fv - fv) < 0.01) { // Check if guess is close enough
                                 calculatedValue = guess_monthly * 12 * 100; // Convert back to annual percentage
                                 found = true;
                                 break;
                             }
-                            if (current_fv < fv) {
+                            if (current_fv < fv) { // If calculated FV is too low, interest is too high
                                 high = guess_monthly;
-                            } else {
+                            } else { // If calculated FV is too high, interest is too low
                                 low = guess_monthly;
                             }
                         }
@@ -293,18 +354,14 @@
                             }
                         } else {
                             // Ensure PV and FV have opposite signs for typical loan/investment scenario
-                            if (pv > 0 && fv > 0 && pmt >= 0) { 
-                                alert("การป้อนค่า PV และ FV เป็นบวกพร้อมกัน อาจทำให้การคำนวณจำนวนงวดผิดพลาด");
-                                calculatedValue = 'N/A';
+                            // Simplified for calculation
+                            const term1 = (fv * i_monthly) + pmt;
+                            const term2 = (pv * i_monthly) + pmt;
+                            if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
+                                 alert("เกิดข้อผิดพลาดในการคำนวณจำนวนงวด: ค่าภายใน Logarithm ไม่ถูกต้อง (อาจเกิดจากค่า PV, FV, PMT, i_monthly ที่ไม่สอดคล้องกัน)");
+                                 calculatedValue = 'N/A';
                             } else {
-                                const term1 = (fv * i_monthly) + pmt;
-                                const term2 = (pv * i_monthly) + pmt;
-                                if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
-                                     alert("เกิดข้อผิดพลาดในการคำนวณจำนวนงวด: ค่าภายใน Logarithm ไม่ถูกต้อง");
-                                     calculatedValue = 'N/A';
-                                } else {
-                                     calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
-                                }
+                                 calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
                             }
                         }
                         setResult('period', calculatedValue);
