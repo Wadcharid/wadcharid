@@ -53,16 +53,19 @@
             font-size: 16px;
             width: 150px; /* Adjusted width as result is now in input */
             text-align: right; /* Align text to right for numbers */
+        }
+        
+        /* Style for calculated fields */
+        .input-group input[data-calculated="true"] {
             color: #28a745; /* Green color for calculated results */
             font-weight: bold;
         }
-        
-        /* Style for non-calculated fields (optional: to differentiate input vs output) */
+
+        /* Style for manual input fields (default) */
         .input-group input:not([data-calculated="true"]) {
             color: #333; /* Default text color for manual input */
             font-weight: normal;
         }
-
 
         .input-group button {
             padding: 10px 15px;
@@ -80,8 +83,6 @@
             background-color: #0056b3;
         }
         
-        /* Removed .result class as it's no longer used */
-
         .clear-button {
             margin-top: 20px;
             padding: 12px 25px;
@@ -110,87 +111,111 @@
 
         <div class="input-group">
             <label for="pv">Present Value (PV):</label>
-            <input type="number" id="pv" step="any" placeholder="ป้อนค่า PV">
+            <input type="number" id="pv" step="any" placeholder="ป้อนค่า PV" oninput="clearCalculatedState('pv')">
             <button onclick="calculate('pv')">คำนวณ PV</button>
-            </div>
+        </div>
 
         <div class="input-group">
             <label for="payment">Monthly Payment (PMT):</label>
-            <input type="number" id="payment" step="any" placeholder="ป้อนค่า PMT ต่อเดือน">
+            <input type="number" id="payment" step="any" placeholder="ป้อนค่า PMT ต่อเดือน" oninput="clearCalculatedState('payment')">
             <button onclick="calculate('payment')">คำนวณ PMT</button>
-            </div>
+        </div>
 
         <div class="input-group">
             <label for="fv">Future Value (FV):</label>
-            <input type="number" id="fv" step="any" placeholder="ป้อนค่า FV">
+            <input type="number" id="fv" step="any" placeholder="ป้อนค่า FV" oninput="clearCalculatedState('fv')">
             <button onclick="calculate('fv')">คำนวณ FV</button>
-            </div>
+        </div>
 
         <div class="input-group">
             <label for="interest">Annual Interest (%):</label>
-            <input type="number" id="interest" step="any" placeholder="ป้อนค่าดอกเบี้ยต่อปี (%)">
+            <input type="number" id="interest" step="any" placeholder="ป้อนค่าดอกเบี้ยต่อปี (%)" oninput="clearCalculatedState('interest')">
             <button onclick="calculate('interest')">คำนวณ % ดอกเบี้ย</button>
-            </div>
+        </div>
 
         <div class="input-group">
             <label for="period">Number of Months (N):</label>
-            <input type="number" id="period" step="any" placeholder="ป้อนจำนวนเดือน">
+            <input type="number" id="period" step="any" placeholder="ป้อนจำนวนเดือน" oninput="clearCalculatedState('period')">
             <button onclick="calculate('period')">คำนวณ N</button>
-            </div>
+        </div>
 
         <button class="clear-button" onclick="clearAll()">ล้างข้อมูลทั้งหมด</button>
         <p class="note">**ข้อควรระวัง: ต้องป้อนค่าที่ต้องการคำนวณเป็น 0 หรือเว้นว่างไว้ และป้อนค่าอื่นๆ ให้ครบถ้วน**</p>
     </div>
 
     <script>
-        /* JavaScript Code */
-        function getValue(id) {
+        // Store raw numeric values in an object to avoid parsing formatted strings
+        const tvmValues = {
+            pv: 0,
+            payment: 0,
+            fv: 0,
+            interest: 0, // This will be annual percentage
+            period: 0
+        };
+
+        // Function to update the raw value and also the displayed input field
+        function updateValueAndDisplay(id, rawValue) {
+            tvmValues[id] = rawValue; // Store raw value
             const inputElement = document.getElementById(id);
-            const value = parseFloat(inputElement.value);
-            return isNaN(value) ? 0 : value;
+            if (rawValue !== null && !isNaN(rawValue)) {
+                // Format for display
+                inputElement.value = rawValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                inputElement.value = '';
+            }
         }
 
-        // Modified setResult to update input value
+        // Function to set the calculated result in the input field
         function setResult(id, value) {
             const inputElement = document.getElementById(id);
             if (value !== null && !isNaN(value)) {
+                tvmValues[id] = value; // Store the raw calculated value
                 inputElement.value = value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 inputElement.setAttribute('data-calculated', 'true'); // Mark as calculated
             } else {
+                tvmValues[id] = 0; // Set raw value to 0 if not a number
                 inputElement.value = '';
                 inputElement.removeAttribute('data-calculated');
             }
         }
 
-        function clearAllResults() {
-            // No longer need to clear span elements
-            // The clearAll function handles clearing input fields
+        // Clears the 'data-calculated' attribute when user types in the input
+        function clearCalculatedState(id) {
+            const inputElement = document.getElementById(id);
+            inputElement.removeAttribute('data-calculated');
+            // Also, update the raw value storage immediately when user types
+            // This is crucial for correct subsequent calculations.
+            tvmValues[id] = parseFloat(inputElement.value) || 0;
         }
 
+        // Main calculate function
         function calculate(target) {
-            // No need to clear all results spans, as we directly write to input now
-            // But we should clear the target input field's "calculated" state if it was there
-            document.getElementById(target).removeAttribute('data-calculated');
-
-
-            let pv = getValue('pv');
-            let pmt = getValue('payment');
-            let fv = getValue('fv');
-            let i_annual = getValue('interest');
-            let n = getValue('period');
+            // Get current values from the stored tvmValues object
+            // These are always raw numbers, regardless of display formatting
+            let pv = tvmValues.pv;
+            let pmt = tvmValues.payment;
+            let fv = tvmValues.fv;
+            let i_annual = tvmValues.interest;
+            let n = tvmValues.period;
 
             // Convert annual interest to monthly interest
-            let i_monthly = (i_annual / 100) / 12; // Adjusted for monthly calculation
+            let i_monthly = (i_annual / 100) / 12;
 
             let calculatedValue = null;
 
             // --- Logic for counting known variables ---
+            // A field is "known" if its value is not empty.
+            // We use document.getElementById(id).value !== '' to check if the input is filled by user or previous calculation.
             let filledOtherFields = 0;
             if (target !== 'pv' && document.getElementById('pv').value !== '') filledOtherFields++;
             if (target !== 'payment' && document.getElementById('payment').value !== '') filledOtherFields++;
             if (target !== 'fv' && document.getElementById('fv').value !== '') filledOtherFields++;
             if (target !== 'interest' && document.getElementById('interest').value !== '') filledOtherFields++;
             if (target !== 'period' && document.getElementById('period').value !== '') filledOtherFields++;
+            
+            // Allow 0 as a valid known input. The check `document.getElementById('id').value !== ''` handles this.
+            // If user enters 0, it's not empty, so it's a known field.
+            // If user leaves blank, it's empty, and not counted.
 
             if (filledOtherFields < 4) {
                 alert("กรุณาป้อนค่าในช่องที่ไม่ใช่เป้าหมายที่จะคำนวณให้ครบ 4 ช่อง (ไม่เว้นว่าง)");
@@ -276,7 +301,7 @@
                             setResult('interest', calculatedValue);
                         } else {
                             alert("ไม่สามารถคำนวณอัตราดอกเบี้ยได้ด้วยข้อมูลที่มี หรือต้องใช้วิธีการคำนวณที่ซับซ้อนกว่านี้");
-                            setResult('interest', 'N/A'); // Or set to empty string ""
+                            setResult('interest', NaN); // Use NaN to signify "not a number" for input field
                         }
                         break;
 
@@ -292,7 +317,7 @@
                             const term2 = (pv * i_monthly) + pmt;
                             if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
                                  alert("เกิดข้อผิดพลาดในการคำนวณจำนวนงวด: ค่าภายใน Logarithm ไม่ถูกต้อง (อาจเกิดจากค่า PV, FV, PMT, i_monthly ที่ไม่สอดคล้องกัน)");
-                                 calculatedValue = 'N/A'; // Or set to empty string ""
+                                 calculatedValue = NaN; // Use NaN
                             } else {
                                  calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
                             }
@@ -309,18 +334,31 @@
             }
         }
 
+        // Initialize values from input fields on load if they exist (though inputs start empty)
+        // This is primarily for when the user starts typing, to ensure tvmValues are updated.
+        document.addEventListener('DOMContentLoaded', () => {
+            const ids = ['pv', 'payment', 'fv', 'interest', 'period'];
+            ids.forEach(id => {
+                const inputElement = document.getElementById(id);
+                // Attach oninput event listener if not already done in HTML
+                if (!inputElement.hasAttribute('oninput')) {
+                    inputElement.addEventListener('input', () => clearCalculatedState(id));
+                }
+                // Initial update from input if it's not empty on load
+                if (inputElement.value !== '') {
+                    tvmValues[id] = parseFloat(inputElement.value) || 0;
+                }
+            });
+        });
+
         function clearAll() {
-            document.getElementById('pv').value = '';
-            document.getElementById('pv').removeAttribute('data-calculated');
-            document.getElementById('payment').value = '';
-            document.getElementById('payment').removeAttribute('data-calculated');
-            document.getElementById('fv').value = '';
-            document.getElementById('fv').removeAttribute('data-calculated');
-            document.getElementById('interest').value = '';
-            document.getElementById('interest').removeAttribute('data-calculated');
-            document.getElementById('period').value = '';
-            document.getElementById('period').removeAttribute('data-calculated');
-            // No need for clearAllResults() as it was for spans
+            const ids = ['pv', 'payment', 'fv', 'interest', 'period'];
+            ids.forEach(id => {
+                const inputElement = document.getElementById(id);
+                inputElement.value = '';
+                inputElement.removeAttribute('data-calculated');
+                tvmValues[id] = 0; // Reset raw stored values
+            });
         }
     </script>
 </body>
