@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องคำนวณ TVM</title>
+    <style>
+        /* CSS Styles */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            width: 150px;
+            margin-right: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .input-group input[type="number"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 150px;
+        }
+
+        .input-group button {
+            padding: 10px 15px;
+            margin-left: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .input-group button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-left: 15px;
+            font-weight: bold;
+            color: #28a745;
+            min-width: 100px;
+            text-align: left;
+        }
+
+        .clear-button {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+
+        .note {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>เครื่องคำนวณ Time Value of Money (TVM)</h1>
+
+        <div class="input-group">
+            <label for="pv">Present Value (PV):</label>
+            <input type="number" id="pv" step="any" placeholder="ป้อนค่า PV">
+            <button onclick="calculate('pv')">คำนวณ PV</button>
+            <span id="result-pv" class="result"></span>
+        </div>
+
+        <div class="input-group">
+            <label for="payment">Payment (PMT):</label>
+            <input type="number" id="payment" step="any" placeholder="ป้อนค่า PMT">
+            <button onclick="calculate('payment')">คำนวณ PMT</button>
+            <span id="result-payment" class="result"></span>
+        </div>
+
+        <div class="input-group">
+            <label for="fv">Future Value (FV):</label>
+            <input type="number" id="fv" step="any" placeholder="ป้อนค่า FV">
+            <button onclick="calculate('fv')">คำนวณ FV</button>
+            <span id="result-fv" class="result"></span>
+        </div>
+
+        <div class="input-group">
+            <label for="interest">Annual Interest (%):</label>
+            <input type="number" id="interest" step="any" placeholder="ป้อนค่าดอกเบี้ยต่อปี (%)">
+            <button onclick="calculate('interest')">คำนวณ % ดอกเบี้ย</button>
+            <span id="result-interest" class="result"></span>
+        </div>
+
+        <div class="input-group">
+            <label for="period">Number of Periods (N):</label>
+            <input type="number" id="period" step="any" placeholder="ป้อนจำนวนงวด">
+            <button onclick="calculate('period')">คำนวณ N</button>
+            <span id="result-period" class="result"></span>
+        </div>
+
+        <button class="clear-button" onclick="clearAll()">ล้างข้อมูลทั้งหมด</button>
+        <p class="note">**ข้อควรระวัง: ต้องป้อนค่าที่ต้องการคำนวณเป็น 0 หรือเว้นว่างไว้ และป้อนค่าอื่นๆ ให้ครบถ้วน**</p>
+    </div>
+
+    <script>
+        /* JavaScript Code */
+        function getValue(id) {
+            const inputElement = document.getElementById(id);
+            const value = parseFloat(inputElement.value);
+            return isNaN(value) ? 0 : value;
+        }
+
+        function setResult(id, value) {
+            document.getElementById(`result-${id}`).textContent = value !== null ? `: ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+        }
+
+        function clearAllResults() {
+            document.getElementById('result-pv').textContent = '';
+            document.getElementById('result-payment').textContent = '';
+            document.getElementById('result-fv').textContent = '';
+            document.getElementById('result-interest').textContent = '';
+            document.getElementById('result-period').textContent = '';
+        }
+
+        function calculate(target) {
+            clearAllResults();
+
+            let pv = getValue('pv');
+            let pmt = getValue('payment');
+            let fv = getValue('fv');
+            let i = getValue('interest') / 100;
+            let n = getValue('period');
+
+            let calculatedValue = null;
+
+            // Count how many of the 5 variables are non-zero (or explicitly 0 for the one to be calculated)
+            // We need 4 known variables to calculate the 5th
+            const values = [pv, pmt, fv, i, n];
+            let knownCount = 0;
+            for (let j = 0; j < values.length; j++) {
+                if (j === 0 && target === 'pv' && values[j] === 0) continue; // PV is the target, it's 0, so it's unknown
+                if (j === 1 && target === 'payment' && values[j] === 0) continue; // PMT is the target, it's 0, so it's unknown
+                if (j === 2 && target === 'fv' && values[j] === 0) continue; // FV is the target, it's 0, so it's unknown
+                if (j === 3 && target === 'interest' && values[j] === 0) continue; // Interest is the target, it's 0, so it's unknown
+                if (j === 4 && target === 'period' && values[j] === 0) continue; // Period is the target, it's 0, so it's unknown
+
+                // If the value is non-zero, or it's not the target and is 0 (meaning it's a known 0)
+                if (values[j] !== 0 || (values[j] === 0 && 
+                    ((target === 'pv' && j !== 0) || 
+                     (target === 'payment' && j !== 1) || 
+                     (target === 'fv' && j !== 2) || 
+                     (target === 'interest' && j !== 3) || 
+                     (target === 'period' && j !== 4)))) {
+                    knownCount++;
+                }
+            }
+            
+            // Adjust knownCount based on the target variable being 0 or empty (which implies it's the unknown)
+            // If the target variable itself is currently 0, we don't count it as a known variable
+            if (target === 'pv' && pv === 0) knownCount--;
+            if (target === 'payment' && pmt === 0) knownCount--;
+            if (target === 'fv' && fv === 0) knownCount--;
+            if (target === 'interest' && i === 0) knownCount--;
+            if (target === 'period' && n === 0) knownCount--;
+
+            if (knownCount < 4) {
+                alert("กรุณาป้อนค่าอย่างน้อย 4 ตัวแปร และเว้นว่างหรือป้อนค่า 0 ในช่องที่ต้องการคำนวณ");
+                return;
+            }
+
+
+            try {
+                switch (target) {
+                    case 'pv':
+                        if (n === 0) { // If period is 0, PV = FV (no time for interest or payments to accrue)
+                            calculatedValue = -fv;
+                        } else if (i === 0) { // If interest is 0, simple calculation
+                            calculatedValue = fv - (pmt * n);
+                        } else {
+                            // PV of FV + PV of Annuity
+                            const pv_fv = fv / Math.pow(1 + i, n);
+                            const pv_annuity = pmt * (1 - Math.pow(1 + i, -n)) / i;
+                            calculatedValue = -(pv_fv + pv_annuity);
+                        }
+                        setResult('pv', calculatedValue);
+                        break;
+
+                    case 'payment':
+                        if (n === 0) {
+                            calculatedValue = 0; // No payments if no periods
+                        } else if (i === 0) { // Simple calculation if interest is 0
+                            calculatedValue = (fv - pv) / n;
+                        } else {
+                            // PMT using a financial calculator formula (assuming end-of-period payments)
+                            const numerator = (pv * i) + (fv * i / (Math.pow(1 + i, n) - 1));
+                            const denominator = (1 - Math.pow(1 + i, -n));
+                            calculatedValue = -(numerator / denominator);
+                        }
+                        setResult('payment', calculatedValue);
+                        break;
+
+                    case 'fv':
+                        if (n === 0) { // If period is 0, FV = PV
+                            calculatedValue = -pv;
+                        } else if (i === 0) { // Simple calculation if interest is 0
+                            calculatedValue = pv + (pmt * n);
+                        } else {
+                            // FV of PV + FV of Annuity
+                            const fv_pv = pv * Math.pow(1 + i, n);
+                            const fv_annuity = pmt * (Math.pow(1 + i, n) - 1) / i;
+                            calculatedValue = -(fv_pv + fv_annuity);
+                        }
+                        setResult('fv', calculatedValue);
+                        break;
+
+                    case 'interest':
+                        // Iterative method (Newton-Raphson is common for financial functions)
+                        // This is a simplified iterative approach. More robust solutions are complex.
+                        // Let's use a simple binary search like approach for demonstration
+                        let low = 0.0001; // 0.01%
+                        let high = 5.0; // 500%
+                        let iterations = 1000;
+                        let guess = 0;
+                        let found = false;
+
+                        for (let k = 0; k < iterations; k++) {
+                            guess = (low + high) / 2;
+                            if (guess === 0) { // Avoid division by zero
+                                low = 0.0001; // Adjust low to avoid 0
+                                continue;
+                            }
+                            
+                            // Calculate hypothetical FV based on current guess 'guess'
+                            // FV = PV * (1 + i)^n + PMT * [(1 + i)^n - 1] / i
+                            const test_fv_pv = pv * Math.pow(1 + guess, n);
+                            const test_fv_annuity = pmt * (Math.pow(1 + guess, n) - 1) / guess;
+                            const current_fv = -(test_fv_pv + test_fv_annuity); // Negate for comparison consistency
+
+                            if (Math.abs(current_fv - fv) < 0.01) { // Check if guess is close enough
+                                calculatedValue = guess * 100;
+                                found = true;
+                                break;
+                            }
+                            if (current_fv < fv) { // If calculated FV is too low, interest is too high
+                                high = guess;
+                            } else { // If calculated FV is too high, interest is too low
+                                low = guess;
+                            }
+                        }
+
+                        if (found) {
+                            setResult('interest', calculatedValue);
+                        } else {
+                            alert("ไม่สามารถคำนวณอัตราดอกเบี้ยได้ด้วยข้อมูลที่มี หรือต้องใช้วิธีการคำนวณที่ซับซ้อนกว่านี้");
+                            setResult('interest', 'N/A');
+                        }
+                        break;
+
+
+                    case 'period':
+                        if (i === 0) {
+                            if (pmt !== 0) {
+                                calculatedValue = (fv - pv) / pmt;
+                            } else {
+                                calculatedValue = 0; // Cannot determine period if no payments and no interest
+                            }
+                        } else {
+                            // N for FV of single amount: n = log(FV/PV) / log(1 + i)
+                            // N for FV of annuity: n = log(1 + (FV * i) / PMT) / log(1 + i)
+                            // When all are present, it's more complex.
+                            // General formula for N for Ordinary Annuity with PV and FV:
+                            // n = log((FV * i + PMT) / (PV * i + PMT)) / log(1 + i)
+                            
+                            // Ensure PV and FV have opposite signs for typical loan/investment scenario
+                            if (pv > 0 && fv > 0 && pmt >= 0) { // All positive values might imply outflow PV and FV, no PMT inflow to reduce period
+                                // This case might require different logic or signify an error in input signs
+                                alert("การป้อนค่า PV และ FV เป็นบวกพร้อมกัน อาจทำให้การคำนวณจำนวนงวดผิดพลาด");
+                                calculatedValue = 'N/A';
+                            } else {
+                                const term1 = (fv * i) + pmt;
+                                const term2 = (pv * i) + pmt;
+                                if (term1 <= 0 || term2 <= 0 || (1 + i) <= 0) {
+                                     alert("เกิดข้อผิดพลาดในการคำนวณจำนวนงวด: ค่าภายใน Logarithm ไม่ถูกต้อง");
+                                     calculatedValue = 'N/A';
+                                } else {
+                                     calculatedValue = Math.log(term1 / term2) / Math.log(1 + i);
+                                }
+                            }
+                        }
+                        setResult('period', calculatedValue);
+                        break;
+
+                    default:
+                        break;
+                }
+            } catch (error) {
+                console.error("Error during calculation:", error);
+                alert("เกิดข้อผิดพลาดในการคำนวณ กรุณาตรวจสอบข้อมูลและดูข้อความใน Console (F12)");
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('pv').value = '';
+            document.getElementById('payment').value = '';
+            document.getElementById('fv').value = '';
+            document.getElementById('interest').value = '';
+            document.getElementById('period').value = '';
+            clearAllResults();
+        }
+    </script>
+</body>
+</html>
