@@ -105,7 +105,7 @@
     <div class="container">
         <h1>เครื่องคำนวณ Time Value of Money (TVM) รายเดือน</h1>
         <div class="warn">
-            ⚠️ หมายเหตุ: PMT (เงินจ่ายต่อเดือน) ปกติให้ใส่เป็น "ค่าติดลบ" เช่น -1000 ถ้าเป็นเงินจ่ายออก, PV (เงินต้น) ให้ใส่ค่าบวกเมื่อรับเงิน, FV เป็นค่าที่ต้องการในอนาคต (บวก/ลบก็ได้)
+            ⚠️ หมายเหตุ: PMT (เงินจ่ายต่อเดือน) ปกติให้ใส่เป็น "ค่าติดลบ" เช่น -800 ถ้าเป็นเงินจ่ายออก, PV (เงินต้น) ให้ใส่ค่าบวกเมื่อรับเงิน, FV เป็นค่าที่ต้องการในอนาคต (บวก/ลบก็ได้)
         </div>
         <div class="input-group">
             <label for="pv">Present Value (PV):</label>
@@ -156,7 +156,8 @@
         function setResult(id, value, isPeriod = false) {
             const inputElement = document.getElementById(id);
             if (value !== null && !isNaN(value)) {
-                // ปัด N เป็นจำนวนเต็มถ้าเป็น period
+                // ถ้า FV = -0 ให้เป็น 0
+                if (Math.abs(value) < 1e-8) value = 0;
                 if (isPeriod) value = Math.ceil(value);
                 tvmValues[id] = value;
                 inputElement.value = value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -237,8 +238,9 @@
                         } else {
                             const fv_pv = pv * Math.pow(1 + i_monthly, n);
                             const fv_annuity = pmt * (Math.pow(1 + i_monthly, n) - 1) / i_monthly;
-                            calculatedValue = fv_pv + fv_annuity; // FIXED: no negative sign!
+                            calculatedValue = fv_pv + fv_annuity; // <-- FIXED
                         }
+                        if (Math.abs(calculatedValue) < 1e-8) calculatedValue = 0;
                         setResult('fv', calculatedValue);
                         break;
                     case 'interest':
@@ -271,7 +273,7 @@
                             } else {
                                 low = guess_monthly;
                             }
-                            if (Math.abs(high - low) < 1e-7) break; // convergence quick exit
+                            if (Math.abs(high - low) < 1e-7) break;
                         }
                         if (found) {
                             setResult('interest', calculatedValue);
@@ -289,7 +291,6 @@
                                 calculatedValue = NaN;
                             }
                         } else {
-                            // robust: PV, FV, PMT ต้องสัมพันธ์
                             const term1 = (fv * i_monthly) + pmt;
                             const term2 = (pv * i_monthly) + pmt;
                             if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
@@ -299,7 +300,7 @@
                                  calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
                             }
                         }
-                        setResult('period', calculatedValue, true); // true = ปัดเป็น int
+                        setResult('period', calculatedValue, true);
                         break;
                     default:
                         break;
