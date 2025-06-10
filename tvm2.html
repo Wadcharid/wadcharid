@@ -77,92 +77,112 @@
       return parts.join('.');
     }
     function unformat(val) {
-      return val.toString().replace(/,/g,'');
+      return val.toString().replace(/,/g, '');
     }
 
     function getInputs() {
       const freq = parseInt(document.getElementById('freq').value);
-      const pctAnnual = (parseFloat(document.getElementById('pct').value)/100)||0;
-      const g = pctAnnual/freq;
+      const pctAnnual = (parseFloat(document.getElementById('pct').value)/100) || 0;
+      const g = pctAnnual / freq;
       return {
-        pv:    parseFloat(unformat(document.getElementById('pv').value))||0,
-        pmt:   parseFloat(unformat(document.getElementById('pmt').value))||0,
+        pv:    parseFloat(unformat(document.getElementById('pv').value)) || 0,
+        pmt:   parseFloat(unformat(document.getElementById('pmt').value)) || 0,
         pct:   g,
-        fv:    parseFloat(unformat(document.getElementById('fv').value))||0,
-        rateA: (parseFloat(document.getElementById('rate').value)/100)||0,
-        nper:  parseFloat(unformat(document.getElementById('nper').value))||0,
+        fv:    parseFloat(unformat(document.getElementById('fv').value)) || 0,
+        rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,
+        nper:  parseFloat(unformat(document.getElementById('nper').value)) || 0,
         freq:  freq,
         type:  +document.querySelector('input[name="type"]:checked').value
       };
     }
 
+    // เก็บสูตร growing annuity
     function fvCalc(r,n,pmt0,g,type,pv) {
-      if(n<=0) return -pv;
-      if(Math.abs(r-g)<1e-8) return -(pv*Math.pow(1+r,n)+pmt0*(1+r*type)*n*Math.pow(1+r,n-1));
-      const ann = pmt0*(1+r*type)*((Math.pow(1+r,n)-Math.pow(1+g,n))/(r-g));
-      return -(pv*Math.pow(1+r,n)+ann);
+      if (n <= 0) return -pv;
+      if (Math.abs(r - g) < 1e-8) {
+        return -(pv * Math.pow(1+r,n) + pmt0 * (1+r*type) * n * Math.pow(1+r,n-1));
+      }
+      const ann = pmt0 * (1+r*type) * ((Math.pow(1+r,n) - Math.pow(1+g,n)) / (r - g));
+      return -(pv * Math.pow(1+r,n) + ann);
     }
+
     function pvCalc(r,n,pmt0,g,type,fv) {
-      if(n<=0) return -fv;
-      if(Math.abs(r-g)<1e-8) return -(fv+pmt0*(1+r*type)*n)/Math.pow(1+r,n);
-      const ann = pmt0*(1+r*type)*((1-Math.pow((1+g)/(1+r),n))/(r-g));
-      return -(fv+ann)/Math.pow(1+r,n);
+      if (n <= 0) return -fv;
+      if (Math.abs(r - g) < 1e-8) {
+        return -(fv + pmt0 * (1+r*type) * n) / Math.pow(1+r,n);
+      }
+      const ann = pmt0 * (1+r*type) * ((1 - Math.pow((1+g)/(1+r),n)) / (r - g));
+      return -(fv + ann) / Math.pow(1+r,n);
     }
+
     function pmtCalc(r,n,pv,fv,g,type) {
-      if(n<=0) return 0;
-      if(Math.abs(r-g)<1e-8) return -(pv*Math.pow(1+r,n)+fv)/((1+r*type)*n*Math.pow(1+r,n-1));
-      const denom = (1+r*type)*((Math.pow(1+r,n)-Math.pow(1+g,n))/(r-g));
-      return -(pv*Math.pow(1+r,n)+fv)/denom;
+      if (n <= 0) return 0;
+      if (Math.abs(r - g) < 1e-8) {
+        return -(pv * Math.pow(1+r,n) + fv) / ((1+r*type) * n * Math.pow(1+r,n-1));
+      }
+      const denom = (1+r*type) * ((Math.pow(1+r,n) - Math.pow(1+g,n)) / (r - g));
+      return -(pv * Math.pow(1+r,n) + fv) / denom;
     }
 
     function calcFV() {
       const {pv,pmt,pct,fv,rateA,nper,freq,type} = getInputs();
-      const res = fvCalc(rateA/freq,nper,pmt,pct,type,pv);
+      const res = fvCalc(rateA/freq, nper, pmt, pct, type, pv);
       document.getElementById('fv').value = formatNum(res.toFixed(2));
     }
     function calcPV() {
       const {pv,pmt,pct,fv,rateA,nper,freq,type} = getInputs();
-      const res = pvCalc(rateA/freq,nper,pmt,pct,type,fv);
+      const res = pvCalc(rateA/freq, nper, pmt, pct, type, fv);
       document.getElementById('pv').value = formatNum(res.toFixed(2));
     }
     function calcPMT() {
       const {pv,pct,fv,rateA,nper,freq,type} = getInputs();
-      const res = pmtCalc(rateA/freq,nper,pv,fv,pct,type);
+      const res = pmtCalc(rateA/freq, nper, pv, fv, pct, type);
       document.getElementById('pmt').value = formatNum(res.toFixed(2));
     }
     function calcNper() {
-      document.getElementById('nper').value = 'NaN';
+      const {pv,pmt,pct,fv,rateA,freq,type} = getInputs();
+      const r = rateA / freq;
+      const g = pct;
+      let low = 0, high = 1000, mid, fmid;
+      for (let i=0; i<100; i++) {
+        mid = (low + high) / 2;
+        fmid = fvCalc(r, mid, pmt, g, type, pv) - fv;
+        if (fmid > 0) low = mid; else high = mid;
+      }
+      document.getElementById('nper').value = Math.round(mid);
     }
+
     function calcRate() {
       const {pv,pmt,pct,fv,nper,freq,type} = getInputs();
       let r = 0.01;
-      for(let i=0;i<100;i++){
-        const f = fvCalc(r,nper,pmt,pct,type,pv)-fv;
+      for (let i=0; i<100; i++) {
+        const f = fvCalc(r, nper, pmt, pct, type, pv) - fv;
         const dr = 1e-6;
-        const df = (fvCalc(r+dr,nper,pmt,pct,type,pv)-fvCalc(r-dr,nper,pmt,pct,type,pv))/(2*dr);
+        const df = (fvCalc(r+dr, nper, pmt, pct, type, pv) - fvCalc(r-dr, nper, pmt, pct, type, pv)) / (2*dr);
         const nr = r - f/df;
-        if(Math.abs(nr-r)<1e-8){r=nr;break;} r=nr;
+        if (Math.abs(nr-r) < 1e-8) { r = nr; break; }
+        r = nr;
       }
-      document.getElementById('rate').value = (r*freq*100).toFixed(4);
+      document.getElementById('rate').value = (r * freq * 100).toFixed(4);
     }
 
-    ['pv','pmt','fv','nper'].forEach(id=>{
-      const el=document.getElementById(id);
-      el.addEventListener('input',e=>{
-        const pos=el.selectionEnd;
-        const raw=unformat(el.value);
-        if(raw==='')return;
-        const fmt=formatNum(raw);
-        el.value=fmt;
-        const newPos=fmt.length-(raw.length-pos);
-        el.setSelectionRange(newPos,newPos);
+    ['pv','pmt','fv','nper'].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', e => {
+        const pos = el.selectionEnd;
+        const raw = unformat(el.value);
+        if (raw === '') return;
+        const fmt = formatNum(raw);
+        el.value = fmt;
+        const newPos = fmt.length - (raw.length - pos);
+        el.setSelectionRange(newPos, newPos);
       });
     });
 
-    function resetForm(){
-      ['pv','pmt','pct','fv','rate','nper'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('freq').value='12';
-      document.querySelector('input[name="type"][value="0"]').checked=true;
+    function resetForm() {
+      ['pv','pmt','pct','fv','rate','nper'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('freq').value = '12';
+      document.querySelector('input[name="type"][value="0"]').checked = true;
     }
   </script>
 </body>
