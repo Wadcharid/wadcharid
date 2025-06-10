@@ -72,8 +72,10 @@
 
   <script>
     // ฟอร์แมตตัวเลข
-    function formatNum(n) {
-      return (n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    function formatNum(val) {
+      const parts = val.toString().split('.');
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return parts.join('.');
     }
     function unformat(val) {
       return val.toString().replace(/,/g, '');
@@ -143,11 +145,18 @@
       document.getElementById('rate').value = document.getElementById('rate').value;
     }
 
-    // ฟอร์แมตเมื่อออกจากช่องกรอก
+    // ฟอร์แมต comma ขณะพิมพ์
     ['pv','pmt','fv','nper'].forEach(id => {
-      document.getElementById(id).addEventListener('blur', e => {
-        const v = unformat(e.target.value);
-        if (!isNaN(v) && v!=='') e.target.value = formatNum(parseFloat(v).toFixed(2));
+      const el = document.getElementById(id);
+      el.addEventListener('input', e => {
+        const pos = el.selectionEnd;
+        const raw = unformat(el.value);
+        if (raw === '') return;
+        const formatted = formatNum(raw);
+        el.value = formatted;
+        // ปรับ cursor ให้คงตำแหน่ง
+        const newPos = formatted.length - (raw.length - pos);
+        el.setSelectionRange(newPos, newPos);
       });
     });
 
