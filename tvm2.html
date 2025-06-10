@@ -131,14 +131,19 @@
       return p0;
     }
 
-    function renderSchedule(r,g,pmt0,nper) {
+    function renderSchedule(r, g, pmt0, nper, type) {
       const cont = document.getElementById('schedule');
       let html = '<table class="schedule"><tr><th>งวด</th><th>Payment</th><th>PV</th></tr>';
       for (let i = 1; i <= nper; i++) {
         const pay = pmt0 * Math.pow(1+g, i-1);
-        const pv = pay / Math.pow(1+r, i);
+        // account for beginning/end mode: discount exponent
+        const expo = type ? (i - 1) : i;
+        const pv = pay / Math.pow(1+r, expo);
         html += `<tr><td>${i}</td><td>${formatNum(pay.toFixed(2))}</td><td>${formatNum(pv.toFixed(2))}</td></tr>`;
       }
+      html += '</table>';
+      cont.innerHTML = html;
+    }
       html += '</table>';
       cont.innerHTML = html;
     }
