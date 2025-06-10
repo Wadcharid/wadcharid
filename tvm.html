@@ -51,8 +51,18 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 16px;
-            width: 150px;
+            width: 150px; /* Adjusted width as result is now in input */
+            text-align: right; /* Align text to right for numbers */
+            color: #28a745; /* Green color for calculated results */
+            font-weight: bold;
         }
+        
+        /* Style for non-calculated fields (optional: to differentiate input vs output) */
+        .input-group input:not([data-calculated="true"]) {
+            color: #333; /* Default text color for manual input */
+            font-weight: normal;
+        }
+
 
         .input-group button {
             padding: 10px 15px;
@@ -69,14 +79,8 @@
         .input-group button:hover {
             background-color: #0056b3;
         }
-
-        .result {
-            margin-left: 15px;
-            font-weight: bold;
-            color: #28a745;
-            min-width: 100px;
-            text-align: left;
-        }
+        
+        /* Removed .result class as it's no longer used */
 
         .clear-button {
             margin-top: 20px;
@@ -108,36 +112,31 @@
             <label for="pv">Present Value (PV):</label>
             <input type="number" id="pv" step="any" placeholder="ป้อนค่า PV">
             <button onclick="calculate('pv')">คำนวณ PV</button>
-            <span id="result-pv" class="result"></span>
-        </div>
+            </div>
 
         <div class="input-group">
             <label for="payment">Monthly Payment (PMT):</label>
             <input type="number" id="payment" step="any" placeholder="ป้อนค่า PMT ต่อเดือน">
             <button onclick="calculate('payment')">คำนวณ PMT</button>
-            <span id="result-payment" class="result"></span>
-        </div>
+            </div>
 
         <div class="input-group">
             <label for="fv">Future Value (FV):</label>
             <input type="number" id="fv" step="any" placeholder="ป้อนค่า FV">
             <button onclick="calculate('fv')">คำนวณ FV</button>
-            <span id="result-fv" class="result"></span>
-        </div>
+            </div>
 
         <div class="input-group">
             <label for="interest">Annual Interest (%):</label>
             <input type="number" id="interest" step="any" placeholder="ป้อนค่าดอกเบี้ยต่อปี (%)">
             <button onclick="calculate('interest')">คำนวณ % ดอกเบี้ย</button>
-            <span id="result-interest" class="result"></span>
-        </div>
+            </div>
 
         <div class="input-group">
             <label for="period">Number of Months (N):</label>
             <input type="number" id="period" step="any" placeholder="ป้อนจำนวนเดือน">
             <button onclick="calculate('period')">คำนวณ N</button>
-            <span id="result-period" class="result"></span>
-        </div>
+            </div>
 
         <button class="clear-button" onclick="clearAll()">ล้างข้อมูลทั้งหมด</button>
         <p class="note">**ข้อควรระวัง: ต้องป้อนค่าที่ต้องการคำนวณเป็น 0 หรือเว้นว่างไว้ และป้อนค่าอื่นๆ ให้ครบถ้วน**</p>
@@ -151,20 +150,28 @@
             return isNaN(value) ? 0 : value;
         }
 
+        // Modified setResult to update input value
         function setResult(id, value) {
-            document.getElementById(`result-${id}`).textContent = value !== null ? `: ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
+            const inputElement = document.getElementById(id);
+            if (value !== null && !isNaN(value)) {
+                inputElement.value = value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                inputElement.setAttribute('data-calculated', 'true'); // Mark as calculated
+            } else {
+                inputElement.value = '';
+                inputElement.removeAttribute('data-calculated');
+            }
         }
 
         function clearAllResults() {
-            document.getElementById('result-pv').textContent = '';
-            document.getElementById('result-payment').textContent = '';
-            document.getElementById('result-fv').textContent = '';
-            document.getElementById('result-interest').textContent = '';
-            document.getElementById('result-period').textContent = '';
+            // No longer need to clear span elements
+            // The clearAll function handles clearing input fields
         }
 
         function calculate(target) {
-            clearAllResults();
+            // No need to clear all results spans, as we directly write to input now
+            // But we should clear the target input field's "calculated" state if it was there
+            document.getElementById(target).removeAttribute('data-calculated');
+
 
             let pv = getValue('pv');
             let pmt = getValue('payment');
@@ -177,41 +184,7 @@
 
             let calculatedValue = null;
 
-            // --- IMPROVED Logic for counting known variables ---
-            const allInputs = {
-                'pv': pv,
-                'payment': pmt,
-                'fv': fv,
-                'interest': i_annual,
-                'period': n
-            };
-
-            let knownCount = 0;
-            for (const key in allInputs) {
-                if (key !== target) { // Only count fields that are NOT the target
-                    // A field is "known" if it has a non-zero value, OR if it's explicitly zero (and not the target)
-                    // The problem comes if the input field for the target is also 0,
-                    // but we still want to count the others.
-                    // The simplest is to ensure the other 4 fields have *some* value (0 or non-zero)
-                    
-                    // We treat 0 as a valid input value here for a known variable.
-                    // If a field is empty, getValue returns 0, so it becomes a "known 0" for this purpose.
-                    // This implies the user *intended* it to be 0 if they left it empty.
-                    // The only "unknown" should be the 'target' variable.
-                    knownCount++; 
-                }
-            }
-
-            if (knownCount < 4) { // After excluding the target, we should have 4 remaining.
-                                  // If any of those 4 are truly empty/NaN (not 0), this condition means an error.
-                                  // However, `getValue` converts empty to 0.
-                                  // So, this check should only happen if the target logic is off.
-                alert("เกิดข้อผิดพลาดในการตรวจสอบจำนวนตัวแปร กรุณาลองใหม่.");
-                return;
-            }
-            // Let's refine the check: ensure all *other* fields are actually filled.
-            // If the target field is the one we want to calculate, its current value can be 0 or empty.
-            // The other 4 fields must be explicitly filled.
+            // --- Logic for counting known variables ---
             let filledOtherFields = 0;
             if (target !== 'pv' && document.getElementById('pv').value !== '') filledOtherFields++;
             if (target !== 'payment' && document.getElementById('payment').value !== '') filledOtherFields++;
@@ -223,7 +196,7 @@
                 alert("กรุณาป้อนค่าในช่องที่ไม่ใช่เป้าหมายที่จะคำนวณให้ครบ 4 ช่อง (ไม่เว้นว่าง)");
                 return;
             }
-            // --- END of IMPROVED Logic for counting known variables ---
+            // --- END of Logic for counting known variables ---
 
             try {
                 switch (target) {
@@ -246,46 +219,11 @@
                         } else if (i_monthly === 0) {
                             calculatedValue = (fv - pv) / n;
                         } else {
-                            // Corrected PMT formula
-                            // PMT = - (i * PV + i * FV / ((1 + i)^n - 1)) / (1 - (1 + i)^(-n))
-                            // Or, more standardly for loans: PMT = (PV * i) / (1 - (1 + i)^-n) - (FV * i) / ((1 + i)^n - 1)
-                            // Let's use a robust formula that works for both PV and FV
-                            
-                            // Solve for PMT from FV = PV*(1+i)^n + PMT * [((1+i)^n - 1) / i]
-                            // PMT * [((1+i)^n - 1) / i] = FV - PV*(1+i)^n
-                            // PMT = (FV - PV*(1+i)^n) * i / ((1+i)^n - 1)
-
-                            // Let's consider the signs: if PV is outflow (-), FV is inflow (+), PMT is outflow (-).
-                            // Assume PV is positive for principal, FV is positive for target.
-                            // If PV is 0 and FV is 1M, PMT should be positive (saving to reach FV)
-                            // If FV is 0 and PV is 1M, PMT should be negative (paying off loan)
-
-                            if (Math.abs(Math.pow(1 + i_monthly, n) - 1) < 1e-9) { // Avoid division by zero if (1+i)^n - 1 is too small
-                                calculatedValue = 0; // Effectively no growth, so PMT might be 0 or error
+                            if (Math.abs(Math.pow(1 + i_monthly, n) - 1) < 1e-9) { 
+                                calculatedValue = 0; 
                             } else {
                                 calculatedValue = (fv - (pv * Math.pow(1 + i_monthly, n))) * i_monthly / (Math.pow(1 + i_monthly, n) - 1);
-                                // The sign convention is critical here.
-                                // If PV=0, FV=1M, i=7, n=360: PMT should be positive (money you put in)
-                                // My current formulas output PV, FV, PMT as negative for outflow.
-                                // For PMT to reach positive FV from PV=0, PMT should be positive.
-                                // Let's adjust the sign based on the common usage:
-                                // If you are calculating PMT to reach a Future Value (FV > 0) from PV=0, PMT should be positive (inflow for you).
-                                // If you are calculating PMT to pay off a Present Value (PV > 0), PMT should be negative (outflow for you).
-                                calculatedValue = -calculatedValue; // Standard convention: PMT is an outflow (e.g., loan payment)
-                                // If calculatedValue is positive (e.g. saving for FV), let's keep it positive.
-                                // So, if you're saving for FV, PMT should be positive. If you're paying off PV, PMT should be negative.
-                                // It might be simpler to let the financial convention handle the signs.
-                                // Most financial calculators: if PV is positive (money received), PMT is negative (money paid).
-                                // If FV is positive (money received), PMT is negative (money paid to get there).
-                                // The formula: PMT = (FV - PV * (1 + i)^n) * i / ((1 + i)^n - 1)
-                                // For PV=0, FV=1M, i=7, n=360: PMT = (1M - 0) * (0.07/12) / ((1 + 0.07/12)^360 - 1)
-                                // This would yield a positive PMT (money you put in).
-                                // If PV is a loan, say 1M, FV=0: PMT = (0 - 1M * (1+i)^n) * i / ((1+i)^n - 1)
-                                // This would yield a negative PMT.
-                                // Let's keep it as is, and the user must interpret signs.
-                                // If you want PMT to always be positive when "saving" and negative when "paying off"
-                                // you need to define more strict sign conventions for PV and FV.
-                                // For now, the formula will give you a result; interpret the sign based on context.
+                                calculatedValue = -calculatedValue; // Standard convention: PMT is an outflow
                             }
                         }
                         setResult('payment', calculatedValue);
@@ -305,11 +243,8 @@
                         break;
 
                     case 'interest':
-                        // Iterative method (Newton-Raphson is common for financial functions)
-                        // This is a simplified iterative approach. More robust solutions are complex.
-                        // Let's use a simple binary search like approach for demonstration
-                        let low = 0.00001; // 0.001% monthly
-                        let high = 0.5; // 50% monthly (enough for practical purposes)
+                        let low = 0.00001;
+                        let high = 0.5;
                         let iterations = 1000;
                         let guess_monthly = 0;
                         let found = false;
@@ -323,16 +258,16 @@
                             
                             const test_fv_pv = pv * Math.pow(1 + guess_monthly, n);
                             const test_fv_annuity = pmt * (Math.pow(1 + guess_monthly, n) - 1) / guess_monthly;
-                            const current_fv = -(test_fv_pv + test_fv_annuity); // Negate for consistency
+                            const current_fv = -(test_fv_pv + test_fv_annuity);
 
-                            if (Math.abs(current_fv - fv) < 0.01) { // Check if guess is close enough
-                                calculatedValue = guess_monthly * 12 * 100; // Convert back to annual percentage
+                            if (Math.abs(current_fv - fv) < 0.01) { 
+                                calculatedValue = guess_monthly * 12 * 100;
                                 found = true;
                                 break;
                             }
-                            if (current_fv < fv) { // If calculated FV is too low, interest is too high
+                            if (current_fv < fv) { 
                                 high = guess_monthly;
-                            } else { // If calculated FV is too high, interest is too low
+                            } else { 
                                 low = guess_monthly;
                             }
                         }
@@ -341,7 +276,7 @@
                             setResult('interest', calculatedValue);
                         } else {
                             alert("ไม่สามารถคำนวณอัตราดอกเบี้ยได้ด้วยข้อมูลที่มี หรือต้องใช้วิธีการคำนวณที่ซับซ้อนกว่านี้");
-                            setResult('interest', 'N/A');
+                            setResult('interest', 'N/A'); // Or set to empty string ""
                         }
                         break;
 
@@ -353,13 +288,11 @@
                                 calculatedValue = 0;
                             }
                         } else {
-                            // Ensure PV and FV have opposite signs for typical loan/investment scenario
-                            // Simplified for calculation
                             const term1 = (fv * i_monthly) + pmt;
                             const term2 = (pv * i_monthly) + pmt;
                             if (term1 <= 0 || term2 <= 0 || (1 + i_monthly) <= 0) {
                                  alert("เกิดข้อผิดพลาดในการคำนวณจำนวนงวด: ค่าภายใน Logarithm ไม่ถูกต้อง (อาจเกิดจากค่า PV, FV, PMT, i_monthly ที่ไม่สอดคล้องกัน)");
-                                 calculatedValue = 'N/A';
+                                 calculatedValue = 'N/A'; // Or set to empty string ""
                             } else {
                                  calculatedValue = Math.log(term1 / term2) / Math.log(1 + i_monthly);
                             }
@@ -378,11 +311,16 @@
 
         function clearAll() {
             document.getElementById('pv').value = '';
+            document.getElementById('pv').removeAttribute('data-calculated');
             document.getElementById('payment').value = '';
+            document.getElementById('payment').removeAttribute('data-calculated');
             document.getElementById('fv').value = '';
+            document.getElementById('fv').removeAttribute('data-calculated');
             document.getElementById('interest').value = '';
+            document.getElementById('interest').removeAttribute('data-calculated');
             document.getElementById('period').value = '';
-            clearAllResults();
+            document.getElementById('period').removeAttribute('data-calculated');
+            // No need for clearAllResults() as it was for spans
         }
     </script>
 </body>
