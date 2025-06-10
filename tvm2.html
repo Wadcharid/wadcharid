@@ -28,51 +28,15 @@
     <label><input type="radio" name="type" value="1"> Beginning</label>
   </div>
   <table class="form">
-    <tr>
-      <td>Present Value</td>
-      <td><input id="pv" type="text" placeholder="PV"></td>
-      <td><button class="calc-btn" onclick="calcPV()">PV</button></td>
-    </tr>
-    <tr>
-      <td>Payments</td>
-      <td><input id="pmt" type="text" placeholder="PMT"></td>
-      <td><button class="calc-btn" onclick="calcPMT()">PMT</button></td>
-    </tr>
-    <tr>
-      <td>% Payment Growth (ต่อปี)</td>
-      <td><input id="pct" type="text" placeholder="%Payment"></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>Future Value</td>
-      <td><input id="fv" type="text" placeholder="FV"></td>
-      <td><button class="calc-btn" onclick="calcFV()">FV</button></td>
-    </tr>
-    <tr>
-      <td>Annual Rate (%)</td>
-      <td><input id="rate" type="text" placeholder="Rate"></td>
-      <td><button class="calc-btn" onclick="calcRate()">Rate</button></td>
-    </tr>
-    <tr>
-      <td>Periods</td>
-      <td><input id="nper" type="text" placeholder="Periods"></td>
-      <td><button class="calc-btn" onclick="calcNper()">Periods</button></td>
-    </tr>
-    <tr>
-      <td>Compounding</td>
-      <td colspan="2">
-        <select id="freq">
-          <option value="1">Annual</option>
-          <option value="2">Semi-annual</option>
-          <option value="4">Quarterly</option>
-          <option value="12" selected>Monthly</option>
-        </select>
-      </td>
-    </tr>
+    <tr><td>Present Value</td><td><input id="pv" type="text" placeholder="PV"></td><td><button class="calc-btn" onclick="calcPV()">PV</button></td></tr>
+    <tr><td>Payments</td><td><input id="pmt" type="text" placeholder="PMT"></td><td><button class="calc-btn" onclick="calcPMT()">PMT</button></td></tr>
+    <tr><td>% Payment Growth (ต่อปี)</td><td><input id="pct" type="text" placeholder="%Payment"></td><td></td></tr>
+    <tr><td>Future Value</td><td><input id="fv" type="text" placeholder="FV"></td><td><button class="calc-btn" onclick="calcFV()">FV</button></td></tr>
+    <tr><td>Annual Rate (%)</td><td><input id="rate" type="text" placeholder="Rate"></td><td><button class="calc-btn" onclick="calcRate()">Rate</button></td></tr>
+    <tr><td>Periods</td><td><input id="nper" type="text" placeholder="Periods"></td><td><button class="calc-btn" onclick="calcNper()">Periods</button></td></tr>
+    <tr><td>Compounding</td><td colspan="2"><select id="freq"><option value="1">Annual</option><option value="2">Semi-annual</option><option value="4">Quarterly</option><option value="12" selected>Monthly</option></select></td></tr>
   </table>
-  <div class="actions">
-    <button id="reset" onclick="resetForm()">Reset</button>
-  </div>
+  <div class="actions"><button id="reset" onclick="resetForm()">Reset</button></div>
   <div id="schedule"></div>
 
   <script>
@@ -88,10 +52,10 @@
       const pctAnnual = (parseFloat(document.getElementById('pct').value)/100) || 0;
       const g = pctAnnual / freq;
       return {
-        pv:    parseFloat(unformat(document.getElementById('pv').value)) || 0,
+        pv0:   parseFloat(unformat(document.getElementById('pv').value)) || 0,
         pmt0:  parseFloat(unformat(document.getElementById('pmt').value)) || 0,
         pct:   g,
-        fv:    parseFloat(unformat(document.getElementById('fv').value)) || 0,
+        fv0:   parseFloat(unformat(document.getElementById('fv').value)) || 0,
         rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,
         nper:  parseInt(unformat(document.getElementById('nper').value)) || 0,
         freq:  freq,
@@ -99,87 +63,117 @@
       };
     }
 
-    // FV of growing annuity + PV itself
-    function fvCalc(r,n,pmt0,g,type,pv) {
-      if (n <= 0) return -pv;
-      if (Math.abs(r - g) < 1e-8) {
-        return -(pv * Math.pow(1+r,n) + pmt0 * (1+r*type) * n * Math.pow(1+r,n-1));
+    // simulate balance for FV
+    function fvTotal(r,n,pmt0,g,type,pv0) {
+      let bal = pv0;
+      for (let i=1; i<=n; i++) {
+        const pay = pmt0 * Math.pow(1+g, i-1);
+        if (type) bal += pay;
+        bal *= (1 + r);
+        if (!type) bal += pay;
       }
-      const ann = pmt0 * (1+r*type) * ((Math.pow(1+r,n) - Math.pow(1+g,n)) / (r - g));
-      return -(pv * Math.pow(1+r,n) + ann);
+      return bal;
     }
 
-    // PV of growing annuity + FV
-    function pvCalc(r,n,pmt0,g,type,fv) {
-      // sum each payment PV + FV
+    // sum PV of payments + FV
+    function pvTotal(r,n,pmt0,g,type,fv0) {
       let sum = 0;
-      for (let i = 1; i <= n; i++) {
+      for (let i=1; i<=n; i++) {
         const pay = pmt0 * Math.pow(1+g, i-1) * (1 + r*type);
         sum += pay / Math.pow(1+r, i);
       }
-      sum += fv / Math.pow(1+r, n);
+      sum += fv0 / Math.pow(1+r, n);
       return -sum;
     }
 
+    // solve initial payment for growing annuity
     function pmtCalc(r,n,pv,fv,g,type) {
-      // initial payment solve by Newton is complex; keeping original for now
-      let p0 = 0;
-      // simple uniform annuity approx if g=0
-      if (Math.abs(g) < 1e-8) {
-        p0 = -(fv + pv * Math.pow(1+r,n)) * r / ((1+r*type)*(Math.pow(1+r,n)-1));
+      if (Math.abs(r-g) < 1e-8) {
+        return -(fv + pv*Math.pow(1+r,n)) / ((1+r*type)*n*Math.pow(1+r,n-1));
       }
-      return p0;
+      const denom = (1 + r*type)*((Math.pow(1+r,n) - Math.pow(1+g,n))/(r - g));
+      return -(fv + pv*Math.pow(1+r,n)) / denom;
     }
 
-    function renderSchedule(r, g, pmt0, nper, type) {
-      const cont = document.getElementById('schedule');
-      let html = '<table class="schedule"><tr><th>งวด</th><th>Payment</th><th>PV</th></tr>';
-      for (let i = 1; i <= nper; i++) {
+    function renderSchedule(r,g,pmt0,nper,type,balance0) {
+      let html = '<table class="schedule"><tr><th>งวด</th><th>Payment</th><th>Balance</th></tr>';
+      let bal = balance0;
+      for (let i=1; i<=nper; i++) {
         const pay = pmt0 * Math.pow(1+g, i-1);
-        // account for beginning/end mode: discount exponent
-        const expo = type ? (i - 1) : i;
-        const pv = pay / Math.pow(1+r, expo);
-        html += `<tr><td>${i}</td><td>${formatNum(pay.toFixed(2))}</td><td>${formatNum(pv.toFixed(2))}</td></tr>`;
+        html += `<tr><td>${i}</td><td>${formatNum(pay.toFixed(2))}</td><td>${formatNum(bal.toFixed(2))}</td></tr>`;
+        if (type) bal += pay;
+        bal *= (1 + r);
+        if (!type) bal += pay;
       }
-      html += '</table>';
-      cont.innerHTML = html;
-    }
-      html += '</table>';
-      cont.innerHTML = html;
+      document.getElementById('schedule').innerHTML = html + '</table>';
     }
 
     function calcPV() {
-      const {pmt0,pct,fv,rateA,nper,freq,type} = getInputs();
+      const {pv0,pmt0,pct,fv0,rateA,nper,freq,type} = getInputs();
       const r = rateA / freq;
-      const pv = pvCalc(r, nper, pmt0, pct, type, fv);
+      const pv = pvTotal(r,nper,pmt0,pct,type,fv0);
       document.getElementById('pv').value = formatNum(pv.toFixed(2));
-      renderSchedule(r, pct, pmt0, nper);
+      renderSchedule(r,pct,pmt0,nper,type,pv);
     }
-    function calcFV() { /* ... */ }
-    function calcPMT() { /* ... */ }
-    function calcNper() { /* ... */ }
-    function calcRate() { /* ... */ }
+
+    function calcFV() {
+      const {pv0,pmt0,pct,fv0,rateA,nper,freq,type} = getInputs();
+      const r = rateA / freq;
+      const fv = fvTotal(r,nper,pmt0,pct,type,pv0);
+      document.getElementById('fv').value = formatNum(fv.toFixed(2));
+    }
+
+    function calcPMT() {
+      const {pv0,pmt0,pct,fv0,rateA,nper,freq,type} = getInputs();
+      const r = rateA / freq;
+      const pmt = pmtCalc(r,nper,pv0,fv0,pct,type);
+      document.getElementById('pmt').value = formatNum(pmt.toFixed(2));
+    }
+
+    function calcNper() {
+      const {pv0,pmt0,pct,fv0,rateA,freq,type} = getInputs();
+      const r = rateA / freq;
+      const target = fv0;
+      let low=0, high=2000, mid;
+      for (let i=0; i<100; i++) {
+        mid = (low+high)/2;
+        const fmid = fvTotal(r,mid,pmt0,pct,type,pv0) - target;
+        if (fmid>0) low = mid; else high = mid;
+      }
+      document.getElementById('nper').value = Math.ceil(mid);
+    }
+
+    function calcRate() {
+      const {pv0,pmt0,pct,fv0,nper,freq,type} = getInputs();
+      let r = 0.01;
+      for (let i=0; i<100; i++) {
+        const f = fvTotal(r,nper,pmt0,pct,type,pv0) - fv0;
+        const dr = 1e-6;
+        const df = (fvTotal(r+dr,nper,pmt0,pct,type,pv0) - fvTotal(r-dr,nper,pmt0,pct,type,pv0))/(2*dr);
+        const nr = r - f/df;
+        if (Math.abs(nr-r)<1e-8) { r = nr; break; }
+        r = nr;
+      }
+      document.getElementById('rate').value = (r*freq*100).toFixed(4);
+    }
 
     ['pv','pmt','fv','nper'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('input', e => {
-        const pos = el.selectionEnd;
-        const raw = unformat(el.value);
-        if (raw === '') return;
-        const fmt = formatNum(raw);
-        el.value = fmt;
-        const newPos = fmt.length - (raw.length - pos);
-        el.setSelectionRange(newPos, newPos);
+        const pos=el.selectionEnd; const raw=unformat(el.value);
+        if(raw==='') return;
+        const fmt=formatNum(raw);
+        el.value=fmt;
+        el.setSelectionRange(fmt.length-(raw.length-pos), fmt.length-(raw.length-pos));
       });
     });
 
     function resetForm() {
-      document.getElementById('schedule').innerHTML = '';
-      ['pv','pmt','pct','fv','rate','nper'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('freq').value = '12';
-      document.querySelector('input[name="type"][value="0"]').checked = true;
+      document.getElementById('schedule').innerHTML='';
+      ['pv','pmt','pct','fv','rate','nper'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('freq').value='12';
+      document.querySelector('input[name="type"][value="0"]').checked=true;
     }
   </script>
 </body>
 </html>
- 
