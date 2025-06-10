@@ -63,10 +63,9 @@
       };
     }
 
-    // simulate balance for FV
     function fvTotal(r,n,pmt0,g,type,pv0) {
       let bal = pv0;
-      for (let i=1; i<=n; i++) {
+      for (let i = 1; i <= n; i++) {
         const pay = pmt0 * Math.pow(1+g, i-1);
         if (type) bal += pay;
         bal *= (1 + r);
@@ -75,10 +74,9 @@
       return bal;
     }
 
-    // sum PV of payments + FV
     function pvTotal(r,n,pmt0,g,type,fv0) {
       let sum = 0;
-      for (let i=1; i<=n; i++) {
+      for (let i = 1; i <= n; i++) {
         const pay = pmt0 * Math.pow(1+g, i-1) * (1 + r*type);
         sum += pay / Math.pow(1+r, i);
       }
@@ -86,19 +84,18 @@
       return -sum;
     }
 
-    // solve initial payment for growing annuity
     function pmtCalc(r,n,pv,fv,g,type) {
       if (Math.abs(r-g) < 1e-8) {
         return -(fv + pv*Math.pow(1+r,n)) / ((1+r*type)*n*Math.pow(1+r,n-1));
       }
-      const denom = (1 + r*type)*((Math.pow(1+r,n) - Math.pow(1+g,n))/(r - g));
+      const denom = (1 + r*type)*((Math.pow(1+r,n) - Math.pow(1+g,n)) / (r - g));
       return -(fv + pv*Math.pow(1+r,n)) / denom;
     }
 
     function renderSchedule(r,g,pmt0,nper,type,balance0) {
       let html = '<table class="schedule"><tr><th>งวด</th><th>Payment</th><th>Balance</th></tr>';
       let bal = balance0;
-      for (let i=1; i<=nper; i++) {
+      for (let i = 1; i <= nper; i++) {
         const pay = pmt0 * Math.pow(1+g, i-1);
         html += `<tr><td>${i}</td><td>${formatNum(pay.toFixed(2))}</td><td>${formatNum(bal.toFixed(2))}</td></tr>`;
         if (type) bal += pay;
@@ -119,7 +116,8 @@
     function calcFV() {
       const {pv0,pmt0,pct,fv0,rateA,nper,freq,type} = getInputs();
       const r = rateA / freq;
-      const fv = fvTotal(r,nper,pmt0,pct,type,pv0);
+      const raw = fvTotal(r,nper,pmt0,pct,type,pv0);
+      const fv = -raw;  // invert sign for display
       document.getElementById('fv').value = formatNum(fv.toFixed(2));
     }
 
@@ -133,12 +131,11 @@
     function calcNper() {
       const {pv0,pmt0,pct,fv0,rateA,freq,type} = getInputs();
       const r = rateA / freq;
-      const target = fv0;
-      let low=0, high=2000, mid;
-      for (let i=0; i<100; i++) {
-        mid = (low+high)/2;
-        const fmid = fvTotal(r,mid,pmt0,pct,type,pv0) - target;
-        if (fmid>0) low = mid; else high = mid;
+      let low = 0, high = 2000, mid;
+      for (let i = 0; i < 100; i++) {
+        mid = (low + high) / 2;
+        const val = fvTotal(r, mid, pmt0, pct, type, pv0) - fv0;
+        if (val > 0) low = mid; else high = mid;
       }
       document.getElementById('nper').value = Math.ceil(mid);
     }
@@ -146,33 +143,34 @@
     function calcRate() {
       const {pv0,pmt0,pct,fv0,nper,freq,type} = getInputs();
       let r = 0.01;
-      for (let i=0; i<100; i++) {
-        const f = fvTotal(r,nper,pmt0,pct,type,pv0) - fv0;
+      for (let i = 0; i < 100; i++) {
+        const f = fvTotal(r, nper, pmt0, pct, type, pv0) - fv0;
         const dr = 1e-6;
-        const df = (fvTotal(r+dr,nper,pmt0,pct,type,pv0) - fvTotal(r-dr,nper,pmt0,pct,type,pv0))/(2*dr);
+        const df = (fvTotal(r+dr, nper, pmt0, pct, type, pv0) - fvTotal(r-dr, nper, pmt0, pct, type, pv0)) / (2*dr);
         const nr = r - f/df;
-        if (Math.abs(nr-r)<1e-8) { r = nr; break; }
+        if (Math.abs(nr - r) < 1e-8) { r = nr; break; }
         r = nr;
       }
-      document.getElementById('rate').value = (r*freq*100).toFixed(4);
+      document.getElementById('rate').value = (r * freq * 100).toFixed(4);
     }
 
     ['pv','pmt','fv','nper'].forEach(id => {
       const el = document.getElementById(id);
       el.addEventListener('input', e => {
-        const pos=el.selectionEnd; const raw=unformat(el.value);
-        if(raw==='') return;
-        const fmt=formatNum(raw);
-        el.value=fmt;
-        el.setSelectionRange(fmt.length-(raw.length-pos), fmt.length-(raw.length-pos));
+        const pos = el.selectionEnd;
+        const raw = unformat(el.value);
+        if (raw === '') return;
+        const fmt = formatNum(raw);
+        el.value = fmt;
+        el.setSelectionRange(fmt.length - (raw.length - pos), fmt.length - (raw.length - pos));
       });
     });
 
     function resetForm() {
-      document.getElementById('schedule').innerHTML='';
-      ['pv','pmt','pct','fv','rate','nper'].forEach(id=>document.getElementById(id).value='');
-      document.getElementById('freq').value='12';
-      document.querySelector('input[name="type"][value="0"]').checked=true;
+      document.getElementById('schedule').innerHTML = '';
+      ['pv','pmt','pct','fv','rate','nper'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('freq').value = '12';
+      document.querySelector('input[name="type"][value="0"]').checked = true;
     }
   </script>
 </body>
