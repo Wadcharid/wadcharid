@@ -5,49 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TVM Calculator</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 500px;
-      margin: 40px auto;
-      padding: 0 20px;
-    }
-    h1 {
-      color: #c00;
-      margin-bottom: 10px;
-    }
-    .mode {
-      margin-bottom: 20px;
-    }
-    .mode label {
-      margin-right: 15px;
-      font-weight: bold;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    td {
-      padding: 6px 4px;
-      vertical-align: middle;
-    }
-    input[type="text"], select {
-      width: 100%;
-      padding: 6px;
-      box-sizing: border-box;
-    }
-    button.calc-btn {
-      padding: 6px 10px;
-      margin-left: 4px;
-      cursor: pointer;
-    }
-    .actions {
-      text-align: center;
-      margin-top: 20px;
-    }
-    button#reset {
-      padding: 8px 20px;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; max-width:500px; margin:40px auto; padding:0 20px; }
+    h1 { color:#c00; margin-bottom:10px; }
+    .mode { margin-bottom:20px; }
+    table { width:100%; border-collapse:collapse; }
+    td { padding:6px 4px; vertical-align:middle; }
+    input[type="text"], select { width:100%; padding:6px; box-sizing:border-box; }
+    .calc-btn { padding:6px 10px; margin-left:4px; cursor:pointer; }
+    .actions { text-align:center; margin-top:20px; }
+    #reset { padding:8px 20px; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -100,87 +66,75 @@
   </div>
 
   <script>
-    function getType() {
-      return +document.querySelector('input[name="type"]:checked').value;
-    }
     function getInputs() {
       return {
-        pv: parseFloat(document.getElementById('pv').value) || 0,
-        pmt: parseFloat(document.getElementById('pmt').value) || 0,
-        fv: parseFloat(document.getElementById('fv').value) || 0,
-        rateA: parseFloat(document.getElementById('rate').value) / 100 || 0,
-        nper: parseFloat(document.getElementById('nper').value) || 0,
-        freq: parseInt(document.getElementById('freq').value),
-        type: getType()
+        pv:    parseFloat(document.getElementById('pv').value) || 0,
+        pmt:   parseFloat(document.getElementById('pmt').value) || 0,
+        fv:    parseFloat(document.getElementById('fv').value) || 0,
+        rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,
+        nper:  parseFloat(document.getElementById('nper').value) || 0,
+        freq:  parseInt(document.getElementById('freq').value),
+        type:  +document.querySelector('input[name="type"]:checked').value
       };
     }
-    function fv(rate, nper, pmt, pv, type) {
-      let res = -(pv * Math.pow(1+rate, nper)
-                + pmt * (1+rate*type) * ( (Math.pow(1+rate, nper)-1)/rate ));
-      return res;
+
+    // helper functions (ชื่อไม่ชนตัวแปร)
+    function fvCalc(rate,nper,pmt,pv,type) {
+      return -(pv*Math.pow(1+rate,nper)
+             + pmt*(1+rate*type)*((Math.pow(1+rate,nper)-1)/rate));
     }
-    function pv(rate, nper, pmt, fv, type) {
-      let res = -( fv + pmt*(1+rate*type)*( (Math.pow(1+rate, nper)-1)/rate ) )
-                / Math.pow(1+rate, nper);
-      return res;
+    function pvCalc(rate,nper,pmt,fv,type) {
+      return -(fv + pmt*(1+rate*type)*((Math.pow(1+rate,nper)-1)/rate))
+             / Math.pow(1+rate,nper);
     }
-    function pmt(rate, nper, pv, fv, type) {
-      let res = -( pv*rate*Math.pow(1+rate, nper)
-                + fv*rate )
-                / ( (1+rate*type)*(Math.pow(1+rate, nper)-1) );
-      return res;
+    function pmtCalc(rate,nper,pv,fv,type) {
+      return -( pv*rate*Math.pow(1+rate,nper) + fv*rate )
+             / ((1+rate*type)*(Math.pow(1+rate,nper)-1));
     }
-    function nper(rate, pmt, pv, fv, type) {
+    function nperCalc(rate,pmt,pv,fv,type) {
       let num = pmt*(1+rate*type)/rate + fv;
       let den = pmt*(1+rate*type)/rate + pv;
-      return Math.log(num/den) / Math.log(1+rate);
+      return Math.log(num/den)/Math.log(1+rate);
     }
+
     function calcFV() {
-      let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
-      let r = rateA / freq;
-      let np = nper*freq;
-      let result = fv(r, np, pmt, pv, type);
-      document.getElementById('fv').value = result.toFixed(2);
+      let {pv,pmt,rateA,nper,freq,type} = getInputs();
+      let r = rateA/freq, np = nper*freq;
+      document.getElementById('fv').value = fvCalc(r,np,pmt,pv,type).toFixed(2);
     }
     function calcPV() {
       let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
-      let r = rateA / freq;
-      let np = nper*freq;
-      let result = pv(r, np, pmt, fv, type);
-      document.getElementById('pv').value = result.toFixed(2);
+      let r = rateA/freq, np = nper*freq;
+      document.getElementById('pv').value = pvCalc(r,np,pmt,fv,type).toFixed(2);
     }
     function calcPMT() {
       let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
-      let r = rateA / freq;
-      let np = nper*freq;
-      let result = pmt(r, np, pv, fv, type);
-      document.getElementById('pmt').value = result.toFixed(2);
+      let r = rateA/freq, np = nper*freq;
+      document.getElementById('pmt').value = pmtCalc(r,np,pv,fv,type).toFixed(2);
     }
     function calcNper() {
       let {pv,pmt,fv,rateA,nper,freq,type} = getInputs();
-      let r = rateA / freq;
-      let result = nper(r, pmt, pv, fv, type) / 1; // already in periods
-      document.getElementById('nper').value = result.toFixed(2);
+      let r = rateA/freq;
+      document.getElementById('nper').value = nperCalc(r,pmt,pv,fv,type).toFixed(2);
     }
     function calcRate() {
       let {pv,pmt,fv,nper,freq,type} = getInputs();
-      let N = nper*freq;
-      // solve r by Newton's method on fv(rate) = target
-      let guess = 0.05, tol=1e-8, iter=0, maxIter=100;
-      while (iter<maxIter) {
-        let f = fv(guess, N, pmt, pv, type) - fv; 
-        let df = (fv(guess+1e-6, N, pmt, pv, type) - fv(guess-1e-6, N, pmt, pv, type)) / 2e-6;
-        let newGuess = guess - f/df;
-        if (Math.abs(newGuess-guess)<tol) break;
-        guess = newGuess; iter++;
+      let N = nper*freq, guess=0.05, tol=1e-8, iter=0;
+      while (iter<100) {
+        let f = fvCalc(guess,N,pmt,pv,type) - fv;
+        let df = (fvCalc(guess+1e-6,N,pmt,pv,type)
+                - fvCalc(guess-1e-6,N,pmt,pv,type)) / 2e-6;
+        let newG = guess - f/df;
+        if (Math.abs(newG-guess)<tol) break;
+        guess=newG; iter++;
       }
-      let annual = guess * freq * 100;
-      document.getElementById('rate').value = annual.toFixed(4);
+      document.getElementById('rate').value = (guess*freq*100).toFixed(4);
     }
+
     function resetForm() {
       document.querySelectorAll('input[type=text]').forEach(i=>i.value='');
-      document.getElementById('freq').value = '12';
-      document.querySelector('input[name="type"][value="0"]').checked = true;
+      document.getElementById('freq').value='12';
+      document.querySelector('input[name="type"][value="0"]').checked=true;
     }
   </script>
 </body>
