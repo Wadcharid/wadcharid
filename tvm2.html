@@ -88,14 +88,14 @@
     // Read inputs
     function getInputs() {
       const freq = parseInt(document.getElementById('freq').value);
-      const pctAnnual = (parseFloat(document.getElementById('pct').value) / 100) || 0;
+      const pctAnnual = (parseFloat(document.getElementById('pct').value)/100) || 0;
       const g = pctAnnual / freq;
       return {
         pv0: parseFloat(unformat(document.getElementById('pv').value)) || 0,
         pmt0: parseFloat(unformat(document.getElementById('pmt').value)) || 0,
         g: g,
         fv0: parseFloat(unformat(document.getElementById('fv').value)) || 0,
-        rateA: (parseFloat(document.getElementById('rate').value) / 100) || 0,
+        rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,
         nper: parseInt(unformat(document.getElementById('nper').value)) || 0,
         freq: freq,
         type: +document.querySelector('input[name="type"]:checked').value
@@ -108,7 +108,7 @@
       for (let i = 1; i <= n; i++) {
         const pay = p0 * Math.pow(1 + g, i - 1);
         if (type) bal += pay;
-        bal *= 1 + r;
+        bal *= (1 + r);
         if (!type) bal += pay;
       }
       return bal;
@@ -140,7 +140,7 @@
         const pay = p0 * Math.pow(1 + g, i - 1);
         html += `<tr><td>${i}</td><td>${formatNum(pay.toFixed(2))}</td><td>${formatNum(bal.toFixed(2))}</td></tr>`;
         if (type) bal += pay;
-        bal *= 1 + r;
+        bal *= (1 + r);
         if (!type) bal += pay;
       }
       document.getElementById('schedule').innerHTML = html + '</table>';
@@ -163,7 +163,7 @@
     }
 
     function calcPMT() {
-      // clear any amortization
+      // Clear schedule
       document.getElementById('schedule').innerHTML = '';
       const { pv0, fv0, g, rateA, nper, freq, type } = getInputs();
       const r = rateA / freq;
@@ -174,30 +174,17 @@
     function calcNper() {
       const { pv0, pmt0, g, fv0, rateA, freq, type } = getInputs();
       const r = rateA / freq;
-      const target = -fv0; // desired future balance
-      // find search bounds
+      const target = -fv0;
+      // find high bound
       let low = 0, high = 1;
-      while (fvTotal(r, high, pmt0, g, type, pv0) < target) {
-        high *= 2;
-        if (high > 10000) break;
-      }
+      while (fvTotal(r, high, pmt0, g, type, pv0) < target) high *= 2;
       // binary search
       for (let i = 0; i < 50; i++) {
         const mid = (low + high) / 2;
         if (fvTotal(r, mid, pmt0, g, type, pv0) > target) high = mid;
         else low = mid;
       }
-      const n = Math.ceil((low + high) / 2);
-      document.getElementById('nper').value = n;
-    } = getInputs();
-      const r = rateA / freq;
-      let low = 0, high = 2000, mid;
-      for (let i = 0; i < 100; i++) {
-        mid = (low + high) / 2;
-        if (fvTotal(r, mid, pmt0, g, type, pv0) > fv0) low = mid;
-        else high = mid;
-      }
-      document.getElementById('nper').value = Math.ceil(mid);
+      document.getElementById('nper').value = Math.ceil((low + high) / 2);
     }
 
     function calcRate() {
@@ -215,7 +202,7 @@
       document.getElementById('rate').value = (r * freq * 100).toFixed(4);
     }
 
-    // New amortization button
+    // Amortization button
     function calcAmort() {
       const { pmt0, g, rateA, nper, freq, type } = getInputs();
       const r = rateA / freq;
@@ -223,10 +210,10 @@
       renderSchedule(r, g, pmt0, nper, type, pv0);
     }
 
-    // Input formatting
-    ['pv','pmt','fv','nper'].forEach(id => {
-      const el = document.getElementById(id);
-      el.addEventListener('input', e => {
+    // Comma on input
+    ['pv','pmt','fv','nper','pct','rate'].forEach(id => {
+      document.getElementById(id).addEventListener('input', e => {
+        const el = e.target;
         const pos = el.selectionEnd;
         const raw = unformat(el.value);
         if (!raw) return;
