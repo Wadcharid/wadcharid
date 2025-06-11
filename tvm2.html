@@ -12,7 +12,7 @@
     table.form td { padding:6px 4px; vertical-align:middle; }
     input[type="text"], select { width:100%; padding:6px; box-sizing:border-box; }
     .calc-btn { padding:6px 10px; margin-left:4px; cursor:pointer; }
-    .actions { text-align:center; margin-top:10px; }
+    .actions { text-align:center; margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
     #reset { padding:8px 20px; cursor:pointer; }
     #schedule { margin-top:30px; }
     table.schedule { width:100%; border-collapse:collapse; }
@@ -72,11 +72,12 @@
   </table>
   <div class="actions">
     <button id="reset" onclick="resetForm()">Reset</button>
+    <button class="calc-btn" onclick="calcAmort()">Amortization</button>
   </div>
   <div id="schedule"></div>
 
   <script>
-    // Utility
+    // Utility formatting
     function formatNum(val) {
       const parts = val.toString().split('.');
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -101,7 +102,7 @@
       };
     }
 
-    // Future value simulation
+    // Simulate future/balance
     function fvTotal(r, n, p0, g, type, pv0) {
       let bal = pv0;
       for (let i = 1; i <= n; i++) {
@@ -113,7 +114,6 @@
       return bal;
     }
 
-    // Present value sum
     function pvTotal(r, n, p0, g, type, fv0) {
       let sum = 0;
       for (let i = 1; i <= n; i++) {
@@ -124,7 +124,6 @@
       return -sum;
     }
 
-    // Payment root solve
     function pmtCalc(r, n, pv, fv, g, type) {
       if (Math.abs(r - g) < 1e-8) {
         return -(fv + pv * Math.pow(1 + r, n)) / ((1 + r * type) * n * Math.pow(1 + r, n - 1));
@@ -133,7 +132,7 @@
       return -(fv + pv * Math.pow(1 + r, n)) / denom;
     }
 
-    // Render amortization
+    // Render amortization table
     function renderSchedule(r, g, p0, n, type, bal0) {
       let html = '<table class="schedule"><tr><th>งวด</th><th>Payment</th><th>Balance</th></tr>';
       let bal = bal0;
@@ -147,7 +146,7 @@
       document.getElementById('schedule').innerHTML = html + '</table>';
     }
 
-    // Calculators
+    // Core functions
     function calcPV() {
       const { pv0, pmt0, g, fv0, rateA, nper, freq, type } = getInputs();
       const r = rateA / freq;
@@ -164,7 +163,7 @@
     }
 
     function calcPMT() {
-      // clear schedule when calculating PMT
+      // clear any amortization
       document.getElementById('schedule').innerHTML = '';
       const { pv0, fv0, g, rateA, nper, freq, type } = getInputs();
       const r = rateA / freq;
@@ -197,6 +196,14 @@
         r = nr;
       }
       document.getElementById('rate').value = (r * freq * 100).toFixed(4);
+    }
+
+    // New amortization button
+    function calcAmort() {
+      const { pmt0, g, rateA, nper, freq, type } = getInputs();
+      const r = rateA / freq;
+      const pv0 = parseFloat(unformat(document.getElementById('pv').value)) || 0;
+      renderSchedule(r, g, pmt0, nper, type, pv0);
     }
 
     // Input formatting
