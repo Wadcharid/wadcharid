@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TVM Calculator</title>
   <style>
     body { font-family: Arial, sans-serif; max-width:600px; margin:40px auto; padding:0 20px; }
@@ -59,7 +59,7 @@
       <td><button class="calc-btn" onclick="calcNper()">Periods</button></td>
     </tr>
     <tr>
-      <td>Compounding</td>
+      <td>Frequency</td>
       <td colspan="2">
         <select id="freq">
           <option value="1">Annual</option>
@@ -69,6 +69,10 @@
         </select>
       </td>
     </tr>
+    <tr>
+      <td>% Cash Flow Return (ต่อปี)</td>
+      <td colspan="2"><input id="cfr" type="text" placeholder="%CFR"></td>
+    </tr>
   </table>
   <div class="actions">
     <button id="reset" onclick="resetForm()">Reset</button>
@@ -77,7 +81,6 @@
   <div id="schedule"></div>
 
   <script>
-    // Utility formatting
     function formatNum(val) {
       const parts = val.toString().split('.');
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -85,24 +88,24 @@
     }
     function unformat(val) { return val.toString().replace(/,/g, ''); }
 
-    // Read inputs
     function getInputs() {
       const freq = parseInt(document.getElementById('freq').value);
-      const pctAnnual = (parseFloat(document.getElementById('pct').value)/100) || 0;
+      const pctAnnual = parseFloat(document.getElementById('pct').value) / 100 || 0;
       const g = pctAnnual / freq;
+      const cfr = parseFloat(document.getElementById('cfr').value) / 100 || 0;
       return {
         pv0: parseFloat(unformat(document.getElementById('pv').value)) || 0,
         pmt0: parseFloat(unformat(document.getElementById('pmt').value)) || 0,
         g: g,
+        cfr: cfr,
         fv0: parseFloat(unformat(document.getElementById('fv').value)) || 0,
-        rateA: (parseFloat(document.getElementById('rate').value)/100) || 0,
+        rateA: parseFloat(document.getElementById('rate').value) / 100 || 0,
         nper: parseInt(unformat(document.getElementById('nper').value)) || 0,
         freq: freq,
         type: +document.querySelector('input[name="type"]:checked').value
       };
     }
 
-    // Simulate future/balance
     function fvTotal(r, n, p0, g, type, pv0) {
       let bal = pv0;
       for (let i = 1; i <= n; i++) {
@@ -132,13 +135,13 @@
       return -(fv + pv * Math.pow(1 + r, n)) / denom;
     }
 
-    // Render amortization table
-    function renderSchedule(r, g, p0, n, type, bal0) {
-      let html = '<table class="schedule"><tr><th>งวด</th><th>Payment</th><th>Balance</th></tr>';
+    function renderSchedule(r, g, p0, n, type, bal0, cfr, freq) {
+      let html = '<table class="schedule"><tr><th>งวด</th><th>Payment</th><th>Balance</th><th>Cashflow</th></tr>';
       let bal = bal0;
       for (let i = 1; i <= n; i++) {
         const pay = p0 * Math.pow(1 + g, i - 1);
-        html += `<tr><td>${i}</td><td>${formatNum(pay.toFixed(2))}</td><td>${formatNum(bal.toFixed(2))}</td></tr>`;
+        const cashflow = bal * (cfr / freq);
+        html += `<tr><td>${i}</td><td>${formatNum(pay.toFixed(2))}</td><td>${formatNum(bal.toFixed(2))}</td><td>${formatNum(cashflow.toFixed(2))}</td></tr>`;
         if (type) bal += pay;
         bal *= (1 + r);
         if (!type) bal += pay;
@@ -146,13 +149,12 @@
       document.getElementById('schedule').innerHTML = html + '</table>';
     }
 
-    // Core functions
     function calcPV() {
-      const { pv0, pmt0, g, fv0, rateA, nper, freq, type } = getInputs();
+      const { pv0, pmt0, g, fv0, rateA, nper, freq, type, cfr } = getInputs();
       const r = rateA / freq;
       const pv = pvTotal(r, nper, pmt0, g, type, fv0);
       document.getElementById('pv').value = formatNum(pv.toFixed(2));
-      renderSchedule(r, g, pmt0, nper, type, pv);
+      renderSchedule(r, g, pmt0, nper, type, pv, cfr, freq);
     }
 
     function calcFV() {
@@ -163,7 +165,6 @@
     }
 
     function calcPMT() {
-      // Clear schedule
       document.getElementById('schedule').innerHTML = '';
       const { pv0, fv0, g, rateA, nper, freq, type } = getInputs();
       const r = rateA / freq;
@@ -175,10 +176,8 @@
       const { pv0, pmt0, g, fv0, rateA, freq, type } = getInputs();
       const r = rateA / freq;
       const target = -fv0;
-      // find high bound
       let low = 0, high = 1;
       while (fvTotal(r, high, pmt0, g, type, pv0) < target) high *= 2;
-      // binary search
       for (let i = 0; i < 50; i++) {
         const mid = (low + high) / 2;
         if (fvTotal(r, mid, pmt0, g, type, pv0) > target) high = mid;
@@ -202,16 +201,13 @@
       document.getElementById('rate').value = (r * freq * 100).toFixed(4);
     }
 
-    // Amortization button
     function calcAmort() {
-      const { pmt0, g, rateA, nper, freq, type } = getInputs();
+      const { pmt0, g, rateA, nper, freq, type, cfr, pv0 } = getInputs();
       const r = rateA / freq;
-      const pv0 = parseFloat(unformat(document.getElementById('pv').value)) || 0;
-      renderSchedule(r, g, pmt0, nper, type, pv0);
+      renderSchedule(r, g, pmt0, nper, type, pv0, cfr, freq);
     }
 
-    // Comma on input
-    ['pv','pmt','fv','nper','pct','rate'].forEach(id => {
+    ['pv','pmt','fv','nper','pct','rate','cfr'].forEach(id => {
       document.getElementById(id).addEventListener('input', e => {
         const el = e.target;
         const pos = el.selectionEnd;
@@ -225,7 +221,7 @@
 
     function resetForm() {
       document.getElementById('schedule').innerHTML = '';
-      ['pv','pmt','pct','fv','rate','nper'].forEach(id => document.getElementById(id).value = '');
+      ['pv','pmt','pct','fv','rate','nper','cfr'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('freq').value = '12';
       document.querySelector('input[name="type"][value="0"]').checked = true;
     }
