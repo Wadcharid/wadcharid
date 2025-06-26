@@ -178,7 +178,7 @@
       const target = -fv0;
       let low = 0, high = 1;
       while (fvTotal(r, high, pmt0, g, type, pv0) < target) high *= 2;
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 100; i++) {
         const mid = (low + high) / 2;
         if (fvTotal(r, mid, pmt0, g, type, pv0) > target) high = mid;
         else low = mid;
