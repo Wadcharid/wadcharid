@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>คำนวณ P/E และ %Return รายปี</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f9f9f9; margin: 0; padding: 0; }
+    .container { max-width: 430px; margin: 40px auto; background: #fff; padding: 32px; border-radius: 12px; box-shadow: 0 3px 16px rgba(0,0,0,0.10);}
+    h2 { text-align: center; color: #2469D3; }
+    label { font-weight: bold; }
+    input { padding: 8px; margin: 6px 0 16px 0; width: 100%; border: 1px solid #aaa; border-radius: 5px; }
+    button { width: 100%; padding: 10px; background: #2469D3; color: #fff; border: none; border-radius: 7px; font-size: 1em; cursor: pointer; margin-bottom: 14px;}
+    button:hover { background: #174e96; }
+    table { width: 100%; border-collapse: collapse; margin-top: 22px;}
+    th, td { padding: 8px; text-align: center; }
+    th { background: #2469D3; color: #fff; }
+    tr:nth-child(even) { background: #f0f4fb; }
+    tr:nth-child(odd) { background: #ffffff; }
+    .footer { text-align: center; font-size: 0.95em; color: #888; margin-top: 24px;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>คำนวณ P/E และ %Return รายปี</h2>
+    <form id="peForm">
+      <label>🧮 P/E Ratio ปัจจุบัน</label>
+      <input type="number" step="0.01" min="0.01" id="pe" required>
+
+      <label>📈 Profit Growth (%) ต่อปี</label>
+      <input type="number" step="0.01" id="growth" required placeholder="ตัวอย่าง: 10 (หมายถึง 10%)">
+
+      <label>📆 ระยะเวลา (ปี)</label>
+      <input type="number" min="1" id="period" required>
+      <button type="submit">คำนวณ</button>
+    </form>
+    <div id="result"></div>
+    <div class="footer">ออกแบบโดย ChatGPT | <a href="#" style="color:#2469D3;">@อ้น</a></div>
+  </div>
+<script>
+document.getElementById('peForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const peStart = parseFloat(document.getElementById('pe').value);
+    const growth = parseFloat(document.getElementById('growth').value) / 100;
+    const period = parseInt(document.getElementById('period').value);
+
+    if (isNaN(peStart) || isNaN(growth) || isNaN(period) || peStart <= 0 || period < 1) {
+        document.getElementById('result').innerHTML = "<span style='color:red;'>กรุณากรอกข้อมูลให้ถูกต้อง</span>";
+        return;
+    }
+
+    let html = "<table><tr><th>Year</th><th>P/E</th><th>%Return</th></tr>";
+    let pe = peStart;
+    for(let i=1; i<=period; i++){
+        // P/E ในปีถัดไปจะ = PE เริ่มต้น / (1+growth)^year
+        let peThisYear = peStart / Math.pow(1 + growth, i-1);
+        let returnPercent = (1 / peThisYear) * 100;
+        html += `<tr><td>${i}</td><td>${peThisYear.toFixed(2)}</td><td>${returnPercent.toFixed(2)}%</td></tr>`;
+    }
+    html += "</table>";
+    document.getElementById('result').innerHTML = html;
+});
+</script>
+</body>
+</html>
