@@ -49,7 +49,9 @@
     </div>
     <button onclick="calcRetire()">คำนวณเงินตั้งต้นตอนเกษียณ</button>
     <div class="result" id="result"></div>
-    <div class="small">* คำนวณแบบถอนเงินใช้จ่ายเท่ากันทุกปีจนหมดอายุขัย</div>
+    <div class="small">* คำนวณโดยสมมติว่าถอนใช้จ่ายทุกปีเพิ่มขึ้นตามอัตราเงินเฟ้อ<br>
+      <b>สูตร Present Value of Growing Annuity</b>
+    </div>
   </div>
   <script>
     function futureValue(present, rate, years) {
@@ -67,14 +69,26 @@
       if (!expense || !untilRetire || !afterRetire) return;
 
       const annualExpense = expenseType === 'month' ? expense * 12 : expense;
-      const futureExpense = futureValue(annualExpense, inflation, untilRetire);
+      // ปรับค่าใช้จ่ายปีแรกหลังเกษียณด้วยเงินเฟ้อ
+      const firstYearExpense = futureValue(annualExpense, inflation, untilRetire);
+
+      // จำนวนปีหลังเกษียณ
       const n = afterType === 'month' ? afterRetire / 12 : afterRetire;
-      const r = returnRate > 0 ? returnRate : 1e-9;
-      const PV = futureExpense * (1 - 1/Math.pow(1 + r, n)) / r;
+      const r = returnRate;
+      const g = inflation;
+
+      let PV;
+      if (Math.abs(r-g) < 1e-8) {
+        // กรณี r ≈ g ป้องกันหารศูนย์ (ใช้สูตรอนุกรมธรรมดา)
+        PV = firstYearExpense * n / (1 + r);
+      } else {
+        PV = firstYearExpense / (r - g) * (1 - Math.pow((1+g)/(1+r), n));
+      }
 
       document.getElementById('result').innerHTML = `
         <b>เงินที่ควรมีตอนเริ่มเกษียณ:</b><br>
         <span style="font-size:2em;color:#059669;">${PV.toLocaleString(undefined, {maximumFractionDigits: 0})} บาท</span>
+        <div class="small">(ปีแรกหลังเกษียณใช้จ่าย ${firstYearExpense.toLocaleString(undefined, {maximumFractionDigits: 0})} บาท)</div>
       `;
     }
   </script>
