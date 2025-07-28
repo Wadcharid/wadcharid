@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Retirement Calculator 🏖️</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; }
+    .container { max-width: 500px; background: #fff; margin: 40px auto; border-radius: 20px; box-shadow: 0 4px 24px #0001; padding: 28px; }
+    label { font-weight: 600; margin-bottom: 3px; display: block; }
+    input, select { padding: 6px 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #bbb; width: 100%; }
+    .row { margin-bottom: 18px; }
+    button { background: #2563eb; color: #fff; padding: 10px 0; width: 100%; font-size: 1rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 8px; }
+    button:hover { background: #1d4ed8; }
+    .result { margin-top: 25px; padding: 18px; background: #d1fae5; border-radius: 14px; font-size: 1.2em; text-align: center; }
+    .small { font-size: 0.9em; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>เครื่องมือคำนวณเงินเกษียณ 🏖️</h2>
+    <div class="row">
+      <label>ค่าใช้จ่ายปัจจุบัน</label>
+      <input type="number" id="expense" min="0" required placeholder="เช่น 30,000" />
+      <select id="expenseType">
+        <option value="month">บาท/เดือน</option>
+        <option value="year">บาท/ปี</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>อีกกี่ปีถึงจะเกษียณ</label>
+      <input type="number" id="untilRetire" min="0" required placeholder="เช่น 15" />
+    </div>
+    <div class="row">
+      <label>อัตราเงินเฟ้อต่อปี (%)</label>
+      <input type="number" id="inflation" min="0" step="0.01" required placeholder="เช่น 2" />
+    </div>
+    <div class="row">
+      <label>อัตราผลตอบแทนต่อปีหลังเกษียณ (%)</label>
+      <input type="number" id="returnRate" min="0" step="0.01" required placeholder="เช่น 4" />
+    </div>
+    <div class="row">
+      <label>ระยะเวลาหลังเกษียณที่ต้องการ</label>
+      <input type="number" id="afterRetire" min="1" required placeholder="เช่น 25" />
+      <select id="afterType">
+        <option value="year">ปี</option>
+        <option value="month">เดือน</option>
+      </select>
+    </div>
+    <button onclick="calcRetire()">คำนวณเงินตั้งต้นตอนเกษียณ</button>
+    <div class="result" id="result"></div>
+    <div class="small">* คำนวณแบบถอนเงินใช้จ่ายเท่ากันทุกปีจนหมดอายุขัย</div>
+  </div>
+  <script>
+    function futureValue(present, rate, years) {
+      return present * Math.pow(1 + rate, years);
+    }
+    function calcRetire() {
+      const expense = Number(document.getElementById('expense').value);
+      const expenseType = document.getElementById('expenseType').value;
+      const untilRetire = Number(document.getElementById('untilRetire').value);
+      const inflation = Number(document.getElementById('inflation').value) / 100;
+      const returnRate = Number(document.getElementById('returnRate').value) / 100;
+      const afterRetire = Number(document.getElementById('afterRetire').value);
+      const afterType = document.getElementById('afterType').value;
+
+      if (!expense || !untilRetire || !afterRetire) return;
+
+      const annualExpense = expenseType === 'month' ? expense * 12 : expense;
+      const futureExpense = futureValue(annualExpense, inflation, untilRetire);
+      const n = afterType === 'month' ? afterRetire / 12 : afterRetire;
+      const r = returnRate > 0 ? returnRate : 1e-9;
+      const PV = futureExpense * (1 - 1/Math.pow(1 + r, n)) / r;
+
+      document.getElementById('result').innerHTML = `
+        <b>เงินที่ควรมีตอนเริ่มเกษียณ:</b><br>
+        <span style="font-size:2em;color:#059669;">${PV.toLocaleString(undefined, {maximumFractionDigits: 0})} บาท</span>
+      `;
+    }
+  </script>
+</body>
+</html>
