@@ -1,118 +1,141 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Retirement Spending 🏖️</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; }
-    .container { max-width: 500px; background: #fff; margin: 40px auto; border-radius: 20px; box-shadow: 0 4px 24px #0001; padding: 28px; }
-    label { font-weight: 600; margin-bottom: 3px; display: block; }
-    input { padding: 6px 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #bbb; width: 100%; }
-    .row { margin-bottom: 18px; }
-    button { background: #2563eb; color: #fff; padding: 10px 0; width: 100%; font-size: 1rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 8px; }
-    button:hover { background: #1d4ed8; }
-    .table-area { margin-top: 28px; background: #fff; padding: 12px; border-radius: 14px; box-shadow: 0 2px 8px #0002; overflow-x: auto;}
-    table { border-collapse: collapse; width: 100%; }
-    th, td { padding: 8px 8px; border-bottom: 1px solid #eee; text-align: right; }
-    th { background: #f1f5f9; color: #1e293b; }
-    td:first-child, th:first-child { text-align: center; }
-    .close-btn { float: right; color: #555; cursor: pointer; font-weight: bold; margin-top: -8px;}
-    .close-btn:hover { color: #dc2626;}
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Retirement Spending Calculator 🏖️</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; }
+        .container { max-width: 600px; background: #fff; margin: 40px auto; border-radius: 20px; box-shadow: 0 4px 24px #0001; padding: 28px; }
+        h2 { text-align: center; }
+        label { font-weight: 600; margin-bottom: 3px; display: block; }
+        input { padding: 8px 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #bbb; width: 100%; box-sizing: border-box; }
+        .row { margin-bottom: 18px; }
+        button { background: #2563eb; color: #fff; padding: 12px 0; width: 100%; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 8px; }
+        button:hover { background: #1d4ed8; }
+        .table-area { margin-top: 28px; background: #fff; padding: 12px; border-radius: 14px; box-shadow: 0 2px 8px #0002; overflow-x: auto;}
+        table { border-collapse: collapse; width: 100%; }
+        th, td { padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; }
+        th { background: #f1f5f9; color: #1e293b; font-size: 0.9em; }
+        td:first-child, th:first-child { text-align: center; }
+        .summary { margin-top: 25px; padding: 18px; background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 14px; font-size: 1.1em; text-align: center; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>วางแผนใช้เงินหลังเกษียณ 🏖️</h2>
-    <div class="row">
-      <label>เงินตั้งต้นตอนเกษียณ (บาท)</label>
-      <input type="text" id="initialFund" oninput="formatNumberInput(this)" />
+    <div class="container">
+        <h2>คำนวณการใช้เงินหลังเกษียณ 🏖️</h2>
+        <div class="row">
+            <label for="principal">จำนวนเงินตั้งต้นตอนเกษียณ (บาท)</label>
+            <input type="text" id="principal" required placeholder="เช่น 10,000,000" oninput="formatNumberInput(this)" />
+        </div>
+        <div class="row">
+            <label for="retirementYears">ระยะเวลาที่ต้องการใช้เงินหลังเกษียณ (ปี)</label>
+            <input type="text" id="retirementYears" required placeholder="เช่น 25" oninput="formatNumberInput(this, false)" />
+        </div>
+        <div class="row">
+            <label for="returnRate">อัตราผลตอบแทนต่อปีหลังเกษียณ (%)</label>
+            <input type="text" id="returnRate" required placeholder="เช่น 5" oninput="formatNumberInput(this, false)" />
+        </div>
+        <div class="row">
+            <label for="inflation">อัตราเงินเฟ้อต่อปี (%)</label>
+            <input type="text" id="inflation" required placeholder="เช่น 3" oninput="formatNumberInput(this, false)" />
+        </div>
+        <button onclick="calcAndShowTable()">คำนวณและแสดงตาราง</button>
+        
+        <div id="summary" class="summary" style="display:none;"></div>
+        <div id="table-area" class="table-area" style="display:none;"></div>
     </div>
-    <div class="row">
-      <label>จำนวนปีหลังเกษียณ</label>
-      <input type="text" id="afterRetire" oninput="formatNumberInput(this, false)" />
-    </div>
-    <div class="row">
-      <label>ค่าใช้จ่ายปีแรกหลังเกษียณ (บาท/ปี)</label>
-      <input type="text" id="firstYearExpense" oninput="formatNumberInput(this)" />
-    </div>
-    <div class="row">
-      <label>อัตราผลตอบแทนต่อปี (%)</label>
-      <input type="text" id="returnRate" oninput="formatNumberInput(this, false)" />
-    </div>
-    <div class="row">
-      <label>อัตราเงินเฟ้อต่อปี (%)</label>
-      <input type="text" id="inflation" oninput="formatNumberInput(this, false)" />
-    </div>
-    <button onclick="generateSpendingTable()">แสดงตารางการใช้เงิน</button>
-    <div class="table-area" id="table-area" style="display:none"></div>
-  </div>
 
-  <script>
-    function formatNumberInput(el, allowDecimal = true) {
-      let v = el.value.replace(/,/g, "");
-      if (!allowDecimal) v = v.replace(/\D/g, '');
-      else v = v.replace(/[^0-9.]/g, '');
-      const parts = v.split(".");
-      if (parts.length > 2) v = parts[0] + '.' + parts[1];
-      let withComma = v;
-      if (withComma) {
-        let [intPart, decPart] = withComma.split(".");
-        intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        withComma = decPart ? intPart + "." + decPart : intPart;
-      }
-      el.value = withComma;
-    }
+    <script>
+        function formatNumberInput(el, allowDecimal = true) {
+            let v = el.value.replace(/,/g, "");
+            if (!allowDecimal) v = v.replace(/\D/g, '');
+            else v = v.replace(/[^0-9.]/g, '');
 
-    function getInputNumber(id) {
-      const val = document.getElementById(id).value.replace(/,/g, "");
-      return Number(val);
-    }
+            const parts = v.split(".");
+            if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
 
-    function generateSpendingTable() {
-      const fund = getInputNumber('initialFund');
-      const years = getInputNumber('afterRetire');
-      const firstExpense = getInputNumber('firstYearExpense');
-      const r = getInputNumber('returnRate') / 100;
-      const g = getInputNumber('inflation') / 100;
+            let [intPart, decPart] = v.split(".");
+            intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            el.value = decPart !== undefined ? intPart + "." + decPart : intPart;
+        }
 
-      if (!fund || !years || !firstExpense) return;
+        function getInputNumber(id) {
+            const val = document.getElementById(id).value.replace(/,/g, "");
+            return Number(val) || 0;
+        }
 
-      let tableHTML = `
-        <span class="close-btn" onclick="document.getElementById('table-area').style.display='none'">&times;</span>
-        <b>ตารางการใช้เงินหลังเกษียณ</b>
-        <table>
-          <thead>
-            <tr>
-              <th>ปีที่</th>
-              <th>ค่าใช้จ่ายรวมต่อปี</th>
-              <th>เฉลี่ยต่อเดือน</th>
-              <th>เงินคงเหลือปลายปี</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
+        function calcAndShowTable() {
+            const principal = getInputNumber('principal');
+            const n = getInputNumber('retirementYears'); // จำนวนปีหลังเกษียณ
+            const r = getInputNumber('returnRate') / 100; // อัตราผลตอบแทน
+            const g = getInputNumber('inflation') / 100; // อัตราเงินเฟ้อ
 
-      let remain = fund;
-      for (let i = 1; i <= years; i++) {
-        const yearlyExpense = firstExpense * Math.pow(1 + g, i - 1);
-        const monthlyExpense = yearlyExpense / 12;
-        remain = remain * (1 + r) - yearlyExpense;
-        tableHTML += `
-          <tr>
-            <td>${i}</td>
-            <td>${yearlyExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-            <td>${monthlyExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-            <td>${remain > 0 ? remain.toLocaleString(undefined, { maximumFractionDigits: 0 }) : "0"}</td>
-          </tr>
-        `;
-        if (remain <= 0) break;
-      }
+            if (!principal || !n) {
+                alert('กรุณากรอกข้อมูลเงินตั้งต้นและจำนวนปีให้ครบถ้วน');
+                return;
+            }
 
-      tableHTML += `</tbody></table>`;
-      document.getElementById('table-area').innerHTML = tableHTML;
-      document.getElementById('table-area').style.display = "block";
-    }
-  </script>
+            // คำนวณหาค่าใช้จ่ายปีแรก (C) จากสูตร Present Value of Growing Annuity
+            // PV = C / (r - g) * (1 - ((1+g)/(1+r))^n)
+            // C = PV * (r - g) / (1 - ((1+g)/(1+r))^n)
+            let firstYearExpense;
+            if (Math.abs(r - g) < 1e-9) { // กรณีที่ r และ g เท่ากัน
+                firstYearExpense = principal * (1 + r) / n;
+            } else {
+                firstYearExpense = principal * (r - g) / (1 - Math.pow((1 + g) / (1 + r), n));
+            }
+
+            // แสดงสรุป
+            const summaryEl = document.getElementById('summary');
+            summaryEl.innerHTML = `
+                ปีแรกคุณจะสามารถใช้จ่ายได้ <b>${firstYearExpense.toLocaleString(undefined, {maximumFractionDigits: 0})}</b> บาท/ปี<br>
+                (เฉลี่ยเดือนละ <b>${(firstYearExpense / 12).toLocaleString(undefined, {maximumFractionDigits: 0})}</b> บาท)
+            `;
+            summaryEl.style.display = 'block';
+
+            // สร้างตาราง
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ปีที่</th>
+                            <th>ค่าใช้จ่ายรวม<br>(บาท/ปี)</th>
+                            <th>ค่าใช้จ่ายเฉลี่ย<br>(บาท/เดือน)</th>
+                            <th>เงินคงเหลือปลายปี<br>(บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let remainingBalance = principal;
+            for (let i = 1; i <= n; i++) {
+                // ค่าใช้จ่ายในปีนั้นๆ (เพิ่มขึ้นตามเงินเฟ้อ)
+                let currentYearWithdrawal = firstYearExpense * Math.pow(1 + g, i - 1);
+                let monthlyExpense = currentYearWithdrawal / 12;
+                
+                // คำนวณเงินคงเหลือ: เงินต้นปี * (1 + ผลตอบแทน) - เงินที่ถอนใช้
+                remainingBalance = remainingBalance * (1 + r) - currentYearWithdrawal;
+
+                // ป้องกันเงินติดลบในตาราง (ในทางปฏิบัติเงินจะหมดที่ 0)
+                const displayBalance = Math.max(0, remainingBalance);
+
+                tableHTML += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${currentYearWithdrawal.toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                        <td>${monthlyExpense.toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                        <td style="font-weight:bold;">${displayBalance.toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                    </tr>
+                `;
+                 if (remainingBalance <= 0) break;
+            }
+
+            tableHTML += `</tbody></table>`;
+            const tableArea = document.getElementById('table-area');
+            tableArea.innerHTML = tableHTML;
+            tableArea.style.display = "block";
+        }
+    </script>
 </body>
 </html>
