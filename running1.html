@@ -4,33 +4,80 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Running Calculator — All-in-One</title>
-  <style>
-    :root{
-      --bg:#f4f7fb; 
-      --card:#ffffff; 
-      --text:#233041; 
-      --muted:#6b7a90; 
-      --primary:#0d6efd; 
-      --primary-700:#0b5ed7; 
-      --ring: rgba(13,110,253,.25);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";color:var(--text)}
-header{position:sticky;top:0;background:#fff;border-bottom:1px solid #e6eef8;z-index:10}
-.wrap{max-width:1000px;margin:0 auto;padding:6px 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-h1{font-size:14px;margin:0;white-space:nowrap}
-.tabs{display:flex;gap:6px;flex:1;flex-wrap:wrap}
-.tab-btn{appearance:none;border:1px solid #d6e2f3;background:#fff;
-  padding:6px 10px;border-radius:999px;cursor:pointer;font-weight:600;
-  transition:.2s;flex:1 1 140px;text-align:center;font-size:14px}
-.tab-btn[aria-selected="true"]{background:#0d6efd;color:#fff;border-color:#0d6efd}
-.note{display:none}              /* ซ่อนบรรทัดคำอธิบายเพื่อประหยัดที่ */
-.view{height:calc(100vh - 48px)} /* เดิม 68px → ลดลงเหลือ 48px */
-@media (min-width:900px){
-  .tab-btn{flex:0 0 auto;min-width:140px}
-}
+<style>
+  :root{
+    --bg:#f4f7fb; 
+    --card:#ffffff; 
+    --text:#233041; 
+    --muted:#6b7a90; 
+    --primary:#0d6efd; 
+    --primary-700:#0b5ed7; 
+    --ring: rgba(13,110,253,.25);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    color:var(--text)
+  }
 
-  </style>
+  /* Header เตี้ยลง */
+  header{
+    position:sticky; top:0; z-index:10;
+    background:var(--card);
+    border-bottom:1px solid #e6eef8;
+  }
+  .wrap{
+    max-width:1000px; margin:0 auto;
+    padding:6px 12px;                   /* เดิม 10px 16px → ลดลง */
+    display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+  }
+  h1{
+    font-size:14px;                     /* เดิม 18px → ลดลง */
+    margin:0; white-space:nowrap;
+  }
+
+  /* ปุ่มเมนูแบบกระชับ */
+  .tabs{ display:flex; gap:6px; flex:1; flex-wrap:wrap }
+  .tab-btn{
+    appearance:none; cursor:pointer; transition:.2s;
+    border:1px solid #d6e2f3; background:#fff;
+    padding:6px 10px;                   /* เดิม 10px 14px → ลดลง */
+    border-radius:999px; font-weight:600; font-size:14px; /* เดิม ~16px */
+    text-align:center;
+    flex:1 1 140px;                     /* เดิม 160px → ลดลง */
+  }
+  .tab-btn[aria-selected="true"]{
+    background:var(--primary); color:#fff; border-color:var(--primary);
+  }
+  .tab-btn:focus-visible{ outline:3px solid var(--ring) }
+
+  /* ซ่อนคำอธิบายเพื่อประหยัดพื้นที่ */
+  .note{ display:none; }
+
+  /* พื้นที่แสดงผลสูงขึ้นตาม header ที่เตี้ยลง */
+  .view{ height:calc(100vh - 48px) }    /* เดิม 68px → 48px */
+
+  iframe{
+    display:none; border:0; width:100%; height:100%;
+    background:#fff; border-radius:0;
+  }
+  iframe.active{ display:block }
+
+  /* ให้ปุ่มมีขนาดคงที่บนจอใหญ่ */
+  @media (min-width: 900px) {
+    .tab-btn{ flex:0 0 auto; min-width:140px } /* เดิม 160px → 140px */
+  }
+
+  /* โหมดจอเล็กมาก: ลดระยะห่างเพิ่มอีกนิด */
+  @media (max-width: 360px) {
+    .wrap{ padding:4px 8px; gap:4px }
+    .tabs{ gap:4px }
+    .tab-btn{ padding:5px 8px; font-size:13px; min-width:120px }
+    .view{ height:calc(100vh - 42px) }
+  }
+</style>
+
 </head>
 <body>
   <header>
