@@ -510,104 +510,11 @@
       }
       ltPacePercentHTML += &quot;&lt;/ul&gt;&quot;;
 
-
-      //ตารางความเหมาะสมสำหรับซ้อม
-      let trainingTableHTML = `
-&lt;h3&gt;แนวทางเวลาการฝึกตาม %LT Pace:&lt;/h3&gt;
-&lt;table border=&quot;1&quot; cellpadding=&quot;6&quot; cellspacing=&quot;0&quot;&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;%LT&lt;/th&gt;
-      &lt;th&gt;เหมาะสำหรับการฝึก&lt;/th&gt;
-      &lt;th&gt;เวลาที่มีประสิทธิภาพ(วิ่งต่อเนื่อง)&lt;/th&gt;
-      &lt;th&gt;ไม่ควรเกิน&lt;/th&gt;
-      &lt;th&gt;จำนวนเที่ยว (ถ้าเป็น Intervals)&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;60-70%&lt;/td&gt;
-      &lt;td&gt;Active Recovery (AR) / Cool-down (CD)&lt;/td&gt;
-      &lt;td&gt;30–90 นาที&lt;/td&gt;
-      &lt;td&gt;≤100 นาที&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;70-80%&lt;/td&gt;
-      &lt;td&gt;Aerobic Base (AB)&lt;/td&gt;
-      &lt;td&gt;60–120 นาที&lt;/td&gt;
-      &lt;td&gt;≤180 นาที&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;80-85%&lt;/td&gt;
-      &lt;td&gt;Aerobic Threshold (AT)&lt;/td&gt;
-      &lt;td&gt;45–90 นาที&lt;/td&gt;
-      &lt;td&gt;≤120 นาที&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;85-90%&lt;/td&gt;
-      &lt;td&gt;Marathon Pace (MP)&lt;/td&gt;
-      &lt;td&gt;40–70 นาที&lt;/td&gt;
-      &lt;td&gt;≤80 นาที&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;90-95%&lt;/td&gt;
-      &lt;td&gt;Marathon Pace (MP) / Tempo Run&lt;/td&gt;
-      &lt;td&gt;30–50 นาที&lt;/td&gt;
-      &lt;td&gt;≤60 นาที&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;95-105%&lt;/td&gt;
-      &lt;td&gt;Threshold Run (TH)/Intervals&lt;/td&gt;
-      &lt;td&gt;20–35 นาที&lt;/td&gt;
-      &lt;td&gt;≤45 นาที&lt;/td&gt;
-      &lt;td&gt;3–5 เที่ยว (6–10 นาที/เที่ยว)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;105-115%&lt;/td&gt;
-      &lt;td&gt;VO2 Max Intervals (VM)&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;≤25 นาที&lt;/td&gt;
-      &lt;td&gt;4–6 เที่ยว (600-1000m หรือ 3–4 นาที)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;115-120%&lt;/td&gt;
-      &lt;td&gt;Speed Intervals&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;≤15 นาที&lt;/td&gt;
-      &lt;td&gt;6–8 เที่ยว (400m หรือ 90s)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;125%&lt;/td&gt;
-      &lt;td&gt;Sprint Repeats (SP)&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;≤4 นาที&lt;/td&gt;
-      &lt;td&gt;6–12 เที่ยว (50–200m หรือ 10–30s)&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-`;
-
-
-
-
-
-      
-      // แสดง % ของ Pace จากผลการแข่งขันที่ทำได้ (Input Pace) (70% - 125% ทุก 5%)
-      let inputPacePercentHTML = &quot;&lt;h3&gt;ผลลัพธ์ % ของ Pace จากผลการแข่งขันที่ทำได้:&lt;/h3&gt;&lt;ul class=&#x27;standard-list&#x27;&gt;&quot;;
-      for (let percent = 60; percent &lt;= 125; percent += 5) {
-        let paceAtPercent = inputPace * (100 / percent);
-        inputPacePercentHTML += `&lt;li&gt;${percent}%: ${formatPace(paceAtPercent)} นาที/กม.&lt;/li&gt;`;
-      }
-      inputPacePercentHTML += &quot;&lt;/ul&gt;&quot;;
+  
+     
       
       // รวมผลลัพธ์ทั้งหมดใน standardResults
-      document.getElementById(&quot;standardResults&quot;).innerHTML = standardHTML + ltPacePercentHTML + trainingTableHTML + inputPacePercentHTML;
+      document.getElementById(&quot;standardResults&quot;).innerHTML = standardHTML + ltPacePercentHTML ;
     }
   &lt;/script&gt;
 &lt;/body&gt;
@@ -883,29 +790,23 @@
         &lt;div class=&quot;pace-category&quot;&gt;
           &lt;h3&gt;Easy Run Pace วิ่งต่อเนื่อง&lt;/h3&gt;
           &lt;ul class=&quot;pace-list&quot;&gt;
-            &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;60 นาที (80-85% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 80, 85)}&lt;/span&gt;&lt;/li&gt;
-            &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;90 นาที (75-80% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 75, 80)}&lt;/span&gt;&lt;/li&gt;
-            &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;120 นาที (70-75% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 70, 75)}&lt;/span&gt;&lt;/li&gt;
-            &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;120 นาที B2B (65-70% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 65, 70)}&lt;/span&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;60-120 นาที (70-85% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 70, 85)}&lt;/span&gt;&lt;/li&gt;
           &lt;/ul&gt;
         &lt;/div&gt;
         
         &lt;div class=&quot;pace-category&quot;&gt;
           &lt;h3&gt;Threshold Run Pace (Tempo) วิ่งต่อเนื่อง&lt;/h3&gt;
           &lt;ul class=&quot;pace-list&quot;&gt;
-             &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;20 นาที (100-105% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 100, 105)}&lt;/span&gt;&lt;/li&gt;
-             &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;30 นาที (95-100% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 95, 100)}&lt;/span&gt;&lt;/li&gt;
-             &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;45 นาที (90-95% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 90, 95)}&lt;/span&gt;&lt;/li&gt;
-             &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;60 นาที (85-90% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 85, 90)}&lt;/span&gt;&lt;/li&gt;
+             &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;20-40 นาที (95-103% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 95, 103)}&lt;/span&gt;&lt;/li&gt;
           &lt;/ul&gt;
         &lt;/div&gt;
 
         &lt;div class=&quot;pace-category&quot;&gt;
             &lt;h3&gt;Interval Run Pace ระยะเวลาวิ่งรวม 20-30 นาที&lt;/h3&gt;
             &lt;ul class=&quot;pace-list&quot;&gt;
-                &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;วิ่ง 1 นาที จ๊อก 1 นาที(110-115% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 110, 115)}&lt;/span&gt;&lt;/li&gt;
-                &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;วิ่ง 3 นาที พัก 1 นาที(105-110% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 105, 110)}&lt;/span&gt;&lt;/li&gt;
-                &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;วิ่ง 5 นาที พัก 1 นาที(100-105% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 100, 105)}&lt;/span&gt;&lt;/li&gt;
+
+                &lt;li&gt;&lt;span class=&quot;pace-label&quot;&gt;วิ่ง 3-5 นาที พัก 1-2 นาที(105-110% LT)&lt;/span&gt; &lt;span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 105, 110)}&lt;/span&gt;&lt;/li&gt;
+
             &lt;/ul&gt;
         &lt;/div&gt;
       `;
