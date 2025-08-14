@@ -1,490 +1,445 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8" />
+<meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Running Toolset — 4 Pages</title>
+<title>Running Calculator — Single File (4 Pages)</title>
 <style>
   :root{
-    --bg:#f6f8fb; --card:#ffffff; --text:#1e293b; --muted:#64748b;
-    --primary:#2563eb; --primary-700:#1d4ed8; --ring:rgba(37,99,235,.25);
+    --bg:#f4f7fb; --card:#ffffff; --text:#233041; --muted:#6b7a90; --primary:#0d6efd; --primary-700:#0b5ed7; --ring:rgba(13,110,253,.25); --border:#e6eef8;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);line-height:1.5}
-  header{position:sticky;top:0;background:var(--card);border-bottom:1px solid #e9eef6;z-index:10}
-  .wrap{max-width:960px;margin-inline:auto;padding:16px}
-  .brand{font-weight:800;letter-spacing:.2px}
-  nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;justify-content:center}
-  .nav{appearance:none;border:1px solid #dbe5f3;background:#eef4ff;color:#174ea6;padding:10px 14px;border-radius:999px;font-weight:700;cursor:pointer;transition:.15s}
-  .nav[aria-current="page"]{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 0 0 3px var(--ring)}
-  .nav:hover{transform:translateY(-1px)}
-  main{padding:28px 16px}
-  .card{background:var(--card);border:1px solid #e9eef6;border-radius:18px;box-shadow:0 10px 30px rgba(2,6,23,.06);padding:0;}
-  .section-inner{max-width:800px;margin:0 auto;padding:24px 20px;text-align:center}
-  .header{padding:18px 20px;border-bottom:1px solid #eef2f9;background:linear-gradient(180deg,#fff, #fafcff)}
-  h1{font-size:22px;margin:0}
-  table{width:100%;border-collapse:collapse;margin-top:16px}
-  th,td{border:1px solid #ccc;padding:8px;text-align:center}
-  th{background-color:#f4f4f4}
-  input[type=number]{width:90%;padding:6px;border:1px solid #ccc;border-radius:6px;text-align:center}
-  .result{background-color:#e9f7e9}
-  .accumulated{background-color:#fef7e0}
-  .summary{font-weight:bold;background-color:#d9edf7}
-  .btn{appearance:none;border:none;background:var(--primary);color:#fff;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;transition:.15s;margin-top:10px}
+  body{margin:0;background:var(--bg);color:var(--text);font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial}
+  header{position:sticky;top:0;background:rgba(255,255,255,.9);backdrop-filter: blur(6px);border-bottom:1px solid var(--border);z-index:10}
+  .wrap{max-width:1000px;margin:0 auto;padding:12px 16px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .dot{height:36px;width:36px;border-radius:12px;background:var(--primary)}
+  .subtitle{font-size:12px;color:#64748b;margin-top:2px}
+  nav{border-top:1px solid var(--border)}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:8px 12px}
+  .tab{padding:8px 14px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:14px;cursor:pointer;white-space:nowrap}
+  .tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  main{max-width:1000px;margin:0 auto;padding:20px 16px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 8px rgba(15,23,42,.03);max-width:900px;margin:0 auto}
+  .card-h{display:flex;gap:10px;align-items:center;padding:16px;border-bottom:1px solid var(--border)}
+  .card-h .badge{height:28px;width:28px;border-radius:999px;background:var(--ring)}
+  .card-b{padding:16px}
+  .grid{display:grid;gap:12px}
+  @media(min-width:820px){.grid-2{grid-template-columns:1fr 1fr}}
+  label{font-size:13px;color:#334155;display:flex;flex-direction:column;gap:8px}
+  input[type="number"], input[type="text"]{padding:10px;border:1px solid var(--border);border-radius:10px;outline:none;text-align:center}
+  input:focus{box-shadow:0 0 0 6px var(--ring)}
+  .row{display:flex;gap:8px;align-items:end}
+  .btn{padding:10px 14px;border:none;border-radius:10px;background:var(--primary);color:#fff;cursor:pointer;font-weight:600}
   .btn:hover{background:var(--primary-700)}
+  .section-title{margin:18px 0 8px;font-weight:700}
+  .list{display:grid;gap:8px}
+  .item{background:#fff;border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:10px;padding:10px}
+  table{border-collapse:collapse;width:100%}
+  th,td{border:1px solid var(--border);padding:8px;text-align:center;font-size:14px}
+  thead tr{background:#eef2ff}
+  tfoot tr{background:#e0f2fe;font-weight:700}
+  .muted{color:var(--muted);font-size:12px}
+  .hint{font-size:12px;color:#475569}
+  .pill{display:inline-block;background:var(--primary);color:#fff;border-radius:999px;padding:3px 8px;font-size:11px}
+  .note{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:12px}
+  footer{padding:28px 12px;text-align:center;color:#94a3b8;font-size:12px}
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <div class="brand">🏃‍♂️ Running Toolset</div>
+  <header>
+    <div class="wrap">
+      <div class="brand">
+        <div class="dot"></div>
+        <div>
+          <div style="font-weight:700">Running Calculator</div>
+          <div class="subtitle">4 หน้าคำนวณ · โทนสีเดียวกัน · Single HTML</div>
+        </div>
+      </div>
+    </div>
     <nav>
-      <button class="nav" data-page="p1" aria-current="page">1) Time · Pace · Distance</button>
-      <button class="nav" data-page="p2">2) Race Prediction</button>
-      <button class="nav" data-page="p3">3) Training Pace</button>
-      <button class="nav" data-page="p4">4) Split Time Calculation</button>
+      <div class="wrap tabs">
+        <button class="tab active" data-tab="time">Time/Pace/Distance</button>
+        <button class="tab" data-tab="race">Race Predict</button>
+        <button class="tab" data-tab="training">Training Pace</button>
+        <button class="tab" data-tab="table">Pace Table</button>
+      </div>
     </nav>
-  </div>
-</header>
-<main class="wrap">
-    <!-- Page 1 -->
-    <section id="p1" class="card">
-      <div class="header"><h1>คำนวณ Time · Pace · Distance</h1></div>
-      <div class="section-inner grid">
-        <div>
-          <label>เวลา (ชั่วโมง : นาที : วินาที)</label>
+  </header>
+
+  <main>
+    <!-- PAGE: TIME/PACE/DISTANCE -->
+    <section class="card page" id="page-time">
+      <div class="card-h"><div class="badge"></div><h2>Time, Pace, Distance Calculator</h2></div>
+      <div class="card-b">
+        <div class="grid grid-2">
+          <label>
+            เวลา (ชั่วโมง:นาที:วินาที)
+            <div class="row">
+              <input id="t-h" type="number" placeholder="h">
+              <input id="t-m" type="number" placeholder="m">
+              <input id="t-s" type="number" placeholder="s">
+            </div>
+          </label>
+          <button class="btn" onclick="calcTIME()">คำนวณ TIME</button>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:12px">
+          <label>
+            Pace (นาที:วินาที ต่อกม.)
+            <div class="row">
+              <input id="p-m" type="number" placeholder="m">
+              <input id="p-s" type="number" placeholder="s">
+            </div>
+          </label>
+          <button class="btn" onclick="calcPACE()">คำนวณ PACE</button>
+        </div>
+
+        <div class="grid grid-2" style="margin-top:12px">
+          <label>
+            ระยะทาง (กม.)
+            <input id="dist" type="number" step="0.01" placeholder="km">
+          </label>
           <div class="row">
-            <input type="number" id="p1_timeHours" placeholder="ช" min="0" inputmode="numeric" value="0">
-            <span>:</span>
-            <input type="number" id="p1_timeMinutes" placeholder="น" min="0" max="59" inputmode="numeric" value="0">
-            <span>:</span>
-            <input type="number" id="p1_timeSeconds" placeholder="ว" min="0" max="59" inputmode="numeric" value="0">
-          </div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn" onclick="P1.calculateTime()">คำนวณ TIME</button>
+            <button class="btn" onclick="calcDIST()">คำนวณ DISTANCE</button>
+            <button class="btn" onclick="calcPacePercents()">คำนวณ %PACE</button>
           </div>
         </div>
-        <div>
-          <label>Pace (นาที : วินาที ต่อ กม.)</label>
-          <div class="row">
-            <input type="number" id="p1_paceMinutes" placeholder="นาที" min="0" inputmode="numeric" value="0">
-            <span>:</span>
-            <input type="number" id="p1_paceSeconds" placeholder="วินาที" min="0" max="59" inputmode="numeric" value="0">
-          </div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn" onclick="P1.calculatePace()">คำนวณ PACE</button>
-          </div>
+
+        <div id="pace-percent-box" class="note" style="margin-top:12px; display:none">
+          <div class="section-title">% Pace</div>
+          <div id="pace-percent-list" class="list"></div>
         </div>
-        <div>
-          <label>ระยะทาง (กม.)</label>
-          <div class="row">
-            <input type="number" id="p1_distance" placeholder="กม." min="0" step="0.01" inputmode="decimal" value="0">
-          </div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn" onclick="P1.calculateDistance()">คำนวณ DISTANCE</button>
-            <button class="btn ghost" onclick="P1.calculatePacePercent()">ตาราง %PACE</button>
-          </div>
-        </div>
-        <div id="p1_pacePercentResults" class="result"></div>
+        <div class="muted" style="margin-top:8px">ขอให้สนุกกับการวิ่งครับ!</div>
       </div>
     </section>
 
-    <!-- Page 2 -->
-    <section id="p2" class="card hidden">
-      <div class="header"><h1>Race Predict Calculator</h1></div>
-      <div class="section-inner grid" id="p2_form">
-        <div>
-          <label>ผลการแข่งขันที่ทำได้ — ระยะทาง (กม.)</label>
-          <input type="number" id="p2_achievedDistance" step="any" placeholder="เช่น 5 - 42.195" inputmode="decimal" value="0">
-        </div>
-        <div>
-          <label>เวลา (ชั่วโมง : นาที : วินาที)</label>
+    <!-- PAGE: RACE PREDICT -->
+    <section class="card page" id="page-race" style="display:none">
+      <div class="card-h"><div class="badge"></div><h2>Race Predict (Reverse LT Pace)</h2></div>
+      <div class="card-b">
+        <div class="grid grid-2">
+          <label>ผลที่ทำได้ (ระยะทาง กม.)<input id="rp-ach-d" type="number" step="any" placeholder="เช่น 5 - 42.195"></label>
           <div class="row">
-            <input type="number" id="p2_achievedHours" min="0" placeholder="ช" inputmode="numeric" value="0">
-            <span>:</span>
-            <input type="number" id="p2_achievedMinutes" min="0" max="59" placeholder="น" inputmode="numeric" value="0">
-            <span>:</span>
-            <input type="number" id="p2_achievedSeconds" min="0" max="59" placeholder="ว" inputmode="numeric" value="0">
+            <input id="rp-h" type="number" placeholder="ชั่วโมง">
+            <input id="rp-m" type="number" placeholder="นาที">
+            <input id="rp-s" type="number" placeholder="วินาที">
           </div>
+          <label>ระยะทางคาดการณ์ (กม.)<input id="rp-forecast-d" type="number" step="any" placeholder="เช่น 21.1"></label>
+          <button class="btn" onclick="racePredict()">คำนวณ</button>
         </div>
-        <div>
-          <label>ระยะทางที่ต้องการคาดการณ์ (กม.)</label>
-          <div class="row">
-            <input type="number" id="p2_distance" step="any" placeholder="เช่น 21.0975" inputmode="decimal" value="0">
-          </div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn" onclick="P2.calculateRacePredict()">คำนวณ</button>
-          </div>
+
+        <div id="rp-result" style="margin-top:14px; display:none" class="note"></div>
+
+        <div class="section-title">ผลลัพธ์สำหรับระยะมาตรฐาน</div>
+        <div id="rp-standards" class="list"></div>
+
+        <div class="section-title">% ของ Pace จาก LT Pace</div>
+        <div id="rp-pct-lt" class="list grid-2"></div>
+
+        <div class="section-title">% ของ Pace จาก Pace อินพุต</div>
+        <div id="rp-pct-input" class="list grid-2"></div>
+
+        <div class="section-title">แนวทางเวลาการฝึกตาม %LT Pace</div>
+        <div class="note" style="overflow:auto">
+          <table class=""
+            ><thead><tr>
+              <th>%LT</th><th>เหมาะสำหรับ</th><th>เวลาที่มีประสิทธิภาพ</th><th>ไม่ควรเกิน</th><th>จำนวนเที่ยว (Intervals)</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>60–70%</td><td>AR / CD</td><td>30–90 นาที</td><td>≤100 นาที</td><td>–</td></tr>
+              <tr><td>70–80%</td><td>AB</td><td>60–120 นาที</td><td>≤180 นาที</td><td>–</td></tr>
+              <tr><td>80–85%</td><td>AT</td><td>45–90 นาที</td><td>≤120 นาที</td><td>–</td></tr>
+              <tr><td>85–90%</td><td>MP</td><td>40–70 นาที</td><td>≤80 นาที</td><td>–</td></tr>
+              <tr><td>90–95%</td><td>MP / Tempo</td><td>30–50 นาที</td><td>≤60 นาที</td><td>–</td></tr>
+              <tr><td>95–105%</td><td>TH / Intervals</td><td>20–35 นาที</td><td>≤45 นาที</td><td>3–5 เที่ยว (6–10 นาที)</td></tr>
+              <tr><td>105–115%</td><td>VO2 Max</td><td>–</td><td>≤25 นาที</td><td>4–6 เที่ยว (600–1000m)</td></tr>
+              <tr><td>115–120%</td><td>Speed</td><td>–</td><td>≤15 นาที</td><td>6–8 เที่ยว (400m)</td></tr>
+              <tr><td>125%</td><td>Sprint</td><td>–</td><td>≤4 นาที</td><td>6–12 เที่ยว (50–200m)</td></tr>
+            </tbody>
+          </table>
         </div>
-        <div id="p2_result" class="result"></div>
-        <div id="p2_standardResults" class="result"></div>
       </div>
     </section>
 
-    <!-- Page 3 -->
-    <section id="p3" class="card hidden">
-      <div class="header"><h1>Training Pace จาก LT Pace</h1></div>
-      <div class="section-inner grid" id="p3_form">
-        <div>
-          <label>ผลการแข่งขันที่ทำได้ — ระยะทาง (กม.)</label>
-          <input type="number" id="p3_achievedDistance" step="any" placeholder="เช่น 5 - 42.195" inputmode="decimal" value="0">
-        </div>
-        <div>
-          <label>เวลา (ชั่วโมง : นาที : วินาที)</label>
+    <!-- PAGE: TRAINING PACE -->
+    <section class="card page" id="page-training" style="display:none">
+      <div class="card-h"><div class="badge"></div><h2>Training Pace Calculator from LT Pace</h2></div>
+      <div class="card-b">
+        <div class="grid grid-2">
+          <label>ผลที่ทำได้ (ระยะทาง กม.)<input id="tp-ach-d" type="number" step="any" placeholder="5–42.2"></label>
           <div class="row">
-            <input type="number" id="p3_achievedHours" min="0" placeholder="ช" inputmode="numeric" value="0">
-            <span>:</span>
-            <input type="number" id="p3_achievedMinutes" min="0" max="59" placeholder="น" inputmode="numeric" value="0">
-            <span>:</span>
-            <input type="number" id="p3_achievedSeconds" min="0" max="59" placeholder="ว" inputmode="numeric" value="0">
+            <input id="tp-h" type="number" placeholder="ชั่วโมง">
+            <input id="tp-m" type="number" placeholder="นาที">
+            <input id="tp-s" type="number" placeholder="วินาที">
           </div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn" onclick="P3.calculateTrainingPaces()">คำนวณ Pace การซ้อม</button>
-          </div>
+          <button class="btn" onclick="trainingPace()">คำนวณ</button>
         </div>
-        <div id="p3_result" class="result"></div>
-        <div id="p3_training" class="result"></div>
+
+        <div id="tp-head" class="note" style="margin-top:14px; display:none"></div>
+
+        <div id="tp-blocks" class="list" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- PAGE: PACE TABLE -->
+    <section class="card page" id="page-table" style="display:none">
+      <div class="card-h"><div class="badge"></div><h2>Pace & Time Table Calculator</h2></div>
+      <div class="card-b">
+        <div style="overflow:auto">
+          <table id="tbl">
+            <thead>
+              <tr>
+                <th>Distance (km)</th>
+                <th>Pace (Minutes)</th>
+                <th>Pace (Seconds)</th>
+                <th>Time (mm:ss)</th>
+                <th>Accumulated Time</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <!-- rows injected -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <td id="sum-dist">0.00</td>
+                <td colspan="2" id="avg-pace">Average Pace: 0:00</td>
+                <td id="sum-time">0:00:00</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:8px">
+          <button class="btn" onclick="addRow()">Add Row</button>
+          <button class="btn" onclick="clearRows()">Clear</button>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer>
-    ขอให้สนุกกับการวิ่งครับ 😁🏃‍♂️
-  </footer>
+  <footer>© <span id="yr"></span> Running Calculator · Single-file Edition</footer>
 
-  <script>
-    // ---------- NAV ----------
-    document.querySelectorAll('.nav').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const id = btn.getAttribute('data-page');
-        document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden', s.id!==id));
-        document.querySelectorAll('.nav').forEach(b=>b.removeAttribute('aria-current'));
-        btn.setAttribute('aria-current','page');
-        window.scrollTo({top:0, behavior:'smooth'});
-      })
-    })
-
-    // ---------- Helpers ----------
-    const getNum=(id, asFloat=false)=>{
-      const v = document.getElementById(id).value.trim();
-      if(v===""||v===null) return 0; // ช่องว่าง = 0
-      const n = asFloat? parseFloat(v): parseInt(v,10);
-      return Number.isFinite(n)? n: 0; // ค่าที่ไม่ใช่ตัวเลข = 0
-    }
-    function pad2(n){return String(n).padStart(2,'0')} 
-    function formatTimeTH(totalSeconds){
-      totalSeconds = Math.round(totalSeconds);
-      const h = Math.floor(totalSeconds/3600);
-      const m = Math.floor((totalSeconds%3600)/60);
-      const s = totalSeconds%60;
-      let out = '';
-      if(h>0) out += h+" ชั่วโมง ";
-      if(m>0 || h>0) out += m+" นาที ";
-      out += s+" วินาที";
-      return out;
-    }
-    function formatPace(minPerKm){
-      const total = Math.round(minPerKm*60);
-      const m = Math.floor(total/60);
-      const s = total%60;
-      return m+":"+pad2(s);
-    }
-
-    // ---------- PAGE 1 ----------
-    const P1 = (function(){
-      function calculateTime(){
-        const paceM = getNum('p1_paceMinutes');
-        const paceS = getNum('p1_paceSeconds');
-        const dist  = getNum('p1_distance', true);
-        if(dist<=0){alert('กรุณากรอกระยะทางให้มากกว่า 0');return;}
-        const paceSec = paceM*60+paceS;
-        const total = paceSec*dist;
-        const h = Math.floor(total/3600);
-        const m = Math.floor((total%3600)/60);
-        const s = Math.round(total%60);
-        document.getElementById('p1_timeHours').value=h;
-        document.getElementById('p1_timeMinutes').value=m;
-        document.getElementById('p1_timeSeconds').value=s;
-      }
-      function calculatePace(){
-        const h = getNum('p1_timeHours');
-        const m = getNum('p1_timeMinutes');
-        const s = getNum('p1_timeSeconds');
-        const dist = getNum('p1_distance', true);
-        if(dist<=0){alert('กรุณากรอกระยะทางให้มากกว่า 0');return;}
-        const total = h*3600+m*60+s;
-        const pace = total/dist;
-        const pm = Math.floor(pace/60);
-        const ps = Math.round(pace%60);
-        document.getElementById('p1_paceMinutes').value=pm;
-        document.getElementById('p1_paceSeconds').value=ps;
-      }
-      function calculateDistance(){
-        const h = getNum('p1_timeHours');
-        const m = getNum('p1_timeMinutes');
-        const s = getNum('p1_timeSeconds');
-        const paceM = getNum('p1_paceMinutes');
-        const paceS = getNum('p1_paceSeconds');
-        const total = h*3600+m*60+s;
-        const paceSec = paceM*60+paceS;
-        if(paceSec<=0){alert('กรุณากรอก Pace ให้ถูกต้องก่อน');return;}
-        const d = total/paceSec;
-        document.getElementById('p1_distance').value = Number.isFinite(d)? d.toFixed(2): 0;
-      }
-      function calculatePacePercent(){
-        const paceM = getNum('p1_paceMinutes');
-        const paceS = getNum('p1_paceSeconds');
-        const total = paceM*60+paceS;
-        if(total<=0){alert('กรุณากรอก Pace (นาที/วินาที) ให้ถูกต้องก่อน');return;}
-        const perc = [55,60,65,70,75,80,85,90,95,97,100,105,110,115,120,125];
-        let html = '<div class="grid">';
-        perc.forEach(p=>{
-          const paceSec = total/(p/100);
-          const m = Math.floor(paceSec/60);
-          const s = Math.round(paceSec%60);
-          html += `<div class="item"><strong>${p}%</strong> = ${m}:${pad2(s)} นาที/กม.</div>`
-        })
-        html += '</div>';
-        document.getElementById('p1_pacePercentResults').innerHTML = html;
-      }
-      return {calculateTime, calculatePace, calculateDistance, calculatePacePercent};
-    })();
-
-    // ---------- Shared LT model (used by p2, p3) ----------
-    function adjustedPace(ltTotalSec, percent){ return (ltTotalSec * (100/percent))/60 } // min/km
-    function computeRaceTime(targetDistance, ltTotalSec){
-      const segments=[
-        {duration:2, percent:120},
-        {duration:6, percent:110},
-        {duration:30, percent:100},
-        {duration:120, percent:90},
-        {duration:120, percent:80},
-        {duration:120, percent:65}
-      ];
-      let totalMin=0, remain=targetDistance;
-      for(const seg of segments){
-        const pace = adjustedPace(ltTotalSec, seg.percent);
-        const segDist = seg.duration/pace;
-        if(segDist < remain){ totalMin += seg.duration; remain -= segDist; }
-        else { totalMin += remain*pace; remain=0; break; }
-      }
-      if(remain>0){ const pace50 = adjustedPace(ltTotalSec,50); totalMin += remain*pace50; }
-      return totalMin;
-    }
-    function findLTPace(achievedDistance, achievedTimeMinutes){
-      let low=120, high=600, mid; // sec/km
-      for(let i=0;i<32;i++){
-        mid=(low+high)/2;
-        const t = computeRaceTime(achievedDistance, mid);
-        if(t>achievedTimeMinutes) high=mid; else low=mid;
-      }
-      return mid;
-    }
-
-    // ---------- PAGE 2 ----------
-    const P2 = (function(){
-      function calculateRacePredict(){
-        const d = getNum('p2_achievedDistance', true);
-        const h = getNum('p2_achievedHours');
-        const m = getNum('p2_achievedMinutes');
-        const s = getNum('p2_achievedSeconds');
-        const target = getNum('p2_distance', true);
-
-        if(!(d>0)){
-          document.getElementById('p2_result').innerHTML = '<p style="color:#b00020">กรุณากรอกระยะที่เคยแข่ง (ต้องมากกว่า 0)</p>';
-          document.getElementById('p2_standardResults').innerHTML = '';
-          return;
-        }
-        const timeMin = h*60 + m + s/60;
-        const inputPace = d>0 ? timeMin/d : 0; // min/km
-        const ltSec = findLTPace(d, timeMin);
-        const ltPace = ltSec/60;
-
-        let resultHTML = `<p><strong>Pace จากผลการแข่งขันที่ทำได้:</strong> ${formatPace(inputPace)} นาที/กม.</p>`+
-                         `<p><strong>LT Pace ที่คำนวณได้:</strong> ${formatPace(ltPace)} นาที/กม.</p>`;
-
-        if(target>0){
-          const forecastMin = computeRaceTime(target, ltSec);
-          const avgPace = target>0 ? forecastMin/target : 0;
-          resultHTML += `<p><strong>สำหรับระยะทาง ${target} กม. คาดว่าจะใช้เวลา:</strong> ${formatTimeTH(Math.round(forecastMin*60))} <br>(Pace เฉลี่ย: ${formatPace(avgPace)} นาที/กม.)</p>`;
-        }
-        document.getElementById('p2_result').innerHTML = resultHTML;
-
-        const standards=[
-          {label:'5K', distance:5},
-          {label:'5M', distance:8.04672},
-          {label:'10K', distance:10},
-          {label:'10M', distance:16.09344},
-          {label:'Half Marathon', distance:21.0975},
-          {label:'33K', distance:33},
-          {label:'Marathon', distance:42.195}
-        ];
-        let stdHTML = '<h2>ผลลัพธ์สำหรับระยะมาตรฐาน</h2><ul class="list">';
-        standards.forEach(it=>{
-          const t = computeRaceTime(it.distance, ltSec);
-          stdHTML += `<li class="item">${it.label} (${it.distance} กม.) : ${formatTimeTH(Math.round(t*60))} <strong>(${formatPace(t/it.distance)} นาที/กม.)</strong></li>`
-        })
-        stdHTML += '</ul>';
-        document.getElementById('p2_standardResults').innerHTML = stdHTML;
-      }
-      return {calculateRacePredict};
-    })();
-
-    // ---------- PAGE 3 ----------
-    const P3 = (function(){
-      function paceRangeStr(ltSec, lowPercent, highPercent){
-        const fast = adjustedPace(ltSec, highPercent);
-        const slow = adjustedPace(ltSec, lowPercent);
-        return `${formatPace(fast)} - ${formatPace(slow)}`;
-      }
-      function calculateTrainingPaces(){
-        const d = getNum('p3_achievedDistance', true);
-        const h = getNum('p3_achievedHours');
-        const m = getNum('p3_achievedMinutes');
-        const s = getNum('p3_achievedSeconds');
-
-        if(!(d>0)){
-          document.getElementById('p3_result').innerHTML = '<p style="color:#b00020">กรุณากรอกระยะที่เคยแข่ง (ต้องมากกว่า 0)</p>';
-          document.getElementById('p3_training').innerHTML = '';
-          return;
-        }
-        const timeMin = h*60 + m + s/60;
-        const inputPace = d>0 ? timeMin/d : 0;
-        const ltSec = findLTPace(d, timeMin);
-        const ltPace = ltSec/60;
-        document.getElementById('p3_result').innerHTML = `<p><strong>Pace จากผลการแข่งขัน:</strong> ${formatPace(inputPace)} นาที/กม.</p><p><strong>LT Pace ที่คำนวณได้:</strong> ${formatPace(ltPace)} นาที/กม.</p>`;
-
-        const easyRange = paceRangeStr(ltSec, 70, 85);
-        const thRange   = paceRangeStr(ltSec, 95, 103);
-        const itvRange  = paceRangeStr(ltSec, 105, 110);
-
-        const html = `
-          <h2>ช่วง Pace การซ้อมที่แนะนำ</h2>
-          <ul class="list">
-            <li class="item"><strong>Easy Run</strong> — วิ่งต่อเนื่อง (60–120 นาที) = <strong>${easyRange}</strong> นาที/กม. <small style="color:var(--muted)">70–85% LT Pace</small></li>
-            <li class="item"><strong>Threshold Run</strong> — วิ่งต่อเนื่อง (20–40 นาที) = <strong>${thRange}</strong> นาที/กม. <small style="color:var(--muted)">95–103% LT Pace</small></li>
-            <li class="item"><strong>Interval Run</strong> — วิ่ง (3–5 นาที) สลับพัก (1–2 นาที) × 6 เที่ยว = <strong>${itvRange}</strong> นาที/กม. <small style="color:var(--muted)">105–110% LT Pace</small></li>
-          </ul>`;
-        document.getElementById('p3_training').innerHTML = html;
-      }
-      return {calculateTrainingPaces};
-    })();
-
-    // ---------- ENTER to submit (Page 2 & 3) ----------
-    function addEnterSubmit(sectionId, cb){
-      const el = document.getElementById(sectionId);
-      el.addEventListener('keydown', (e)=>{
-        if(e.key === 'Enter'){
-          e.preventDefault();
-          cb();
-        }
-      });
-    }
-    addEnterSubmit('p2_form', ()=>P2.calculateRacePredict());
-    addEnterSubmit('p3_form', ()=>P3.calculateTrainingPaces());
-  </script>
-
-   <section id="p4" class="card hidden">
-    <div class="header"><h1>Split Time Calculation</h1></div>
-    <div class="section-inner">
-      <table>
-        <thead>
-          <tr>
-            <th>Distance (km)</th>
-            <th>Pace (Minutes)</th>
-            <th>Pace (Seconds)</th>
-            <th>Time (Minutes:Seconds)</th>
-            <th>Accumulated Time</th>
-          </tr>
-        </thead>
-        <tbody id="calculatorTable">
-          <tr>
-            <td><input type="number" class="distance" step="0.1" oninput="calculateRow(this)"></td>
-            <td><input type="number" class="pace-minutes" oninput="calculateRow(this)"></td>
-            <td><input type="number" class="pace-seconds" oninput="calculateRow(this)"></td>
-            <td class="result">0:00</td>
-            <td class="accumulated">0:00</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr class="summary">
-            <td id="totalDistance">0</td>
-            <td colspan="2">Average Pace: <span id="averagePace">0:00</span></td>
-            <td id="totalTime">0:00:00</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-      <button class="btn" onclick="addRow()">Add Row</button>
-    </div>
-  </section>
-</main>
 <script>
-const navs=document.querySelectorAll('.nav');
-navs.forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const id=btn.getAttribute('data-page');
-    document.querySelectorAll('main section').forEach(s=>s.classList.toggle('hidden',s.id!==id));
-    navs.forEach(b=>b.removeAttribute('aria-current'));
-    btn.setAttribute('aria-current','page');
-  });
-});
-function addRow(){
-  const table=document.getElementById('calculatorTable');
-  const newRow=document.createElement('tr');
-  newRow.innerHTML=`<td><input type="number" class="distance" step="0.1" oninput="calculateRow(this)"></td>
-  <td><input type="number" class="pace-minutes" oninput="calculateRow(this)"></td>
-  <td><input type="number" class="pace-seconds" oninput="calculateRow(this)"></td>
-  <td class="result">0:00</td>
-  <td class="accumulated">0:00</td>`;
-  table.appendChild(newRow);
-}
-function calculateRow(inputElement){
-  const row=inputElement.closest('tr');
-  const distance=parseFloat(row.querySelector('.distance').value)||0;
-  const paceMinutes=parseInt(row.querySelector('.pace-minutes').value)||0;
-  const paceSeconds=parseInt(row.querySelector('.pace-seconds').value)||0;
-  const totalPaceSeconds=(paceMinutes*60)+paceSeconds;
-  const totalSeconds=distance*totalPaceSeconds;
-  const minutes=Math.floor(totalSeconds/60);
-  const seconds=Math.round(totalSeconds%60);
-  row.querySelector('.result').textContent=`${minutes}:${seconds.toString().padStart(2,'0')}`;
-  calculateSummary();
-  updateAccumulatedTimes();
-}
-function calculateSummary(){
-  const rows=document.querySelectorAll('#calculatorTable tr');
-  let totalDistance=0,totalTimeInSeconds=0;
-  rows.forEach(row=>{
-    const distance=parseFloat(row.querySelector('.distance').value)||0;
-    const result=row.querySelector('.result').textContent.split(':');
-    const timeInSeconds=(parseInt(result[0])*60)+parseInt(result[1]);
-    totalDistance+=distance;
-    totalTimeInSeconds+=timeInSeconds;
-  });
-  const totalHours=Math.floor(totalTimeInSeconds/3600);
-  const totalMinutes=Math.floor((totalTimeInSeconds%3600)/60);
-  const totalSeconds=totalTimeInSeconds%60;
-  const averagePaceInSeconds=totalDistance>0?Math.ceil(totalTimeInSeconds/totalDistance):0;
-  const averagePaceMinutes=Math.floor(averagePaceInSeconds/60);
-  const averagePaceSeconds=averagePaceInSeconds%60;
-  document.getElementById('totalDistance').textContent=totalDistance.toFixed(2);
-  document.getElementById('totalTime').textContent=`${totalHours}:${totalMinutes.toString().padStart(2,'0')}:${totalSeconds.toString().padStart(2,'0')}`;
-  document.getElementById('averagePace').textContent=`${averagePaceMinutes}:${averagePaceSeconds.toString().padStart(2,'0')}`;
-}
-function updateAccumulatedTimes(){
-  const rows=document.querySelectorAll('#calculatorTable tr');
-  let accumulatedSeconds=0;
-  rows.forEach(row=>{
-    const result=row.querySelector('.result').textContent.split(':');
-    const timeInSeconds=(parseInt(result[0])*60)+parseInt(result[1]);
-    accumulatedSeconds+=timeInSeconds;
-    const accMinutes=Math.floor(accumulatedSeconds/60);
-    const accSeconds=accumulatedSeconds%60;
-    row.querySelector('.accumulated').textContent=`${accMinutes}:${accSeconds.toString().padStart(2,'0')}`;
-  });
-}
+  // ---------- helpers ----------
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const pad2 = (n) => n.toString().padStart(2, '0');
+
+  function mmss(totalMinutes){
+    const sec = Math.round(totalMinutes*60);
+    const m = Math.floor(sec/60); const s = sec%60; return `${m}:${pad2(s)}`;
+  }
+  function formatTime(totalSeconds){
+    totalSeconds = Math.round(totalSeconds);
+    const h = Math.floor(totalSeconds/3600);
+    const m = Math.floor((totalSeconds%3600)/60);
+    const s = totalSeconds%60;
+    return `${h>0? h+" ชั่วโมง ":""}${(m>0||h>0)? m+" นาที ":""}${s} วินาที`;
+  }
+
+  // ---------- Tabs ----------
+  $$(".tab").forEach(btn=>btn.addEventListener('click', e=>{
+    $$(".tab").forEach(b=>b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    const key = e.currentTarget.dataset.tab;
+    $$(".page").forEach(p=>p.style.display='none');
+    $('#page-'+key).style.display = '';
+  }));
+  $('#yr').textContent = new Date().getFullYear();
+
+  // ---------- Page 1: Time/Pace/Distance ----------
+  function totalPaceSec(){ return (parseInt($('#p-m').value)||0)*60 + (parseInt($('#p-s').value)||0); }
+  function totalTimeSec(){ return (parseInt($('#t-h').value)||0)*3600 + (parseInt($('#t-m').value)||0)*60 + (parseInt($('#t-s').value)||0); }
+
+  function calcTIME(){
+    const d = parseFloat($('#dist').value)||0; if(d<=0) return alert('กรุณากรอกระยะทางให้มากกว่า 0');
+    const t = totalPaceSec()*d; const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=Math.round(t%60);
+    $('#t-h').value=h; $('#t-m').value=m; $('#t-s').value=s;
+  }
+  function calcPACE(){
+    const d = parseFloat($('#dist').value)||0; if(d<=0) return alert('กรุณากรอกระยะทางให้มากกว่า 0');
+    const t = totalTimeSec(); const p = t/d; const m=Math.floor(p/60), s=Math.round(p%60);
+    $('#p-m').value=m; $('#p-s').value=s;
+  }
+  function calcDIST(){
+    const t = totalTimeSec(); const p = totalPaceSec(); if(p<=0) return alert('กรุณากรอก Pace ให้ถูกต้องก่อน');
+    const d = t/p; $('#dist').value = d.toFixed(2);
+  }
+  function calcPacePercents(){
+    const p = totalPaceSec(); if(p<=0) return alert('กรุณากรอก Pace ให้ถูกต้องก่อน');
+    const list = $('#pace-percent-list'); list.innerHTML='';
+    const arr=[55,60,65,70,75,80,85,90,95,97,100,105,110,115,120,125];
+    arr.forEach(percent=>{
+      const newSec = p/(percent/100); const mm=Math.floor(newSec/60); const ss=pad2(Math.round(newSec%60));
+      const div=document.createElement('div'); div.className='item';
+      div.textContent = `${percent}% = ${mm}:${ss} นาที/กม.`;
+      list.appendChild(div);
+    });
+    $('#pace-percent-box').style.display='block';
+  }
+
+  // ---------- Core model used by Race & Training ----------
+  function computeRaceTime(targetDistance, ltTotalSec){
+    const segments = [
+      { duration: 2, percent: 120 },
+      { duration: 6, percent: 110 },
+      { duration: 30, percent: 100 },
+      { duration: 120, percent: 90 },
+      { duration: 120, percent: 80 },
+      { duration: 120, percent: 65 },
+    ];
+    let totalTimeMinutes = 0; let remainingDistance = targetDistance;
+    const adjustedPace = (percent) => (ltTotalSec * (100/percent))/60; // นาที/กม.
+    for(const seg of segments){
+      const pace = adjustedPace(seg.percent);
+      const segDistance = seg.duration/pace;
+      if(segDistance < remainingDistance){ totalTimeMinutes += seg.duration; remainingDistance -= segDistance; }
+      else { totalTimeMinutes += remainingDistance*pace; remainingDistance = 0; break; }
+    }
+    if(remainingDistance>0){ const pace50 = adjustedPace(50); totalTimeMinutes += remainingDistance*pace50; }
+    return totalTimeMinutes;
+  }
+  function findLTPace(achievedDistance, achievedTimeMinutes, high=600){
+    let low=120, highBound=high, mid=300;
+    for(let i=0;i<30;i++){
+      mid=(low+highBound)/2;
+      const computed = computeRaceTime(achievedDistance, mid);
+      if(computed>achievedTimeMinutes) highBound=mid; else low=mid;
+    }
+    return mid; // วินาที/กม.
+  }
+
+  // ---------- Page 2: Race Predict ----------
+  function racePredict(){
+    const d = parseFloat($('#rp-ach-d').value); const fd = parseFloat($('#rp-forecast-d').value);
+    const H=parseInt($('#rp-h').value)||0, M=parseInt($('#rp-m').value)||0, S=parseInt($('#rp-s').value)||0;
+    if(!d||!fd) return alert('กรอกระยะทางทั้งสองช่อง');
+    const totalAchMin = H*60 + M + S/60; const inputPace = totalAchMin/d;
+    const ltTotalSec = findLTPace(d, totalAchMin);
+    const ltPaceStr = mmss(ltTotalSec/60);
+    const forecastMin = computeRaceTime(fd, ltTotalSec);
+    const forecastSec = Math.round(forecastMin*60);
+
+    const box=$('#rp-result');
+    box.innerHTML = `<div><b>Pace จากผลที่ทำได้:</b> ${mmss(inputPace)} นาที/กม.</div>
+                     <div><b>LT Pace ที่คำนวณได้:</b> ${ltPaceStr} นาที/กม.</div>
+                     <div><b>เวลาคาดการณ์:</b> ${formatTime(forecastSec)} <span class="pill">Pace เฉลี่ย ${mmss(forecastMin/fd)} นาที/กม.</span></div>`;
+    box.style.display='block';
+
+    // standards
+    const standards=[
+      {label:'5K',distance:5},{label:'5M',distance:8.04672},{label:'10K',distance:10},{label:'10M',distance:16.09344},
+      {label:'Half Marathon',distance:21.0975},{label:'33K',distance:33},{label:'Marathon',distance:42.195}
+    ];
+    const st=$('#rp-standards'); st.innerHTML='';
+    standards.forEach(item=>{
+      const tMin = computeRaceTime(item.distance, ltTotalSec);
+      const li=document.createElement('div'); li.className='item';
+      li.innerHTML = `<div style="font-weight:600">${item.label} (${item.distance} กม.)</div>
+                      <div>${formatTime(Math.round(tMin*60))} <span class="pill" style="margin-left:6px">${mmss(tMin/item.distance)} นาที/กม.</span></div>`;
+      st.appendChild(li);
+    });
+
+    // pct from LT
+    const box1=$('#rp-pct-lt'); box1.innerHTML='';
+    for(let p=60;p<=125;p+=5){
+      const paceAtPercent = (ltTotalSec*(100/p))/60; const div=document.createElement('div'); div.className='item';
+      div.textContent = `${p}% — ${mmss(paceAtPercent)} นาที/กม.`; box1.appendChild(div);
+    }
+    // pct from input pace
+    const box2=$('#rp-pct-input'); box2.innerHTML='';
+    for(let p=60;p<=125;p+=5){
+      const paceAtPercent = inputPace*(100/p); const div=document.createElement('div'); div.className='item';
+      div.textContent = `${p}% — ${mmss(paceAtPercent)} นาที/กม.`; box2.appendChild(div);
+    }
+  }
+
+  // ---------- Page 3: Training Pace ----------
+  function trainingPace(){
+    const d=parseFloat($('#tp-ach-d').value); const H=parseInt($('#tp-h').value)||0; const M=parseInt($('#tp-m').value)||0; const S=parseInt($('#tp-s').value)||0;
+    if(!d || (H+M+S===0)) return alert('กรอกระยะทางและเวลา');
+    const totalMin = H*60 + M + S/60; const inputPace = totalMin/d; const ltTotalSec = findLTPace(d,totalMin,720);
+    const ltStr = mmss(ltTotalSec/60);
+
+    $('#tp-head').innerHTML = `<div><b>Pace จากผลการแข่งขัน:</b> ${mmss(inputPace)} นาที/กม.</div>
+                               <div style="font-size:16px;font-weight:700">LT Pace: ${ltStr} นาที/กม.</div>`;
+    $('#tp-head').style.display='block';
+
+    const range=(low,high)=>{ const fast=(ltTotalSec*(100/high))/60; const slow=(ltTotalSec*(100/low))/60; return `${mmss(fast)} - ${mmss(slow)}` };
+    const blocks=[
+      {title:'Easy Run Pace วิ่งต่อเนื่อง', items:[
+        {k:'60 นาที (80-85% LT)', v:range(80,85)},
+        {k:'90 นาที (75-80% LT)', v:range(75,80)},
+        {k:'120 นาที (70-75% LT)', v:range(70,75)},
+        {k:'120 นาที B2B (65-70% LT)', v:range(65,70)},
+      ]},
+      {title:'Threshold Run Pace (Tempo) วิ่งต่อเนื่อง', items:[
+        {k:'20 นาที (100-105% LT)', v:range(100,105)},
+        {k:'30 นาที (95-100% LT)', v:range(95,100)},
+        {k:'45 นาที (90-95% LT)', v:range(90,95)},
+        {k:'60 นาที (85-90% LT)', v:range(85,90)},
+      ]},
+      {title:'Interval Run Pace ระยะเวลาวิ่งรวม 20-30 นาที', items:[
+        {k:'วิ่ง 1 นาที จ๊อก 1 นาที (110-115% LT)', v:range(110,115)},
+        {k:'วิ่ง 3 นาที พัก 1 นาที (105-110% LT)', v:range(105,110)},
+        {k:'วิ่ง 5 นาที พัก 1 นาที (100-105% LT)', v:range(100,105)},
+      ]},
+    ];
+
+    const blk=$('#tp-blocks'); blk.innerHTML='';
+    blocks.forEach(b=>{
+      const box=document.createElement('div'); box.className='item';
+      box.innerHTML = `<div style="font-weight:700">${b.title}</div>`;
+      const ul=document.createElement('div'); ul.style.marginTop='6px';
+      b.items.forEach(it=>{
+        const li=document.createElement('div'); li.style.display='flex'; li.style.justifyContent='space-between'; li.style.padding='6px 0'; li.style.borderTop='1px solid var(--border)';
+        li.innerHTML = `<span class="hint">${it.k}</span><span style="font-weight:600">${it.v}</span>`;
+        ul.appendChild(li);
+      });
+      box.appendChild(ul); blk.appendChild(box);
+    });
+  }
+
+  // ---------- Page 4: Pace Table ----------
+  const tbody = $('#tbody');
+  function addRow(){
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="number" step="0.1" value="" oninput="updateRow(this)"></td>
+      <td><input type="number" value="" oninput="updateRow(this)"></td>
+      <td><input type="number" value="" oninput="updateRow(this)"></td>
+      <td class="time">0:00</td>
+      <td class="acc">0:00</td>`;
+    tbody.appendChild(tr); recalc();
+  }
+  function clearRows(){ tbody.innerHTML=''; recalc(); }
+  function updateRow(el){
+    const tr=el.closest('tr');
+    const d=parseFloat(tr.children[0].querySelector('input').value)||0;
+    const pm=parseInt(tr.children[1].querySelector('input').value)||0;
+    const ps=parseInt(tr.children[2].querySelector('input').value)||0;
+    const paceSec = pm*60+ps; const totalSec = d*paceSec; const mm=Math.floor(totalSec/60), ss=Math.round(totalSec%60);
+    tr.querySelector('.time').textContent = `${mm}:${pad2(ss)}`; recalc();
+  }
+  function recalc(){
+    let totalD=0, totalSec=0; const times=[];
+    Array.from(tbody.children).forEach(tr=>{
+      const d=parseFloat(tr.children[0].querySelector('input').value)||0; totalD+=d;
+      const txt=tr.querySelector('.time').textContent.split(':'); const t=(parseInt(txt[0])||0)*60 + (parseInt(txt[1])||0);
+      totalSec += t; times.push(t);
+    });
+    // accumulated
+    let acc=0; Array.from(tbody.children).forEach((tr,i)=>{ acc+=times[i]||0; const m=Math.floor(acc/60), s=acc%60; tr.querySelector('.acc').textContent=`${m}:${pad2(s)}`; });
+    // summary
+    const h=Math.floor(totalSec/3600), m=Math.floor((totalSec%3600)/60), s=totalSec%60;
+    $('#sum-dist').textContent = totalD.toFixed(2);
+    const avg = totalD>0? Math.ceil(totalSec/totalD):0; const apm=Math.floor(avg/60), aps=avg%60;
+    $('#avg-pace').textContent = `Average Pace: ${apm}:${pad2(aps)}`;
+    $('#sum-time').textContent = `${h}:${pad2(m)}:${pad2(s)}`;
+  }
+  // init 1 row
+  addRow();
 </script>
-  
 </body>
 </html>
