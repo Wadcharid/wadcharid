@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ข้อสอบออนไลน์ - หลักสูตรคนงานควบคุมก๊าซคลอรีน (100 ข้อ)</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f7fb; margin: 0; }
+  header { position: sticky; top: 0; background: #ffffff; border-bottom: 1px solid #e8eef5; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 14px 16px; }
+  h1 { margin: 6px 0 2px; font-size: 22px; }
+  .muted{ color:#6b7a90; font-size: 14px; }
+  .card { background:#fff; border:1px solid #e8eef5; border-radius:10px; padding:16px; margin:12px auto; }
+  .question { margin-bottom: 14px; padding: 14px; border: 1px solid #e8eef5; border-radius: 10px; background: #fbfdff; }
+  .qhead{ font-weight:600; margin:0 0 8px; }
+  .options label { display:block; margin:6px 0; cursor:pointer; }
+  .section{ background:#eef5ff; border:1px solid #d9e7ff; border-radius:12px; padding:10px 14px; margin:18px 0 8px; font-weight:700; }
+  .btn { background:#0d6efd; color:#fff; border:0; padding:12px 18px; border-radius:10px; cursor:pointer; font-size:16px; }
+  .btn:disabled{ opacity:.6; cursor:not-allowed; }
+  .result{ display:none; margin-top:12px; padding:12px; border-radius:10px; }
+  .ok{ background:#d4edda; color:#155724; }
+  .bad{ background:#f8d7da; color:#721c24; }
+  .helper{ font-size:13px; color:#6b7a90; margin-top:6px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>ข้อสอบออนไลน์: คนงานควบคุมก๊าซคลอรีน</h1>
+    <div class="muted">รวม 100 ข้อ แบ่งตามหมวดตามหลักสูตร | เลือกคำตอบที่ถูกต้องที่สุด</div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+  <form id="quizForm">
+
+    <!-- หมวดรวมตามหลักสูตร: 11 หมวด = 100 ข้อ -->
+
+    <div class="section">หมวด 1: กฎหมาย มาตรฐาน ข้อกำหนด (10 ข้อ)</div>
+    <div class="question"><p class="qhead">1) กฎหมายที่กำหนดให้มีคนงานซึ่งมีความรู้เฉพาะเกี่ยวกับการใช้/เก็บ/ส่ง/บรรจุก๊าซคือข้อใด</p>
+      <label><input type="radio" name="q1" value="0"> พ.ร.บ.แรงงาน พ.ศ. 2541</label>
+      <label><input type="radio" name="q1" value="1"> กฎกระทรวงเรื่องการกำหนดให้มีคนงานซึ่งมีความรู้เฉพาะฯ พ.ศ. 2555</label>
+      <label><input type="radio" name="q1" value="0"> กฎหมายคุ้มครองผู้บริโภค พ.ศ. 2522</label>
+    </div>
+    <div class="question"><p class="qhead">2) หน่วยงานหลักที่กำกับดูแลโรงงานอุตสาหกรรมเกี่ยวกับก๊าซคลอรีน</p>
+      <label><input type="radio" name="q2" value="1"> กรมโรงงานอุตสาหกรรม</label>
+      <label><input type="radio" name="q2" value="0"> กรมทางหลวง</label>
+      <label><input type="radio" name="q2" value="0"> กระทรวงดิจิทัลฯ</label>
+    </div>
+    <div class="question"><p class="qhead">3) อายุขั้นต่ำของผู้เข้ารับการอบรมตามคุณสมบัติ</p>
+      <label><input type="radio" name="q3" value="1"> 18 ปีบริบูรณ์ขึ้นไป</label>
+      <label><input type="radio" name="q3" value="0"> 16 ปีบริบูรณ์ขึ้นไป</label>
+      <label><input type="radio" name="q3" value="0"> 20 ปีบริบูรณ์ขึ้นไป</label>
+    </div>
+    <div class="question"><p class="qhead">4) ข้อใด “ไม่ใช่” วัตถุประสงค์ของหลักสูตรคนงานควบคุมก๊าซคลอรีน</p>
+      <label><input type="radio" name="q4" value="0"> เพื่อให้ปฏิบัติหน้าที่ควบคุมก๊าซได้ตามกฎหมาย</label>
+      <label><input type="radio" name="q4" value="1"> เพื่อเพิ่มผลผลิตของสายการผลิตโดยตรง</label>
+      <label><input type="radio" name="q4" value="0"> เพื่อความปลอดภัยในการใช้/เก็บ/ส่ง/บรรจุ</label>
+    </div>
+    <div class="question"><p class="qhead">5) ผู้ปฏิบัติงานเกี่ยวกับก๊าซคลอรีนต้องสามารถทำอะไรได้ตามคุณสมบัติ</p>
+      <label><input type="radio" name="q5" value="1"> อ่านและเขียนภาษาไทยได้</label>
+      <label><input type="radio" name="q5" value="0"> ขับรถยกได้</label>
+      <label><input type="radio" name="q5" value="0"> เชื่อมโลหะได้</label>
+    </div>
+    <div class="question"><p class="qhead">6) ข้อกำหนดด้านเอกสาร “ที่ควรมี” ณ จุดทำงานเกี่ยวกับถังก๊าซ</p>
+      <label><input type="radio" name="q6" value="1"> SDS/คู่มือความปลอดภัยของคลอรีน</label>
+      <label><input type="radio" name="q6" value="0"> แบบฟอร์มเบิกอุปกรณ์สำนักงาน</label>
+      <label><input type="radio" name="q6" value="0"> ตารางเวร รปภ. ภายนอก</label>
+    </div>
+    <div class="question"><p class="qhead">7) การฝึกอบรมซ้ำควรทำเพื่อวัตถุประสงค์ใด</p>
+      <label><input type="radio" name="q7" value="1"> ทบทวนความรู้และอัปเดตข้อกำหนด/มาตรฐาน</label>
+      <label><input type="radio" name="q7" value="0"> รับสวัสดิการเพิ่ม</label>
+      <label><input type="radio" name="q7" value="0"> ลดจำนวนบุคลากร</label>
+    </div>
+    <div class="question"><p class="qhead">8) เอกสารใดใช้ยืนยันว่าบุคลากรผ่านการประเมินผลหลังอบรม</p>
+      <label><input type="radio" name="q8" value="1"> ใบรับรอง/บันทึกผลการสอบ</label>
+      <label><input type="radio" name="q8" value="0"> ใบลาพักร้อน</label>
+      <label><input type="radio" name="q8" value="0"> ใบสลิปเงินเดือน</label>
+    </div>
+    <div class="question"><p class="qhead">9) เมื่อมาตรฐานเปลี่ยนแปลง โรงงานควรทำสิ่งใดเป็นอันดับแรก</p>
+      <label><input type="radio" name="q9" value="1"> ทบทวนการประเมินความเสี่ยงและปรับวิธีปฏิบัติ</label>
+      <label><input type="radio" name="q9" value="0"> หยุดผลิตทันทีทุกกรณี</label>
+      <label><input type="radio" name="q9" value="0"> ไม่ต้องทำอะไร</label>
+    </div>
+    <div class="question"><p class="qhead">10) การบันทึกเหตุการณ์ผิดปกติเกี่ยวกับก๊าซมีประโยชน์หลักคือ</p>
+      <label><input type="radio" name="q10" value="1"> ใช้สืบสวนหาสาเหตุและป้องกันซ้ำ</label>
+      <label><input type="radio" name="q10" value="0"> ใช้สำหรับการตลาด</label>
+      <label><input type="radio" name="q10" value="0"> ใช้เพิ่มกำลังการผลิต</label>
+    </div>
+
+    <div class="section">หมวด 2: ความรู้เกี่ยวกับก๊าซคลอรีน (10 ข้อ)</div>
+    <div class="question"><p class="qhead">11) สี/กลิ่นของก๊าซคลอรีนตามปกติ</p>
+      <label><input type="radio" name="q11" value="1"> สีเหลืองอมเขียว กลิ่นฉุน</label>
+      <label><input type="radio" name="q11" value="0"> ไม่มีสี ไม่มีกลิ่น</label>
+      <label><input type="radio" name="q11" value="0"> สีฟ้าอ่อน กลิ่นหวาน</label>
+    </div>
+    <div class="question"><p class="qhead">12) คลอรีนหนักกว่าอากาศหรือไม่</p>
+      <label><input type="radio" name="q12" value="1"> หนักกว่า อาจสะสมบริเวณต่ำ</label>
+      <label><input type="radio" name="q12" value="0"> เบากว่า ลอยขึ้นสูง</label>
+      <label><input type="radio" name="q12" value="0"> เท่ากัน</label>
+    </div>
+    <div class="question"><p class="qhead">13) สถานะของคลอรีนในถังแรงดันอุณหภูมิห้อง</p>
+      <label><input type="radio" name="q13" value="1"> ของเหลวกับไออยู่ร่วมกัน</label>
+      <label><input type="radio" name="q13" value="0"> ของแข็ง</label>
+      <label><input type="radio" name="q13" value="0"> ไอเพียงอย่างเดียว</label>
+    </div>
+    <div class="question"><p class="qhead">14) คลอรีนทำปฏิกิริยารุนแรงกับสารใด</p>
+      <label><input type="radio" name="q14" value="1"> แอมโมเนีย/สารรีดิวซ์แรง</label>
+      <label><input type="radio" name="q14" value="0"> น้ำสะอาด</label>
+      <label><input type="radio" name="q14" value="0"> เกลือแกง</label>
+    </div>
+    <div class="question"><p class="qhead">15) การสัมผัสคลอรีนทางการหายใจทันทีส่งผลหลักคือ</p>
+      <label><input type="radio" name="q15" value="1"> ระคายเคืองปอด/หายใจลำบาก</label>
+      <label><input type="radio" name="q15" value="0"> ง่วงนอน</label>
+      <label><input type="radio" name="q15" value="0"> หูอื้อ</label>
+    </div>
+    <div class="question"><p class="qhead">16) ค่า TLV-TWA ของคลอรีนโดยทั่วไปอยู่ในระดับ (แนวคิด)</p>
+      <label><input type="radio" name="q16" value="1"> ต่ำมาก ต้องควบคุมการสัมผัสอย่างเข้มงวด</label>
+      <label><input type="radio" name="q16" value="0"> สูงมาก ไม่ต้องควบคุม</label>
+      <label><input type="radio" name="q16" value="0"> ปานกลาง</label>
+    </div>
+    <div class="question"><p class="qhead">17) สารตรวจจับรั่วแบบพกพาที่นิยมสำหรับคลอรีน</p>
+      <label><input type="radio" name="q17" value="1"> Detector แบบอิเล็กโทรเคมี/สี</label>
+      <label><input type="radio" name="q17" value="0"> เครื่องวัดเสียง</label>
+      <label><input type="radio" name="q17" value="0"> เครื่องวัดรังสี</label>
+    </div>
+    <div class="question"><p class="qhead">18) คลอรีนละลายน้ำแล้วให้สารใดที่มีฤทธิ์กัดกร่อน</p>
+      <label><input type="radio" name="q18" value="1"> กรดไฮโดรคลอริก/กรดไฮโปคลอรัส</label>
+      <label><input type="radio" name="q18" value="0"> น้ำตาล</label>
+      <label><input type="radio" name="q18" value="0"> ยูเรีย</label>
+    </div>
+    <div class="question"><p class="qhead">19) พื้นที่อับอากาศกับคลอรีนมีความเสี่ยงอย่างไร</p>
+      <label><input type="radio" name="q19" value="1"> สะสมก๊าซและขาดออกซิเจน</label>
+      <label><input type="radio" name="q19" value="0"> เพิ่มแสงสว่าง</label>
+      <label><input type="radio" name="q19" value="0"> ลดการกัดกร่อน</label>
+    </div>
+    <div class="question"><p class="qhead">20) ข้อใด “เหมาะสม” ในการป้องกันอันตรายจากคลอรีน</p>
+      <label><input type="radio" name="q20" value="1"> ระบบระบายอากาศ/ตรวจจับ/แผนฉุกเฉิน</label>
+      <label><input type="radio" name="q20" value="0"> ปิดผนึกทุกช่องลม</label>
+      <label><input type="radio" name="q20" value="0"> ใช้พัดลมตั้งพื้นอย่างเดียว</label>
+    </div>
+
+    <div class="section">หมวด 3: ถังเก็บ ภาชนะบรรจุ ท่อ เครื่องจักร/วัด/อุปกรณ์ (10 ข้อ)</div>
+    <div class="question"><p class="qhead">21) เกจที่ใช้วัดแรงดันถังก๊าซเรียกว่า</p>
+      <label><input type="radio" name="q21" value="1"> เกจวัดแรงดัน (Pressure Gauge)</label>
+      <label><input type="radio" name="q21" value="0"> โวลต์มิเตอร์</label>
+      <label><input type="radio" name="q21" value="0"> ไฮโกรมิเตอร์</label>
+    </div>
+    <div class="question"><p class="qhead">22) วาล์วชนิดที่มักใช้กับถังคอโลรีน</p>
+      <label><input type="radio" name="q22" value="1"> วาล์วแบบเข็ม/บอลตามสเปกผู้ผลิต</label>
+      <label><input type="radio" name="q22" value="0"> วาล์วประตูน้ำบ้าน</label>
+      <label><input type="radio" name="q22" value="0"> เช็ควาล์วสำหรับน้ำเสียทั่วไป</label>
+    </div>
+    <div class="question"><p class="qhead">23) การยึดถังก๊าซในคลังควร</p>
+      <label><input type="radio" name="q23" value="1"> ยึดด้วยโซ่/แคลมป์กันล้ม</label>
+      <label><input type="radio" name="q23" value="0"> วางพิงผนังเฉย ๆ</label>
+      <label><input type="radio" name="q23" value="0"> ผูกด้วยเชือกฟาง</label>
+    </div>
+    <div class="question"><p class="qhead">24) อุปกรณ์ป้องกันการไหลย้อนกลับของสารเข้าไปในถัง</p>
+      <label><input type="radio" name="q24" value="1"> Check Valve/Backflow Preventer</label>
+      <label><input type="radio" name="q24" value="0"> ตัวกรองฝุ่น</label>
+      <label><input type="radio" name="q24" value="0"> ตัวลดเสียง</label>
+    </div>
+    <div class="question"><p class="qhead">25) การติดตั้งเครื่องวัดรั่วคลอรีนควรอยู่ตำแหน่งใด</p>
+      <label><input type="radio" name="q25" value="1"> ระดับต่ำใกล้พื้น/ใกล้แหล่งเสี่ยง</label>
+      <label><input type="radio" name="q25" value="0"> ใต้เพดานเสมอ</label>
+      <label><input type="radio" name="q25" value="0"> นอกอาคารเสมอ</label>
+    </div>
+    <div class="question"><p class="qhead">26) ท่อส่งคลอรีนควรทำจากวัสดุที่</p>
+      <label><input type="radio" name="q26" value="1"> ทนการกัดกร่อนตามสเปกผู้ผลิต</label>
+      <label><input type="radio" name="q26" value="0"> ไม้</label>
+      <label><input type="radio" name="q26" value="0"> เหล็กไม่เคลือบทั่วไป</label>
+    </div>
+    <div class="question"><p class="qhead">27) การตรวจสอบวาล์วรั่วทำได้โดย</p>
+      <label><input type="radio" name="q27" value="1"> ใช้น้ำสบู่/น้ำยาตรวจรั่ว</label>
+      <label><input type="radio" name="q27" value="0"> ใช้ไฟแช็ก</label>
+      <label><input type="radio" name="q27" value="0"> ใช้มืออัง</label>
+    </div>
+    <div class="question"><p class="qhead">28) อุปกรณ์ป้องกันความดันเกินของระบบเรียกว่า</p>
+      <label><input type="radio" name="q28" value="1"> Pressure Relief Valve</label>
+      <label><input type="radio" name="q28" value="0"> Flow Meter</label>
+      <label><input type="radio" name="q28" value="0"> Sight Glass</label>
+    </div>
+    <div class="question"><p class="qhead">29) การเก็บถังต้องห้ามโดนอะไรโดยตรง</p>
+      <label><input type="radio" name="q29" value="1"> แสงแดด/ความร้อนสูง</label>
+      <label><input type="radio" name="q29" value="0"> ลม</label>
+      <label><input type="radio" name="q29" value="0"> แสงไฟ LED</label>
+    </div>
+    <div class="question"><p class="qhead">30) อุปกรณ์ใดช่วยลดความดันก่อนเข้ากระบวนการ</p>
+      <label><input type="radio" name="q30" value="1"> ตัวปรับแรงดัน (Regulator)</label>
+      <label><input type="radio" name="q30" value="0"> ฟิลเตอร์</label>
+      <label><input type="radio" name="q30" value="0"> ฟลัชวาล์ว</label>
+    </div>
+
+    <div class="section">หมวด 4: ข้อปฏิบัติของคนงานในโรงงานผลิต/ส่ง/จำหน่าย/บรรจุก๊าซ (10 ข้อ)</div>
+    <div class="question"><p class="qhead">31) PPE ขั้นต่ำเมื่อทำงานใกล้จุดคลอรีน</p>
+      <label><input type="radio" name="q31" value="1"> แว่น/ถุงมือกันสารเคมี/หน้ากากตามความเสี่ยง</label>
+      <label><input type="radio" name="q31" value="0"> หมวกแก๊ป</label>
+      <label><input type="radio" name="q31" value="0"> ถุงมือผ้า</label>
+    </div>
+    <div class="question"><p class="qhead">32) ก่อนเปิดวาล์วถังควรทำสิ่งใด</p>
+      <label><input type="radio" name="q32" value="1"> ตรวจรั่วและยึดถังให้มั่นคง</label>
+      <label><input type="radio" name="q32" value="0"> เคาะวาล์วแรง ๆ</label>
+      <label><input type="radio" name="q32" value="0"> อุ่นด้วยไฟ</label>
+    </div>
+    <div class="question"><p class="qhead">33) การทำงานเดี่ยว (Lone work) ใกล้คลอรีนควร</p>
+      <label><input type="radio" name="q33" value="1"> หลีกเลี่ยงและมีระบบเฝ้าระวัง</label>
+      <label><input type="radio" name="q33" value="0"> อนุญาตทุกกรณี</label>
+      <label><input type="radio" name="q33" value="0"> ไม่ต้องสื่อสาร</label>
+    </div>
+    <div class="question"><p class="qhead">34) กรณีต้องเข้าพื้นที่อับอากาศเกี่ยวกับคลอรีน</p>
+      <label><input type="radio" name="q34" value="1"> ปฏิบัติตามใบอนุญาตเข้าพื้นที่อับอากาศ/ตรวจวัด</label>
+      <label><input type="radio" name="q34" value="0"> เข้าได้ทันที</label>
+      <label><input type="radio" name="q34" value="0"> ใช้พัดลมบ้านพอ</label>
+    </div>
+    <div class="question"><p class="qhead">35) การเชื่อมต่อท่อเข้าระบบจ่ายคลอรีนควร</p>
+      <label><input type="radio" name="q35" value="1"> ทำตามขั้นตอนล็อก/ป้าย/ทดสอบ</label>
+      <label><input type="radio" name="q35" value="0"> หมุนเข้าทันทีโดยไม่ตรวจ</label>
+      <label><input type="radio" name="q35" value="0"> ใช้เทปพันเกลียวทุกชนิด</label>
+    </div>
+    <div class="question"><p class="qhead">36) เมื่อสัญญาณเตือนรั่วดังขึ้น ควรทำสิ่งใดก่อน</p>
+      <label><input type="radio" name="q36" value="1"> หยุดงาน/อพยพตามแผน/แจ้งเหตุ</label>
+      <label><input type="radio" name="q36" value="0"> ปิดเสียงเตือนแล้วทำงานต่อ</label>
+      <label><input type="radio" name="q36" value="0"> เปิดพัดลมจ่อจุดรั่ว</label>
+    </div>
+    <div class="question"><p class="qhead">37) เครื่องช่วยหายใจสำหรับเหตุรั่วรุนแรง</p>
+      <label><input type="radio" name="q37" value="1"> SCBA (Self-Contained Breathing Apparatus)</label>
+      <label><input type="radio" name="q37" value="0"> หน้ากากผ้า</label>
+      <label><input type="radio" name="q37" value="0"> หน้ากากกรองฝุ่น P1</label>
+    </div>
+    <div class="question"><p class="qhead">38) ป้ายและกั้นเขตควรใช้เมื่อใด</p>
+      <label><input type="radio" name="q38" value="1"> เมื่อมีงานซ่อม/รั่ว/ความเสี่ยงต่อบุคคลอื่น</label>
+      <label><input type="radio" name="q38" value="0"> ไม่จำเป็น</label>
+      <label><input type="radio" name="q38" value="0"> เฉพาะเวลากลางคืน</label>
+    </div>
+    <div class="question"><p class="qhead">39) การจัดทำ JSA/TRA ก่อนงานเกี่ยวกับคลอรีน</p>
+      <label><input type="radio" name="q39" value="1"> จำเป็นเพื่อระบุอันตรายและมาตรการคุม</label>
+      <label><input type="radio" name="q39" value="0"> ไม่จำเป็น</label>
+      <label><input type="radio" name="q39" value="0"> ทำหลังงานเสร็จ</label>
+    </div>
+    <div class="question"><p class="qhead">40) การสื่อสารระหว่างหน้างานกับห้องควบคุม</p>
+      <label><input type="radio" name="q40" value="1"> ต้องมีช่องทางสื่อสารพร้อมใช้เสมอ</label>
+      <label><input type="radio" name="q40" value="0"> ใช้โทรศัพท์ส่วนตัวพอ</label>
+      <label><input type="radio" name="q40" value="0"> ไม่จำเป็น</label>
+    </div>
+
+    <div class="section">หมวด 5: ข้อปฏิบัติของคนงานในโรงงานใช้/เก็บก๊าซ (10 ข้อ)</div>
+    <div class="question"><p class="qhead">41) การวางถังควรห่างจากความร้อนอย่างน้อย</p>
+      <label><input type="radio" name="q41" value="1"> ตามข้อกำหนดผู้ผลิต/มาตรฐาน (หลีกเลี่ยงความร้อนโดยตรง)</label>
+      <label><input type="radio" name="q41" value="0"> 10 ซม.</label>
+      <label><input type="radio" name="q41" value="0"> ไม่จำกัด</label>
+    </div>
+    <div class="question"><p class="qhead">42) พื้นที่เก็บถังควรมี</p>
+      <label><input type="radio" name="q42" value="1"> การระบายอากาศเพียงพอและแห้ง</label>
+      <label><input type="radio" name="q42" value="0"> พื้นที่ชื้นแฉะ</label>
+      <label><input type="radio" name="q42" value="0"> ปิดทึบทั้งหมด</label>
+    </div>
+    <div class="question"><p class="qhead">43) การแยกเก็บสารเคมี</p>
+      <label><input type="radio" name="q43" value="1"> แยกคลอรีนจากสารรีดิวซ์/แอมโมเนีย</label>
+      <label><input type="radio" name="q43" value="0"> เก็บรวมทุกชนิด</label>
+      <label><input type="radio" name="q43" value="0"> เก็บกับเชื้อเพลิง</label>
+    </div>
+    <div class="question"><p class="qhead">44) การป้องกันการล้มของถัง</p>
+      <label><input type="radio" name="q44" value="1"> ยึดด้วยโซ่/ราวพาดกำแพง</label>
+      <label><input type="radio" name="q44" value="0"> วางตั้งลอย</label>
+      <label><input type="radio" name="q44" value="0"> วางนอนกลิ้งได้</label>
+    </div>
+    <div class="question"><p class="qhead">45) ถังที่ใช้งานแล้วควร</p>
+      <label><input type="radio" name="q45" value="1"> ปิดวาล์ว ใส่ฝาครอบ เคลื่อนย้ายไปพื้นที่เก็บ</label>
+      <label><input type="radio" name="q45" value="0"> ทิ้งไว้ที่หน้างาน</label>
+      <label><input type="radio" name="q45" value="0"> เปิดวาล์วค้างไว้</label>
+    </div>
+    <div class="question"><p class="qhead">46) ป้ายฉุกเฉินและแผนที่หนีภัย</p>
+      <label><input type="radio" name="q46" value="1"> ต้องติดชัดเจนและเป็นปัจจุบัน</label>
+      <label><input type="radio" name="q46" value="0"> ไม่จำเป็น</label>
+      <label><input type="radio" name="q46" value="0"> เขียนด้วยดินสอไว้คร่าว ๆ</label>
+    </div>
+    <div class="question"><p class="qhead">47) การเข้าถึงฝักบัว/อ่างล้างตาฉุกเฉิน</p>
+      <label><input type="radio" name="q47" value="1"> ต้องเข้าถึงง่าย ปราศจากสิ่งกีดขวาง</label>
+      <label><input type="radio" name="q47" value="0"> เก็บของวางหน้าอุปกรณ์ได้</label>
+      <label><input type="radio" name="q47" value="0"> ใช้ร่วมกับห้องเก็บของ</label>
+    </div>
+    <div class="question"><p class="qhead">48) การตรวจเช็คถังประจำงวดควรรวม</p>
+      <label><input type="radio" name="q48" value="1"> วันที่ทดสอบไฮโดรสแตติก/สภาพภายนอก</label>
+      <label><input type="radio" name="q48" value="0"> สีสันสวยงาม</label>
+      <label><input type="radio" name="q48" value="0"> ลายสติ๊กเกอร์</label>
+    </div>
+    <div class="question"><p class="qhead">49) ห้ามใช้เครนเกี่ยวโดยตรงกับถัง เพราะ</p>
+      <label><input type="radio" name="q49" value="1"> เสี่ยงต่อการกระแทก/ความเสียหาย</label>
+      <label><input type="radio" name="q49" value="0"> ถังหนักเกินทุกกรณี</label>
+      <label><input type="radio" name="q49" value="0"> ไม่เกี่ยว</label>
+    </div>
+    <div class="question"><p class="qhead">50) บันทึกสต็อกถังช่วย</p>
+      <label><input type="radio" name="q50" value="1"> ควบคุมการหมุนเวียนและตรวจสอบย้อนกลับ</label>
+      <label><input type="radio" name="q50" value="0"> เพื่อความสวยงาม</label>
+      <label><input type="radio" name="q50" value="0"> ไม่จำเป็น</label>
+    </div>
+
+    <div class="section">หมวด 6: ข้อปฏิบัติของคนงานบรรจุก๊าซ (10 ข้อ)</div>
+    <div class="question"><p class="qhead">51) ก่อนบรรจุควรตรวจอะไร</p>
+      <label><input type="radio" name="q51" value="1"> ความสะอาด ความสมบูรณ์วาล์ว/ฝา</label>
+      <label><input type="radio" name="q51" value="0"> สีถังถูกใจหรือไม่</label>
+      <label><input type="radio" name="q51" value="0"> มีสติ๊กเกอร์โปรดักส์หรือไม่</label>
+    </div>
+    <div class="question"><p class="qhead">52) การชั่งน้ำหนักถังก่อน/หลังบรรจุเพื่อ</p>
+      <label><input type="radio" name="q52" value="1"> ควบคุมปริมาณตามสเปก</label>
+      <label><input type="radio" name="q52" value="0"> ความสวยงาม</label>
+      <label><input type="radio" name="q52" value="0"> ลดเวลา</label>
+    </div>
+    <div class="question"><p class="qhead">53) อัตราการบรรจุที่ปลอดภัยต้อง</p>
+      <label><input type="radio" name="q53" value="1"> ตามคู่มือผู้ผลิตและมาตรฐาน</label>
+      <label><input type="radio" name="q53" value="0"> เร็วที่สุดเท่าที่ทำได้</label>
+      <label><input type="radio" name="q53" value="0"> ตามความเคยชิน</label>
+    </div>
+    <div class="question"><p class="qhead">54) การทดสอบรั่วหลังบรรจุทำโดย</p>
+      <label><input type="radio" name="q54" value="1"> น้ำสบู่/เครื่องตรวจรั่ว</label>
+      <label><input type="radio" name="q54" value="0"> ดมกลิ่นใกล้ ๆ</label>
+      <label><input type="radio" name="q54" value="0"> ใช้ไฟจ่อ</label>
+    </div>
+    <div class="question"><p class="qhead">55) เอกสารกำกับถังหลังบรรจุ</p>
+      <label><input type="radio" name="q55" value="1"> ป้ายแสดงสาร/ความเสี่ยง/วันบรรจุ</label>
+      <label><input type="radio" name="q55" value="0"> โฆษณา</label>
+      <label><input type="radio" name="q55" value="0"> ใบเสร็จร้านอาหาร</label>
+    </div>
+    <div class="question"><p class="qhead">56) พื้นที่บรรจุต้องมี</p>
+      <label><input type="radio" name="q56" value="1"> ระบบระบายอากาศ/ตรวจจับก๊าซ</label>
+      <label><input type="radio" name="q56" value="0"> แอร์บ้าน</label>
+      <label><input type="radio" name="q56" value="0"> ปิดทึบ</label>
+    </div>
+    <div class="question"><p class="qhead">57) แผนฉุกเฉินประจำจุดบรรจุควร</p>
+      <label><input type="radio" name="q57" value="1"> ซ้อมเป็นระยะและอัปเดต</label>
+      <label><input type="radio" name="q57" value="0"> เก็บไว้เฉย ๆ</label>
+      <label><input type="radio" name="q57" value="0"> ไม่มีได้</label>
+    </div>
+    <div class="question"><p class="qhead">58) ห้ามใช้เครื่องมือใดกับวาล์วถัง</p>
+      <label><input type="radio" name="q58" value="1"> เครื่องมือที่อาจก่อประกาย/กัดกร่อนเกลียว</label>
+      <label><input type="radio" name="q58" value="0"> ประแจเฉพาะ</label>
+      <label><input type="radio" name="q58" value="0"> ไขควงทดสอบไฟ</label>
+    </div>
+    <div class="question"><p class="qhead">59) การจัดเก็บถังที่บรรจุแล้วรอส่งมอบ</p>
+      <label><input type="radio" name="q59" value="1"> แยกโซน ชัดเจน มีป้าย/ยึดแน่น</label>
+      <label><input type="radio" name="q59" value="0"> กองรวมกัน</label>
+      <label><input type="radio" name="q59" value="0"> วางริมขอบชั้น</label>
+    </div>
+    <div class="question"><p class="qhead">60) การบันทึกล็อตและการติดตามย้อนกลับ</p>
+      <label><input type="radio" name="q60" value="1"> จำเป็นต่อความปลอดภัย/เรียกคืน</label>
+      <label><input type="radio" name="q60" value="0"> ไม่เกี่ยวกับความปลอดภัย</label>
+      <label><input type="radio" name="q60" value="0"> ทำเมื่อมีเวลา</label>
+    </div>
+
+    <div class="section">หมวด 7: ข้อปฏิบัติของคนงานส่งก๊าซ (10 ข้อ)</div>
+    <div class="question"><p class="qhead">61) รถขนส่งถังคลอรีนต้องมี</p>
+      <label><input type="radio" name="q61" value="1"> การยึดรัดถัง/ป้ายเตือนอันตราย</label>
+      <label><input type="radio" name="q61" value="0"> ผ้าใบคลุมเฉย ๆ</label>
+      <label><input type="radio" name="q61" value="0"> ไม่มีอะไรพิเศษ</label>
+    </div>
+    <div class="question"><p class="qhead">62) เอกสารร่วมเดินทางสำคัญ</p>
+      <label><input type="radio" name="q62" value="1"> SDS/แผนฉุกเฉิน/ใบส่งของ</label>
+      <label><input type="radio" name="q62" value="0"> ใบขอลา</label>
+      <label><input type="radio" name="q62" value="0"> โปสเตอร์</label>
+    </div>
+    <div class="question"><p class="qhead">63) เส้นทางขนส่งควร</p>
+      <label><input type="radio" name="q63" value="1"> วางแผนล่วงหน้า เลี่ยงพื้นที่เสี่ยง</label>
+      <label><input type="radio" name="q63" value="0"> เลือกตาม GPS แบบสุ่ม</label>
+      <label><input type="radio" name="q63" value="0"> เลือกเส้นที่รถติดที่สุด</label>
+    </div>
+    <div class="question"><p class="qhead">64) ระหว่างขนส่ง ถังต้อง</p>
+      <label><input type="radio" name="q64" value="1"> ยึดแน่น ไม่กลิ้ง ไม่กระแทก</label>
+      <label><input type="radio" name="q64" value="0"> วางซ้อน ไม่รัด</label>
+      <label><input type="radio" name="q64" value="0"> วางนอนกลิ้งได้</label>
+    </div>
+    <div class="question"><p class="qhead">65) การจอดรถฉุกเฉินให้ทำอย่างไร</p>
+      <label><input type="radio" name="q65" value="1"> จอดในที่ปลอดภัย เปิดไฟฉุกเฉิน แจ้งเหตุ</label>
+      <label><input type="radio" name="q65" value="0"> จอดกลางสะพาน</label>
+      <label><input type="radio" name="q65" value="0"> จอดในอุโมงค์</label>
+    </div>
+    <div class="question"><p class="qhead">66) การส่งมอบถัง ณ จุดรับ</p>
+      <label><input type="radio" name="q66" value="1"> ตรวจสภาพ/เอกสาร/ลงบันทึก</label>
+      <label><input type="radio" name="q66" value="0"> วางไว้แล้วกลับ</label>
+      <label><input type="radio" name="q66" value="0"> ไม่ต้องแจ้งผู้รับ</label>
+    </div>
+    <div class="question"><p class="qhead">67) อุปกรณ์ดับเพลิงบนรถ</p>
+      <label><input type="radio" name="q67" value="1"> ต้องมีและพร้อมใช้</label>
+      <label><input type="radio" name="q67" value="0"> ไม่จำเป็น</label>
+      <label><input type="radio" name="q67" value="0"> เก็บในโกดัง</label>
+    </div>
+    <div class="question"><p class="qhead">68) ผู้ขับควรผ่านการอบรมเรื่องใด</p>
+      <label><input type="radio" name="q68" value="1"> ขนส่งวัตถุอันตราย/แผนฉุกเฉิน</label>
+      <label><input type="radio" name="q68" value="0"> งานเชื่อม</label>
+      <label><input type="radio" name="q68" value="0"> งานทาสี</label>
+    </div>
+    <div class="question"><p class="qhead">69) ระหว่างทางได้กลิ่นคลอรีน ควร</p>
+      <label><input type="radio" name="q69" value="1"> หยุดรถปลอดภัย ตรวจ/แจ้งเหตุ ตามแผน</label>
+      <label><input type="radio" name="q69" value="0"> เปิดหน้าต่างขับต่อ</label>
+      <label><input type="radio" name="q69" value="0"> ฉีดน้ำหอม</label>
+    </div>
+    <div class="question"><p class="qhead">70) การสื่อสารกับศูนย์ควบคุมระหว่างขนส่ง</p>
+      <label><input type="radio" name="q70" value="1"> รายงานตามระยะ/เมื่อมีเหตุผิดปกติ</label>
+      <label><input type="radio" name="q70" value="0"> ไม่ต้องรายงาน</label>
+      <label><input type="radio" name="q70" value="0"> รายงานเมื่อถึงจุดหมายเท่านั้น</label>
+    </div>
+
+    <div class="section">หมวด 8: การป้องกันและระงับอัคคีภัย/เหตุฉุกเฉิน (10 ข้อ)</div>
+    <div class="question"><p class="qhead">71) คลอรีนไม่ติดไฟแต่</p>
+      <label><input type="radio" name="q71" value="1"> อาจทำปฏิกิริยากับสารอื่นจนเกิดไฟ/ระเบิด</label>
+      <label><input type="radio" name="q71" value="0"> เผาไหม้ได้เอง</label>
+      <label><input type="radio" name="q71" value="0"> เป็นเชื้อเพลิง</label>
+    </div>
+    <div class="question"><p class="qhead">72) ดับเพลิงที่แนะนำในบริเวณคลอรีน</p>
+      <label><input type="radio" name="q72" value="1"> น้ำฉีดสเปรย์/ผงเคมีแห้ง/CO₂ ตามชนิดไฟ</label>
+      <label><input type="radio" name="q72" value="0"> น้ำมันดีเซล</label>
+      <label><input type="radio" name="q72" value="0"> ผ้าห่มทั่วไป</label>
+    </div>
+    <div class="question"><p class="qhead">73) การอพยพเมื่อมีการรั่วไหล</p>
+      <label><input type="radio" name="q73" value="1"> อพยพตามแผน ทวนลม/ข้ามระดับต่ำ</label>
+      <label><input type="radio" name="q73" value="0"> วิ่งเข้าหาต้นตอ</label>
+      <label><input type="radio" name="q73" value="0"> วิ่งลงท่อระบายน้ำ</label>
+    </div>
+    <div class="question"><p class="qhead">74) ชุด PPE สำหรับเข้าอุดรอยรั่ว</p>
+      <label><input type="radio" name="q74" value="1"> ชุดกันสารเคมี + SCBA</label>
+      <label><input type="radio" name="q74" value="0"> หมวกกันน็อค</label>
+      <label><input type="radio" name="q74" value="0"> รองเท้าผ้าใบ</label>
+    </div>
+    <div class="question"><p class="qhead">75) การซ้อมแผนฉุกเฉินควร</p>
+      <label><input type="radio" name="q75" value="1"> ทำเป็นระยะและบันทึกผล</label>
+      <label><input type="radio" name="q75" value="0"> ไม่จำเป็น</label>
+      <label><input type="radio" name="q75" value="0"> เฉพาะหลังเกิดเหตุจริง</label>
+    </div>
+    <div class="question"><p class="qhead">76) จุดรวมพลควรอยู่</p>
+      <label><input type="radio" name="q76" value="1"> ทวนลม/ปลอดภัยจากการสะสมก๊าซ</label>
+      <label><input type="radio" name="q76" value="0"> ใกล้ถังที่สุด</label>
+      <label><input type="radio" name="q76" value="0"> พื้นที่ต่ำ</label>
+    </div>
+    <div class="question"><p class="qhead">77) เมื่อผู้ปฏิบัติงานสูดดมคลอรีน</p>
+      <label><input type="radio" name="q77" value="1"> เคลื่อนย้ายออกสู่ที่อากาศบริสุทธิ์/ส่งพบแพทย์</label>
+      <label><input type="radio" name="q77" value="0"> ให้ดื่มเครื่องดื่มแอลกอฮอล์</label>
+      <label><input type="radio" name="q77" value="0"> ให้วิ่งต่อ</label>
+    </div>
+    <div class="question"><p class="qhead">78) น้ำรั่วไหลปนเปื้อนคลอรีนควร</p>
+      <label><input type="radio" name="q78" value="1"> กั้นพื้นที่ ป้องกันไหลลงแหล่งน้ำสาธารณะ</label>
+      <label><input type="radio" name="q78" value="0"> ปล่อยให้ไหลเอง</label>
+      <label><input type="radio" name="q78" value="0"> กวาดลงท่อ</label>
+    </div>
+    <div class="question"><p class="qhead">79) การติดต่อหน่วยงานภายนอกในเหตุใหญ่</p>
+      <label><input type="radio" name="q79" value="1"> ติดต่อหน่วยฉุกเฉิน/รัฐตามสายด่วน</label>
+      <label><input type="radio" name="q79" value="0"> โพสต์โซเชียล</label>
+      <label><input type="radio" name="q79" value="0"> แจ้งเพื่อนก่อน</label>
+    </div>
+    <div class="question"><p class="qhead">80) การทบทวนหลังเหตุ (After Action Review)</p>
+      <label><input type="radio" name="q80" value="1"> สำคัญเพื่อปรับปรุงแผน/การฝึก</label>
+      <label><input type="radio" name="q80" value="0"> ไม่จำเป็น</label>
+      <label><input type="radio" name="q80" value="0"> ทำเมื่อมีเวลาว่าง</label>
+    </div>
+
+    <div class="section">หมวด 9: วิธีการรับและจ่ายก๊าซ (10 ข้อ)</div>
+    <div class="question"><p class="qhead">81) ก่อนรับถังใหม่ต้อง</p>
+      <label><input type="radio" name="q81" value="1"> ตรวจเอกสาร/สภาพถัง/ซีล</label>
+      <label><input type="radio" name="q81" value="0"> ชั่งน้ำหนักตัวเอง</label>
+      <label><input type="radio" name="q81" value="0"> เปิดวาล์วลองทันที</label>
+    </div>
+    <div class="question"><p class="qhead">82) การต่อเข้าระบบจ่ายต้อง</p>
+      <label><input type="radio" name="q82" value="1"> Purge/ทดสอบรั่ว/เปิดวาล์วช้า ๆ</label>
+      <label><input type="radio" name="q82" value="0"> เปิดเร็วสุด</label>
+      <label><input type="radio" name="q82" value="0"> ไม่ต้อง Purge</label>
+    </div>
+    <div class="question"><p class="qhead">83) การสลับถัง (Changeover) ควรใช้</p>
+      <label><input type="radio" name="q83" value="1"> ระบบ Changeover/Regulator คู่</label>
+      <label><input type="radio" name="q83" value="0"> หมุนท่อไปมา</label>
+      <label><input type="radio" name="q83" value="0"> ปล่อยให้หมดจนระบบดูดอากาศ</label>
+    </div>
+    <div class="question"><p class="qhead">84) การจ่ายก๊าซให้กระบวนการน้ำประปา</p>
+      <label><input type="radio" name="q84" value="1"> ควบคุมอัตราจ่ายตามคุณภาพน้ำ/เป้าหมาย</label>
+      <label><input type="radio" name="q84" value="0"> จ่ายคงที่ตลอดปี</label>
+      <label><input type="radio" name="q84" value="0"> จ่ายตามความรู้สึก</label>
+    </div>
+    <div class="question"><p class="qhead">85) เมื่อพบความดันตกผิดปกติ</p>
+      <label><input type="radio" name="q85" value="1"> ตรวจรั่ว/วาล์ว/ปริมาณถังตามขั้นตอน</label>
+      <label><input type="radio" name="q85" value="0"> เพิ่มความร้อนให้ถัง</label>
+      <label><input type="radio" name="q85" value="0"> เคาะถังแรง ๆ</label>
+    </div>
+    <div class="question"><p class="qhead">86) เครื่องมือใดช่วยคุมอัตราการจ่าย</p>
+      <label><input type="radio" name="q86" value="1"> Rotameter/Flow Controller</label>
+      <label><input type="radio" name="q86" value="0"> เวอร์เนียร์คาลิเปอร์</label>
+      <label><input type="radio" name="q86" value="0"> เครื่องวัดเสียง</label>
+    </div>
+    <div class="question"><p class="qhead">87) การหยุดจ่ายฉุกเฉินควร</p>
+      <label><input type="radio" name="q87" value="1"> ใช้ขั้นตอน ESD/ปิดวาล์วตามลำดับ</label>
+      <label><input type="radio" name="q87" value="0"> ปิดสุ่มวาล์ว</label>
+      <label><input type="radio" name="q87" value="0"> ปิดไฟอาคารก่อน</label>
+    </div>
+    <div class="question"><p class="qhead">88) หลังจ่ายเสร็จควร</p>
+      <label><input type="radio" name="q88" value="1"> ปิดวาล์ว/คลายแรงดัน/ติดฝาครอบ</label>
+      <label><input type="radio" name="q88" value="0"> ทิ้งเปิดไว้</label>
+      <label><input type="radio" name="q88" value="0"> ชะล้างด้วยน้ำแรงดันสูงทันที</label>
+    </div>
+    <div class="question"><p class="qhead">89) การบันทึกพารามิเตอร์จ่ายก๊าซช่วย</p>
+      <label><input type="radio" name="q89" value="1"> วิเคราะห์แนวโน้ม/แก้ปัญหา</label>
+      <label><input type="radio" name="q89" value="0"> ใช้ทำสถิติสวยงาม</label>
+      <label><input type="radio" name="q89" value="0"> ไม่มีประโยชน์</label>
+    </div>
+    <div class="question"><p class="qhead">90) ตัวอย่าง Key Interlock เพื่อความปลอดภัย</p>
+      <label><input type="radio" name="q90" value="1"> เปิดวาล์วได้เมื่อยืนยันปิดอีกด้านแล้ว</label>
+      <label><input type="radio" name="q90" value="0"> เปิดทุกวาล์วพร้อมกัน</label>
+      <label><input type="radio" name="q90" value="0"> ไม่มีการล็อกใด ๆ</label>
+    </div>
+
+    <div class="section">หมวด 10: วิธีการเคลื่อนย้ายและจัดเก็บท่อก๊าซ (5 ข้อ)</div>
+    <div class="question"><p class="qhead">91) การเคลื่อนย้ายถังควรใช้</p>
+      <label><input type="radio" name="q91" value="1"> รถเข็น/โฮสต์พร้อมสายรัดที่เหมาะสม</label>
+      <label><input type="radio" name="q91" value="0"> กลิ้งกับพื้น</label>
+      <label><input type="radio" name="q91" value="0"> ลากด้วยเชือก</label>
+    </div>
+    <div class="question"><p class="qhead">92) ระหว่างยกถังด้วยรอก</p>
+      <label><input type="radio" name="q92" value="1"> ใช้อุปกรณ์ยกเฉพาะ ห้ามเกี่ยววาล์ว</label>
+      <label><input type="radio" name="q92" value="0"> ใช้ตะขอเกี่ยววาล์ว</label>
+      <label><input type="radio" name="q92" value="0"> โยนขึ้นรถ</label>
+    </div>
+    <div class="question"><p class="qhead">93) การวางถังในโกดัง</p>
+      <label><input type="radio" name="q93" value="1"> วางตั้ง ยึดแน่น แยกโซน</label>
+      <label><input type="radio" name="q93" value="0"> วางนอนซ้อน</label>
+      <label><input type="radio" name="q93" value="0"> วางใกล้แหล่งความร้อน</label>
+    </div>
+    <div class="question"><p class="qhead">94) ฝาครอบวาล์ว</p>
+      <label><input type="radio" name="q94" value="1"> ต้องใส่เมื่อเคลื่อนย้าย/เก็บ</label>
+      <label><input type="radio" name="q94" value="0"> ไม่จำเป็น</label>
+      <label><input type="radio" name="q94" value="0"> ใส่ตอนว่างเท่านั้น</label>
+    </div>
+    <div class="question"><p class="qhead">95) ป้ายระบุสถานะถัง (เต็ม/กำลังใช้/ว่าง)</p>
+      <label><input type="radio" name="q95" value="1"> จำเป็นเพื่อป้องกันผิดพลาด</label>
+      <label><input type="radio" name="q95" value="0"> ไม่สำคัญ</label>
+      <label><input type="radio" name="q95" value="0"> ใช้จำจากสีถัง</label>
+    </div>
+
+    <div class="section">หมวด 11: การป้องกันและระงับอุบัติเหตุ (5 ข้อ)</div>
+    <div class="question"><p class="qhead">96) กระบวนการสืบสวนเหตุ (RCA) ทำเพื่อ</p>
+      <label><input type="radio" name="q96" value="1"> หาเหตุรากและป้องกันซ้ำ</label>
+      <label><input type="radio" name="q96" value="0"> หาแพะรับบาป</label>
+      <label><input type="radio" name="q96" value="0"> ใช้ทำโฆษณา</label>
+    </div>
+    <div class="question"><p class="qhead">97) การสื่อสารเหตุฉุกเฉินภายใน</p>
+      <label><input type="radio" name="q97" value="1"> ใช้รหัส/ช่องทางที่กำหนด</label>
+      <label><input type="radio" name="q97" value="0"> ใช้ไลน์กลุ่มส่วนตัว</label>
+      <label><input type="radio" name="q97" value="0"> ตะโกน</label>
+    </div>
+    <div class="question"><p class="qhead">98) เอกสารบันทึกเหตุควรเก็บ</p>
+      <label><input type="radio" name="q98" value="1"> ตามระยะเวลาที่กำหนดโดยกฎหมาย/บริษัท</label>
+      <label><input type="radio" name="q98" value="0"> ไม่ต้องเก็บ</label>
+      <label><input type="radio" name="q98" value="0"> เก็บจนกว่าจะหายเอง</label>
+    </div>
+    <div class="question"><p class="qhead">99) การฝึกซ้อมกู้ภัยผู้หมดสติจากคลอรีน</p>
+      <label><input type="radio" name="q99" value="1"> ต้องใช้ทีมฝึก/อุปกรณ์หายใจที่เหมาะสม</label>
+      <label><input type="radio" name="q99" value="0"> อุ้มออกโดยไม่ป้องกัน</label>
+      <label><input type="radio" name="q99" value="0"> ให้เพื่อนไปคนเดียว</label>
+    </div>
+    <div class="question"><p class="qhead">100) หลังเหตุใหญ่ควรทำข้อใด</p>
+      <label><input type="radio" name="q100" value="1"> ประชุมสรุปบทเรียน/ปรับแผน/สื่อสาร</label>
+      <label><input type="radio" name="q100" value="0"> ลบข้อมูลทั้งหมด</label>
+      <label><input type="radio" name="q100" value="0"> ไม่ต้องแจ้งผู้บริหาร</label>
+    </div>
+
+    <button type="button" class="btn" onclick="submitQuiz()">ส่งคำตอบ</button>
+    <div class="helper">* ระบบจะคำนวณคะแนนอัตโนมัติ (ถูก = 1 คะแนน)</div>
+  </form>
+  <div id="result" class="result"></div>
+  </div>
+</div>
+
+<script>
+function submitQuiz(){
+  const totalQuestions = 100;
+  let score = 0;
+  for(let i=1;i<=totalQuestions;i++){
+    const a = document.querySelector('input[name="q'+i+'"]:checked');
+    if(a && a.value === '1') score++;
+  }
+  const box = document.getElementById('result');
+  box.style.display='block';
+  box.className = 'result ' + (score>=80 ? 'ok' : 'bad');
+  box.innerHTML = 'คะแนนของคุณ: <b>'+score+'</b>/'+totalQuestions + (score>=80? ' — ผ่าน ✅' : ' — ควรทบทวนบทเรียนอีกครั้ง');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
