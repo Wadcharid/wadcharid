@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ตัวคำนวณหลังเกษียณ: แผน 3 ก้อน (สำรอง 2 ปี / ตราสารหนี้ 5 ปี / เสี่ยงสูงที่เหลือ)</title>
+  <title>ตัวคำนวณหลังเกษียณ: แผน 3 ก้อน (คอมมา + กราฟ)</title>
   <style>
     :root{
-      --bg:#0b1020;--panel:#131a33;--muted:#aab3d2;--prim:#5ad7ff;--ok:#32d27a;--warn:#ffcc66;--bad:#ff6b6b;
+      --bg:#0b1020;--panel:#131a33;--muted:#aab3d2;--prim:#5ad7ff;--ok:#32d27a;--warn:#ffcc66;--bad:#ff6b6b;--total:#d6b3ff;
     }
     *{box-sizing:border-box}
     body{margin:0;background:linear-gradient(180deg,#0b1020,#0b1225);color:#e8edff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans Thai",sans-serif;}
@@ -45,23 +45,33 @@
     .footer{margin:18px 0 8px;color:#7f8bb3;font-size:12px}
     .num-warn{color:var(--bad);font-weight:700}
     .good{color:var(--ok)}
+
+    /* Chart */
+    #chart{width:100%;height:260px;display:block;border-radius:12px;background:#0c1538;border:1px solid rgba(255,255,255,.08)}
+    .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .legend .item{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#cdd6ff;background:#0b1333;border:1px solid rgba(255,255,255,.08);padding:4px 8px;border-radius:999px}
+    .sw{width:10px;height:10px;border-radius:2px;display:inline-block}
+    .sw.b1{background:var(--prim)}
+    .sw.b2{background:var(--ok)}
+    .sw.b3{background:var(--warn)}
+    .sw.total{background:var(--total)}
   </style>
 </head>
 <body>
   <div class="page">
     <h1>ตัวคำนวณวางแผนเงินหลังเกษียณ – แผน 3 ก้อน</h1>
-    <p class="sub">ตรรกะ: <span class="pill">ก้อนที่ 1 (เงินฝาก) = 2×ค่าใช้จ่ายรายปี</span> · <span class="pill">ก้อนที่ 2 (เสี่ยงต่ำ–กลาง) = 5×ค่าใช้จ่ายรายปี @4%</span> · <span class="pill">ก้อนที่ 3 (เสี่ยงสูง) = เงินที่เหลือ @7%</span> · เงินเฟ้อปรับค่าใช้จ่ายเพิ่มทุกปี</p>
+    <p class="sub">ตรรกะ: <span class="pill">ก้อนที่ 1 (เงินฝาก) = 2×ค่าใช้จ่ายรายปี</span> · <span class="pill">ก้อนที่ 2 (เสี่ยงต่ำ–กลาง) = 5×ค่าใช้จ่ายรายปี @4%</span> · <span class="pill">ก้อนที่ 3 (เสี่ยงสูง) = เงินที่เหลือ @7%</span> · ปรับค่าใช้จ่ายตามเงินเฟ้อทุกปี</p>
 
     <div class="grid">
       <div class="card two-col">
         <div class="grid" style="grid-template-columns:repeat(12,1fr);gap:14px">
           <div style="grid-column:span 6">
             <label>จำนวนเงินตั้งต้นตอนเกษียณ (บาท)</label>
-            <input type="number" id="startAmount" value="10000000" min="0" step="1000" />
+            <input type="text" inputmode="numeric" id="startAmount" value="10,000,000" data-format="comma" />
           </div>
           <div style="grid-column:span 4">
             <label>ค่าใช้จ่ายเริ่มต้นตอนเกษียณ</label>
-            <input type="number" id="expenseAmount" value="40000" min="0" step="500" />
+            <input type="text" inputmode="numeric" id="expenseAmount" value="40,000" data-format="comma" />
           </div>
           <div style="grid-column:span 2">
             <label>&nbsp;</label>
@@ -127,6 +137,18 @@
         </div>
       </div>
 
+      <!-- Chart Card -->
+      <div class="card two-col">
+        <h3 style="margin:2px 0 10px">กราฟมูลค่าแต่ละก้อน (ปลายปี)</h3>
+        <canvas id="chart"></canvas>
+        <div class="legend" id="legend">
+          <span class="item"><span class="sw b1"></span> ก้อนที่ 1</span>
+          <span class="item"><span class="sw b2"></span> ก้อนที่ 2</span>
+          <span class="item"><span class="sw b3"></span> ก้อนที่ 3</span>
+          <span class="item"><span class="sw total"></span> รวม</span>
+        </div>
+      </div>
+
       <div class="card two-col" style="overflow:auto">
         <div class="row" style="grid-template-columns:1fr auto auto">
           <h3 style="margin:2px 0">ตารางเงินแต่ละก้อนในแต่ละปี</h3>
@@ -158,16 +180,43 @@
 const fmtTHB = v => new Intl.NumberFormat('th-TH', {style:'currency', currency:'THB', maximumFractionDigits:0}).format(Math.max(0, v||0));
 const fmtNum = v => new Intl.NumberFormat('th-TH', {maximumFractionDigits:2}).format(v);
 
+// ===== Input comma formatting =====
+function formatWithCommas(nStr){
+  const parts = (nStr || '').replace(/[^\d.]/g,'').split('.')
+  parts[0] = parts[0].replace(/^0+(\d)/,'$1')
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.')
+}
+function attachCommaFormatting(input){
+  const onInput = () => {
+    const selStart = input.selectionStart;
+    const raw = input.value.replace(/,/g,'').replace(/[^\d.]/g,'');
+    const before = input.value;
+    const formatted = formatWithCommas(raw);
+    input.value = formatted;
+    const diff = formatted.length - before.length;
+    const newPos = Math.max(0, (selStart||0) + diff);
+    input.setSelectionRange(newPos,newPos);
+  };
+  input.addEventListener('input', onInput);
+  input.addEventListener('blur', onInput);
+  input.value = formatWithCommas(input.value);
+}
+function getNum(id){
+  const el = document.getElementById(id);
+  const val = (el.value||'').toString().replace(/,/g,'').replace(/[^\d.]/g,'');
+  return parseFloat(val||'0') || 0;
+}
+
+// ===== Simulation core =====
 function simulate(opts){
   let {startAmount, expenseAnnual0, inflation, r1, r2, r3, maxYears} = opts;
-  // Convert % to decimal
   inflation = inflation/100; r1=r1/100; r2=r2/100; r3=r3/100;
 
   let b1 = 0, b2 = 0, b3 = 0;
   let year = 0; let expense = expenseAnnual0;
   const rows = []; const audit = [];
 
-  // Allocate initial buckets (priority: b1 -> b2 -> b3)
   const t1 = 2*expense;
   const t2 = 5*expense;
   b1 = Math.min(startAmount, t1);
@@ -183,26 +232,24 @@ function simulate(opts){
 
   while (year < maxYears){
     year++;
-    const startB1 = b1, startB2 = b2, startB3 = b3;
     const totalBefore = b1+b2+b3;
     audit.push(`\n▶️ ปีที่ ${year}: ค่าใช้จ่าย = ${fmtTHB(expense)} | ยอดยกมา = ${fmtTHB(totalBefore)}`);
 
-    // If cannot fully fund this year's expense, end with partial year
     if (totalBefore <= 0){
       audit.push(`❌ เงินหมดก่อนเริ่มปีที่ ${year}`);
       break;
     }
     if (totalBefore < expense){
-      const frac = totalBefore/expense; // fraction of a year we can cover
+      const frac = totalBefore/expense;
       yearsAlive += frac;
       audit.push(`⏳ ครอบคลุมได้เพียง ${fmtNum(frac*12)} เดือน ในปีที่ ${year} ก่อนเงินหมด`);
-      b1 = b2 = b3 = 0; // depleted
+      b1 = b2 = b3 = 0;
       rows.push({year:`${year} (บางส่วน)`, expense, b1, b2, b3});
       endedWithWealth = 0;
       break;
     }
 
-    // Withdraw from buckets order: b1 -> b2 -> b3
+    // Withdraw order
     let need = expense;
     let w1 = Math.min(b1, need); b1 -= w1; need -= w1;
     let w2 = 0, w3 = 0;
@@ -210,18 +257,18 @@ function simulate(opts){
     if (need>0){ w3 = Math.min(b3, need); b3 -= w3; need -= w3; }
     audit.push(`ถอน: จากก้อน1 ${fmtTHB(w1)} | ก้อน2 ${fmtTHB(w2)} | ก้อน3 ${fmtTHB(w3)}`);
 
-    // Grow remaining balances at end of year
+    // Growth
     const g1 = b1*r1; b1 += g1;
     const g2 = b2*r2; b2 += g2;
     const g3 = b3*r3; b3 += g3;
     audit.push(`เติบโตปลายปี: ก1 ${fmtTHB(g1)} | ก2 ${fmtTHB(g2)} | ก3 ${fmtTHB(g3)}`);
 
-    // Prepare next year's targets with inflation-adjusted expense
+    // Next year targets (inflation)
     const nextExpense = expense*(1+inflation);
     const t1n = 2*nextExpense;
     const t2n = 5*nextExpense;
 
-    // Rebalance: top up B1 first (from B2 then B3), then B2 from B3
+    // Rebalance
     let top12 = 0, top13 = 0, top23 = 0;
     let need1 = Math.max(0, t1n - b1);
     if (need1>0){ const x = Math.min(b2, need1); b2 -= x; b1 += x; need1 -= x; top12 = x; }
@@ -231,20 +278,13 @@ function simulate(opts){
 
     audit.push(`รีบาลานซ์: เติมก1จากก2 ${fmtTHB(top12)} | เติมก1จากก3 ${fmtTHB(top13)} | เติมก2จากก3 ${fmtTHB(top23)}`);
 
-    const endTotal = b1+b2+b3;
     rows.push({year, expense, b1, b2, b3});
-    endedWithWealth = endTotal;
+    endedWithWealth = b1+b2+b3;
 
-    // Move to next year
     expense = nextExpense;
-
-    // Guard: if assets extremely large relative to expense and maxYears is hit, we simply stop later
   }
 
-  // If loop ended because reached maxYears and still have money, treat as open-ended
   const endedByMaxYears = (yearsAlive === 0 && rows.length === (opts.maxYears) && (b1+b2+b3) > 0);
-
-  // Full years counted are rows that are numeric year (not partial)
   let fullYears = rows.filter(r=>Number.isFinite(r.year)).length;
   yearsAlive += fullYears;
 
@@ -265,9 +305,84 @@ function toCSV(rows){
   return csv;
 }
 
+// ===== Simple Canvas Line Chart =====
+let lastRows = [];
+function shortTHB(n){
+  if (n>=1e12) return (n/1e12).toFixed(1).replace(/\.0$/,'')+"ล.";
+  if (n>=1e9)  return (n/1e9).toFixed(1).replace(/\.0$/,'')+"พันล.";
+  if (n>=1e6)  return (n/1e6).toFixed(1).replace(/\.0$/,'')+"ล.";
+  if (n>=1e3)  return (n/1e3).toFixed(1).replace(/\.0$/,'')+"พ.";
+  return Math.round(n).toString();
+}
+function drawChart(rows){
+  const canvas = document.getElementById('chart');
+  if (!canvas) return;
+  const ratio = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth || 800;
+  const cssH = canvas.clientHeight || 260;
+  canvas.width = Math.floor(cssW * ratio);
+  canvas.height = Math.floor(cssH * ratio);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(ratio, ratio);
+  ctx.clearRect(0,0,cssW,cssH);
+
+  const pad = {left:70, right:16, top:12, bottom:28};
+  const plotW = cssW - pad.left - pad.right;
+  const plotH = cssH - pad.top - pad.bottom;
+
+  const x = i => pad.left + (rows.length<=1?0:(i*(plotW/(rows.length-1))));
+  const totals = rows.map(r=>r.b1+r.b2+r.b3);
+  const maxY = Math.max(1, ...totals, ...rows.map(r=>r.b1), ...rows.map(r=>r.b2), ...rows.map(r=>r.b3));
+  const yMax = maxY*1.08;
+  const y = v => pad.top + plotH - (v/yMax)*plotH;
+
+  // gridlines
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1;
+  const gridN = 5;
+  ctx.beginPath();
+  for (let g=0; g<=gridN; g++){
+    const gy = pad.top + (plotH*g/gridN);
+    ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left+plotW, gy);
+  }
+  ctx.stroke();
+
+  // y labels
+  ctx.fillStyle = '#aab3d2';
+  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
+  for (let g=0; g<=gridN; g++){
+    const val = yMax*(1 - g/gridN);
+    const gy = pad.top + (plotH*g/gridN) - 2;
+    ctx.fillText(shortTHB(val), 8, gy);
+  }
+
+  // x labels (years)
+  ctx.textAlign = 'center';
+  for (let i=0;i<rows.length;i++){
+    const xi = x(i);
+    const label = String(rows[i].year).replace(/ \(.*\)/,'');
+    if (i===0 || i===rows.length-1 || (rows.length>12 && i%Math.ceil(rows.length/12)===0)){
+      ctx.fillText(label, xi, cssH-8);
+    }
+  }
+  ctx.textAlign = 'left';
+
+  function drawSeries(values, color){
+    if (!values.length) return;
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+    values.forEach((v,i)=>{ const xi=x(i), yi=y(v); if(i===0) ctx.moveTo(xi,yi); else ctx.lineTo(xi,yi); });
+    ctx.stroke();
+  }
+  drawSeries(rows.map(r=>r.b1), getComputedStyle(document.documentElement).getPropertyValue('--prim').trim()||'#5ad7ff');
+  drawSeries(rows.map(r=>r.b2), getComputedStyle(document.documentElement).getPropertyValue('--ok').trim()||'#32d27a');
+  drawSeries(rows.map(r=>r.b3), getComputedStyle(document.documentElement).getPropertyValue('--warn').trim()||'#ffcc66');
+  drawSeries(rows.map(r=>r.b1+r.b2+r.b3), getComputedStyle(document.documentElement).getPropertyValue('--total').trim()||'#d6b3ff');
+}
+window.addEventListener('resize', ()=>drawChart(lastRows));
+
 function run(){
-  const startAmount = +document.getElementById('startAmount').value || 0;
-  let expense = +document.getElementById('expenseAmount').value || 0;
+  const startAmount = getNum('startAmount');
+  let expense = getNum('expenseAmount');
   const period = document.getElementById('expensePeriod').value;
   const inflation = +document.getElementById('inflation').value || 0;
   const r1 = +document.getElementById('r1').value || 0;
@@ -306,29 +421,19 @@ function run(){
   document.getElementById('endingWealth').textContent = fmtTHB(endedWithWealth);
   document.getElementById('auditLog').textContent = audit;
   document.getElementById('tableNote').textContent = rows.length ? `${rows.length} แถว` : '';
+
+  // Draw chart
+  lastRows = rows;
+  drawChart(rows);
 }
 
 function exportCSV(){
   const tbody = document.getElementById('tbody');
   if (!tbody.children.length){ alert('ยังไม่มีผลลัพธ์สำหรับส่งออก'); return; }
-  // Rebuild rows from table for simplicity
-  const rows = Array.from(tbody.children).map(tr=>{
-    const tds = tr.querySelectorAll('td');
-    return {
-      year: tds[0].textContent,
-      expense: tds[1].textContent,
-      b1: tds[2].textContent,
-      b2: tds[3].textContent,
-      b3: tds[4].textContent,
-      total: tds[5].textContent
-    }
-  });
-  // Build CSV from inner numeric model instead by re-running simulate with current inputs
-  let expense = +document.getElementById('expenseAmount').value || 0;
   const period = document.getElementById('expensePeriod').value;
-  const expenseAnnual0 = period==='monthly' ? expense*12 : expense;
+  const expenseAnnual0 = period==='monthly' ? getNum('expenseAmount')*12 : getNum('expenseAmount');
   const payload = simulate({
-    startAmount:+document.getElementById('startAmount').value||0,
+    startAmount:getNum('startAmount'),
     expenseAnnual0,
     inflation:+document.getElementById('inflation').value||0,
     r1:+document.getElementById('r1').value||0,
@@ -347,6 +452,8 @@ function exportCSV(){
 // Events
  document.getElementById('calcBtn').addEventListener('click', run);
  document.getElementById('exportBtn').addEventListener('click', exportCSV);
+ // Attach comma formatting to money inputs
+ Array.from(document.querySelectorAll('input[data-format="comma"]')).forEach(attachCommaFormatting);
  // Auto-run once with defaults
  run();
 </script>
