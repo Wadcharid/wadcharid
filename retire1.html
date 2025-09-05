@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ตัวคำนวณหลังเกษียณ: แผน 3 ก้อน (สำรอง 2 ปี / ตราสารหนี้ 5 ปี / เสี่ยงสูงที่เหลือ)</title>
+  <style>
+    :root{
+      --bg:#0b1020;--panel:#131a33;--muted:#aab3d2;--prim:#5ad7ff;--ok:#32d27a;--warn:#ffcc66;--bad:#ff6b6b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b1020,#0b1225);color:#e8edff;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans Thai",sans-serif;}
+    .page{max-width:1100px;margin:24px auto;padding:16px}
+    h1{font-size:clamp(20px,2.6vw,32px);margin:0 0 12px;color:#fff}
+    p.sub{color:var(--muted);margin:.25rem 0 1rem}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input,select{width:100%;background:#0f1530;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px;color:#e8edff;font-size:15px;outline:none}
+    input:focus,select:focus{border-color:var(--prim);box-shadow:0 0 0 3px rgba(90,215,255,.15)}
+    .row{display:grid;grid-template-columns:1fr 140px 120px;gap:12px}
+    .btn{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,#1a86ff,#1755ff);border:none;padding:10px 14px;border-radius:12px;color:#fff;font-weight:600;cursor:pointer}
+    .btn.secondary{background:#223169}
+    .btn:active{transform:translateY(1px)}
+    .stat{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:#0f1736;border:1px solid rgba(255,255,255,.08)}
+    .stat b{font-size:20px;color:#fff}
+    .pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid rgba(255,255,255,.12);color:#d6ddff}
+    .warn{color:var(--warn)}
+    .muted{color:var(--muted)}
+
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:8px 10px;border-bottom:1px dashed rgba(255,255,255,.12);text-align:right}
+    th{position:sticky;top:0;background:#10183a;text-align:right;z-index:1}
+    th:first-child, td:first-child{text-align:left}
+    .right{justify-self:end}
+    details{background:#0e1531;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}
+
+    .two-col{grid-column:span 12}
+    @media(min-width:860px){
+      .two-col{grid-column:span 8}
+      .side{grid-column:span 4}
+    }
+    .stack{display:flex;gap:10px;flex-wrap:wrap}
+    .tag{font-size:12px;padding:3px 8px;border-radius:999px;background:#0b1333;color:#d0d7ff;border:1px solid rgba(255,255,255,.1)}
+    .footer{margin:18px 0 8px;color:#7f8bb3;font-size:12px}
+    .num-warn{color:var(--bad);font-weight:700}
+    .good{color:var(--ok)}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>ตัวคำนวณวางแผนเงินหลังเกษียณ – แผน 3 ก้อน</h1>
+    <p class="sub">ตรรกะ: <span class="pill">ก้อนที่ 1 (เงินฝาก) = 2×ค่าใช้จ่ายรายปี</span> · <span class="pill">ก้อนที่ 2 (เสี่ยงต่ำ–กลาง) = 5×ค่าใช้จ่ายรายปี @4%</span> · <span class="pill">ก้อนที่ 3 (เสี่ยงสูง) = เงินที่เหลือ @7%</span> · เงินเฟ้อปรับค่าใช้จ่ายเพิ่มทุกปี</p>
+
+    <div class="grid">
+      <div class="card two-col">
+        <div class="grid" style="grid-template-columns:repeat(12,1fr);gap:14px">
+          <div style="grid-column:span 6">
+            <label>จำนวนเงินตั้งต้นตอนเกษียณ (บาท)</label>
+            <input type="number" id="startAmount" value="10000000" min="0" step="1000" />
+          </div>
+          <div style="grid-column:span 4">
+            <label>ค่าใช้จ่ายเริ่มต้นตอนเกษียณ</label>
+            <input type="number" id="expenseAmount" value="40000" min="0" step="500" />
+          </div>
+          <div style="grid-column:span 2">
+            <label>&nbsp;</label>
+            <select id="expensePeriod">
+              <option value="monthly" selected>บาท/เดือน</option>
+              <option value="yearly">บาท/ปี</option>
+            </select>
+          </div>
+          <div style="grid-column:span 4">
+            <label>เงินเฟ้อ (%) ต่อปี</label>
+            <input type="number" id="inflation" value="3" min="0" max="20" step="0.1" />
+          </div>
+          <div style="grid-column:span 4">
+            <label>จำลองสูงสุดกี่ปี (เพื่อความเร็ว)</label>
+            <input type="number" id="maxYears" value="120" min="1" max="200" />
+          </div>
+          <div style="grid-column:span 4;align-self:end">
+            <button class="btn" id="calcBtn">คำนวณ</button>
+            <button class="btn secondary" id="exportBtn" title="บันทึกเป็น CSV" style="margin-left:8px">ส่งออก CSV</button>
+          </div>
+        </div>
+
+        <details style="margin-top:12px">
+          <summary>ตัวเลือกขั้นสูง (กำหนดผลตอบแทน)</summary>
+          <div class="grid" style="grid-template-columns:repeat(12,1fr);gap:14px;margin-top:10px">
+            <div style="grid-column:span 4">
+              <label>ผลตอบแทนก้อนที่ 1 (เงินฝาก) %/ปี</label>
+              <input type="number" id="r1" value="0" step="0.1" />
+            </div>
+            <div style="grid-column:span 4">
+              <label>ผลตอบแทนก้อนที่ 2 (ตราสารหนี้) %/ปี</label>
+              <input type="number" id="r2" value="4" step="0.1" />
+            </div>
+            <div style="grid-column:span 4">
+              <label>ผลตอบแทนก้อนที่ 3 (เสี่ยงสูง) %/ปี</label>
+              <input type="number" id="r3" value="7" step="0.1" />
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card side">
+        <div id="warnings" class="muted" style="min-height:22px"></div>
+        <div class="stat" style="margin-top:10px">
+          <div style="font-size:28px">⏳</div>
+          <div>
+            <div class="muted">จำนวนปีที่คาดว่าจะอยู่ได้</div>
+            <b id="yearsResult">—</b>
+          </div>
+        </div>
+        <div class="stat" style="margin-top:10px">
+          <div style="font-size:28px">💰</div>
+          <div>
+            <div class="muted">มูลค่ารวมปลายปีสุดท้าย (ถ้ายังไม่หมด)</div>
+            <b id="endingWealth">—</b>
+          </div>
+        </div>
+        <div class="stack" style="margin-top:10px">
+          <span class="tag">สำรอง 2 ปี</span>
+          <span class="tag">ตราสารหนี้ 5 ปี</span>
+          <span class="tag">รีบาลานซ์ทุกปี</span>
+          <span class="tag">ปรับตามเงินเฟ้อ</span>
+        </div>
+      </div>
+
+      <div class="card two-col" style="overflow:auto">
+        <div class="row" style="grid-template-columns:1fr auto auto">
+          <h3 style="margin:2px 0">ตารางเงินแต่ละก้อนในแต่ละปี</h3>
+          <div class="right muted" id="tableNote"></div>
+        </div>
+        <table id="resultTable">
+          <thead>
+            <tr>
+              <th>ปี</th>
+              <th>ค่าใช้จ่าย/ปี</th>
+              <th>ก้อนที่ 1 (ปลายปี)</th>
+              <th>ก้อนที่ 2 (ปลายปี)</th>
+              <th>ก้อนที่ 3 (ปลายปี)</th>
+              <th>รวมปลายปี</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <details style="margin-top:12px">
+          <summary>ดูสมุดรายปี (ขั้นตอน: ถอน–เติบโต–รีบาลานซ์)</summary>
+          <div id="auditLog" style="white-space:pre-wrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:#d9e1ff"></div>
+        </details>
+        <div class="footer">หมายเหตุ: แบบจำลองนี้เป็นการจำลองเชิงกลยุทธ์ตามหลักการที่ระบุ ไม่ใช่คำแนะนำการลงทุน ผลลัพธ์จริงอาจต่างออกไป</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const fmtTHB = v => new Intl.NumberFormat('th-TH', {style:'currency', currency:'THB', maximumFractionDigits:0}).format(Math.max(0, v||0));
+const fmtNum = v => new Intl.NumberFormat('th-TH', {maximumFractionDigits:2}).format(v);
+
+function simulate(opts){
+  let {startAmount, expenseAnnual0, inflation, r1, r2, r3, maxYears} = opts;
+  // Convert % to decimal
+  inflation = inflation/100; r1=r1/100; r2=r2/100; r3=r3/100;
+
+  let b1 = 0, b2 = 0, b3 = 0;
+  let year = 0; let expense = expenseAnnual0;
+  const rows = []; const audit = [];
+
+  // Allocate initial buckets (priority: b1 -> b2 -> b3)
+  const t1 = 2*expense;
+  const t2 = 5*expense;
+  b1 = Math.min(startAmount, t1);
+  let rem = startAmount - b1;
+  b2 = Math.min(rem, t2); rem -= b2;
+  b3 = Math.max(0, rem);
+  if (startAmount < t1 + t2) {
+    audit.push(`⚠️ เงินตั้งต้นไม่พอให้ครบเป้าหมายก้อนที่ 1 และ 2 ในปีแรก (ต้องการ ${fmtTHB(t1+t2)} แต่มี ${fmtTHB(startAmount)})`);
+  }
+
+  let yearsAlive = 0;
+  let endedWithWealth = 0;
+
+  while (year < maxYears){
+    year++;
+    const startB1 = b1, startB2 = b2, startB3 = b3;
+    const totalBefore = b1+b2+b3;
+    audit.push(`\n▶️ ปีที่ ${year}: ค่าใช้จ่าย = ${fmtTHB(expense)} | ยอดยกมา = ${fmtTHB(totalBefore)}`);
+
+    // If cannot fully fund this year's expense, end with partial year
+    if (totalBefore <= 0){
+      audit.push(`❌ เงินหมดก่อนเริ่มปีที่ ${year}`);
+      break;
+    }
+    if (totalBefore < expense){
+      const frac = totalBefore/expense; // fraction of a year we can cover
+      yearsAlive += frac;
+      audit.push(`⏳ ครอบคลุมได้เพียง ${fmtNum(frac*12)} เดือน ในปีที่ ${year} ก่อนเงินหมด`);
+      b1 = b2 = b3 = 0; // depleted
+      rows.push({year:`${year} (บางส่วน)`, expense, b1, b2, b3});
+      endedWithWealth = 0;
+      break;
+    }
+
+    // Withdraw from buckets order: b1 -> b2 -> b3
+    let need = expense;
+    let w1 = Math.min(b1, need); b1 -= w1; need -= w1;
+    let w2 = 0, w3 = 0;
+    if (need>0){ w2 = Math.min(b2, need); b2 -= w2; need -= w2; }
+    if (need>0){ w3 = Math.min(b3, need); b3 -= w3; need -= w3; }
+    audit.push(`ถอน: จากก้อน1 ${fmtTHB(w1)} | ก้อน2 ${fmtTHB(w2)} | ก้อน3 ${fmtTHB(w3)}`);
+
+    // Grow remaining balances at end of year
+    const g1 = b1*r1; b1 += g1;
+    const g2 = b2*r2; b2 += g2;
+    const g3 = b3*r3; b3 += g3;
+    audit.push(`เติบโตปลายปี: ก1 ${fmtTHB(g1)} | ก2 ${fmtTHB(g2)} | ก3 ${fmtTHB(g3)}`);
+
+    // Prepare next year's targets with inflation-adjusted expense
+    const nextExpense = expense*(1+inflation);
+    const t1n = 2*nextExpense;
+    const t2n = 5*nextExpense;
+
+    // Rebalance: top up B1 first (from B2 then B3), then B2 from B3
+    let top12 = 0, top13 = 0, top23 = 0;
+    let need1 = Math.max(0, t1n - b1);
+    if (need1>0){ const x = Math.min(b2, need1); b2 -= x; b1 += x; need1 -= x; top12 = x; }
+    if (need1>0){ const y = Math.min(b3, need1); b3 -= y; b1 += y; need1 -= y; top13 = y; }
+    let need2 = Math.max(0, t2n - b2);
+    if (need2>0){ const z = Math.min(b3, need2); b3 -= z; b2 += z; need2 -= z; top23 = z; }
+
+    audit.push(`รีบาลานซ์: เติมก1จากก2 ${fmtTHB(top12)} | เติมก1จากก3 ${fmtTHB(top13)} | เติมก2จากก3 ${fmtTHB(top23)}`);
+
+    const endTotal = b1+b2+b3;
+    rows.push({year, expense, b1, b2, b3});
+    endedWithWealth = endTotal;
+
+    // Move to next year
+    expense = nextExpense;
+
+    // Guard: if assets extremely large relative to expense and maxYears is hit, we simply stop later
+  }
+
+  // If loop ended because reached maxYears and still have money, treat as open-ended
+  const endedByMaxYears = (yearsAlive === 0 && rows.length === (opts.maxYears) && (b1+b2+b3) > 0);
+
+  // Full years counted are rows that are numeric year (not partial)
+  let fullYears = rows.filter(r=>Number.isFinite(r.year)).length;
+  yearsAlive += fullYears;
+
+  return {rows, audit: audit.join('\n'), yearsAlive, endedWithWealth, endedByMaxYears};
+}
+
+function toCSV(rows){
+  const header = ["ปี","ค่าใช้จ่าย/ปี","ก้อนที่1ปลายปี","ก้อนที่2ปลายปี","ก้อนที่3ปลายปี","รวมปลายปี"];
+  const body = rows.map(r=>[
+    r.year,
+    Math.round(r.expense),
+    Math.round(r.b1),
+    Math.round(r.b2),
+    Math.round(r.b3),
+    Math.round(r.b1+r.b2+r.b3)
+  ]);
+  const csv = [header.join(","), ...body.map(r=>r.join(","))].join("\n");
+  return csv;
+}
+
+function run(){
+  const startAmount = +document.getElementById('startAmount').value || 0;
+  let expense = +document.getElementById('expenseAmount').value || 0;
+  const period = document.getElementById('expensePeriod').value;
+  const inflation = +document.getElementById('inflation').value || 0;
+  const r1 = +document.getElementById('r1').value || 0;
+  const r2 = +document.getElementById('r2').value || 0;
+  const r3 = +document.getElementById('r3').value || 0;
+  const maxYears = +document.getElementById('maxYears').value || 120;
+
+  const warnings = [];
+  if (expense<=0) warnings.push('โปรดใส่ค่าใช้จ่ายเริ่มต้น (> 0)');
+  if (startAmount<=0) warnings.push('โปรดใส่จำนวนเงินตั้งต้น (> 0)');
+  if (r1<0||r2<0||r3<0) warnings.push('ผลตอบแทนต้องไม่ติดลบ');
+  document.getElementById('warnings').innerHTML = warnings.length? ('⚠️ '+warnings.join(' · ')) : '';
+  if (warnings.length) return;
+
+  const expenseAnnual0 = period==='monthly' ? expense*12 : expense;
+
+  const {rows, audit, yearsAlive, endedWithWealth, endedByMaxYears} = simulate({startAmount, expenseAnnual0, inflation, r1, r2, r3, maxYears});
+
+  // Fill table
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    const total = r.b1+r.b2+r.b3;
+    tr.innerHTML = `
+      <td>${r.year}</td>
+      <td>${fmtTHB(r.expense)}</td>
+      <td>${fmtTHB(r.b1)}</td>
+      <td>${fmtTHB(r.b2)}</td>
+      <td>${fmtTHB(r.b3)}</td>
+      <td>${fmtTHB(total)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('yearsResult').textContent = endedByMaxYears ? `≥ ${maxYears} ปี (ยังไม่หมด)` : `${fmtNum(yearsAlive)} ปี`;
+  document.getElementById('endingWealth').textContent = fmtTHB(endedWithWealth);
+  document.getElementById('auditLog').textContent = audit;
+  document.getElementById('tableNote').textContent = rows.length ? `${rows.length} แถว` : '';
+}
+
+function exportCSV(){
+  const tbody = document.getElementById('tbody');
+  if (!tbody.children.length){ alert('ยังไม่มีผลลัพธ์สำหรับส่งออก'); return; }
+  // Rebuild rows from table for simplicity
+  const rows = Array.from(tbody.children).map(tr=>{
+    const tds = tr.querySelectorAll('td');
+    return {
+      year: tds[0].textContent,
+      expense: tds[1].textContent,
+      b1: tds[2].textContent,
+      b2: tds[3].textContent,
+      b3: tds[4].textContent,
+      total: tds[5].textContent
+    }
+  });
+  // Build CSV from inner numeric model instead by re-running simulate with current inputs
+  let expense = +document.getElementById('expenseAmount').value || 0;
+  const period = document.getElementById('expensePeriod').value;
+  const expenseAnnual0 = period==='monthly' ? expense*12 : expense;
+  const payload = simulate({
+    startAmount:+document.getElementById('startAmount').value||0,
+    expenseAnnual0,
+    inflation:+document.getElementById('inflation').value||0,
+    r1:+document.getElementById('r1').value||0,
+    r2:+document.getElementById('r2').value||0,
+    r3:+document.getElementById('r3').value||0,
+    maxYears:+document.getElementById('maxYears').value||120,
+  });
+  const csv = toCSV(payload.rows);
+  const blob = new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'retirement_bucket_simulator.csv'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+// Events
+ document.getElementById('calcBtn').addEventListener('click', run);
+ document.getElementById('exportBtn').addEventListener('click', exportCSV);
+ // Auto-run once with defaults
+ run();
+</script>
+</body>
+</html>
