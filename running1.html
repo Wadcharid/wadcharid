@@ -705,9 +705,9 @@
       // --- แสดงผลลัพธ์ Pace การซ้อม ---
       let trainingHTML = `
         <div class=&quot;pace-category&quot;>          <h3&gt;Easy Run Pace วิ่งต่อเนื่อง</h3>          <ul class=&quot;pace-list&quot;>            <li&gt;<span class=&quot;pace-label&quot;&gt;60-120 นาที (70-85% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 70, 85)}</span&gt;</li>          </ul>        </div>        
-        <div class=&quot;pace-category&quot;>          <h3&gt;Threshold Run Pace (Tempo) วิ่งต่อเนื่อง</h3>          <ul class=&quot;pace-list&quot;>             <li&gt;<span class=&quot;pace-label&quot;&gt;20-40 นาที (95-103% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 95, 103)}</span&gt;</li>          </ul>        </div>
+        <div class=&quot;pace-category&quot;>          <h3&gt;Threshold Run Pace (Tempo) วิ่งต่อเนื่อง</h3>          <ul class=&quot;pace-list&quot;>             <li&gt;<span class=&quot;pace-label&quot;&gt;20-40 นาที (95-103% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 94, 102)}</span&gt;</li>          </ul>        </div>
         <div class=&quot;pace-category&quot;>            <h3&gt;Interval Run Pace ระยะเวลาวิ่งรวม 20-30 นาที</h3>            <ul class=&quot;pace-list&quot;>
-                <li&gt;<span class=&quot;pace-label&quot;&gt;วิ่ง 3-5 นาที พัก 1-2 นาที(105-110% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 105, 110)}</span&gt;</li>
+                <li&gt;<span class=&quot;pace-label&quot;&gt;วิ่ง 3-5 นาที พัก 1-2 นาที(105-110% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 103, 112)}</span&gt;</li>
             </ul>        </div>      `;
       document.getElementById(&quot;training-paces&quot;).innerHTML = trainingHTML;
     }
