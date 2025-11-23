@@ -88,6 +88,8 @@
         <button class="tab-btn" role="tab" id="tab-race" aria-selected="false" data-target="page-race">Race Predict</button>
         <button class="tab-btn" role="tab" id="tab-train" aria-selected="false" data-target="page-train">Training Pace</button>
         <button class="tab-btn" role="tab" id="tab-time" aria-selected="false" data-target="page-time">Pace Table</button>
+       
+        <button class="tab-btn" role="tab" id="tab-interval" aria-selected="false" data-target="page-interval">Interval Cal</button>
 
       </div>
       <div class="note">เลือกการคำนวณ</div>
@@ -902,6 +904,228 @@
             document.querySelector(&#x27;.calculator&#x27;).scrollIntoView({ behavior: &#x27;smooth&#x27;, block: &#x27;start&#x27; });
         }
     </script></body></html>"></iframe>
+
+
+
+    <iframe id="page-interval" title="Interval Calculator" srcdoc="
+<!DOCTYPE html>
+<html lang=&quot;th&quot;>
+<head>
+  <meta charset=&quot;UTF-8&quot;>
+  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+  <title>Interval Calculator</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 500px;
+      background: #fff;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-top: 0;
+      color: #0d6efd;
+    }
+    .form-group { margin-bottom: 15px; }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .row { display: flex; gap: 10px; }
+    .col { flex: 1; }
+    input[type=&quot;number&quot;] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      text-align: center;
+    }
+    .note {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #0d6efd;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 10px;
+    }
+    button:hover { background: #0b5ed7; }
+    .result-card {
+      background: #e9f7e9;
+      border: 1px solid #c3e6cb;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      display: none;
+    }
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 15px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      padding-bottom: 8px;
+    }
+    .result-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .result-label { color: #555; }
+    .result-value { font-weight: bold; color: #333; }
+    .highlight { color: #0d6efd; font-size: 1.1em; }
+  </style>
+</head>
+<body>
+  <div class=&quot;container&quot;>
+    <h2>Interval Calculator</h2>
+
+    <div class=&quot;form-group&quot;>
+      <label>ระยะทางวิ่ง (เมตร)</label>
+      <input type=&quot;number&quot; id=&quot;runDist&quot; placeholder=&quot;เช่น 400, 1000&quot;>
+    </div>
+
+    <div class=&quot;form-group&quot;>
+      <label>ความเร็วเป้าหมาย (Pace)</label>
+      <div class=&quot;row&quot;>
+        <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;paceMin&quot; placeholder=&quot;นาที&quot;></div>
+        <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;paceSec&quot; placeholder=&quot;วินาที&quot;></div>
+      </div>
+    </div>
+
+    <div class=&quot;form-group&quot;>
+      <label>จำนวนเที่ยว (Reps)</label>
+      <input type=&quot;number&quot; id=&quot;reps&quot; placeholder=&quot;เช่น 10&quot;>
+    </div>
+
+    <div class=&quot;form-group&quot; style=&quot;background:#f8f9fa; padding:10px; border-radius:6px;&quot;>
+      <label>การพัก (Rest)</label>
+      <div class=&quot;row&quot; style=&quot;margin-bottom:10px;&quot;>
+        <div class=&quot;col&quot;>
+          <label style=&quot;font-weight:normal; font-size:12px;&quot;>เวลาพัก (วินาที)</label>
+          <input type=&quot;number&quot; id=&quot;restTime&quot; placeholder=&quot;วินาที&quot;>
+        </div>
+      </div>
+      <div class=&quot;row&quot;>
+        <div class=&quot;col&quot;>
+          <label style=&quot;font-weight:normal; font-size:12px;&quot;>Pace ตอนพัก (ใส่ถ้าจ็อกพัก)</label>
+          <div class=&quot;row&quot;>
+            <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;restPaceMin&quot; placeholder=&quot;นาที&quot;></div>
+            <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;restPaceSec&quot; placeholder=&quot;วินาที&quot;></div>
+          </div>
+          <div class=&quot;note&quot;>*ถ้าไม่ใส่ Pace จะถือว่ายืนพักเฉยๆ</div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick=&quot;calculateInterval()&quot;>คำนวณ</button>
+
+    <div id=&quot;resultCard&quot; class=&quot;result-card&quot;>
+      </div>
+  </div>
+
+  <script>
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = Math.round(totalSeconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function calculateInterval() {
+      // Get Values
+      const dist = parseFloat(document.getElementById('runDist').value) || 0;
+      const paceMin = parseInt(document.getElementById('paceMin').value) || 0;
+      const paceSec = parseInt(document.getElementById('paceSec').value) || 0;
+      const reps = parseInt(document.getElementById('reps').value) || 1;
+      const restTime = parseInt(document.getElementById('restTime').value) || 0;
+      const restPaceMin = parseInt(document.getElementById('restPaceMin').value) || 0;
+      const restPaceSec = parseInt(document.getElementById('restPaceSec').value) || 0;
+
+      if (dist === 0) {
+        alert('กรุณากรอกระยะทางวิ่ง');
+        return;
+      }
+
+      // 1. Calculate Run Time per Rep
+      const totalPaceSec = (paceMin * 60) + paceSec;
+      if (totalPaceSec === 0) {
+        alert('กรุณากรอก Pace เป้าหมาย');
+        return;
+      }
+      const timePerRepSec = (dist / 1000) * totalPaceSec;
+
+      // 2. Calculate Rest
+      const restPaceTotalSec = (restPaceMin * 60) + restPaceSec;
+      let restDistPerRep = 0;
+
+      if (restPaceTotalSec > 0 && restTime > 0) {
+        // Active Rest: Distance = Speed * Time
+        // Speed (m/s) = 1000 / PaceSec
+        restDistPerRep = (1000 / restPaceTotalSec) * restTime;
+      }
+
+      // 3. Totals
+      // Main Set Only
+      const totalMainDist = dist * reps;
+      const totalMainTimeSec = timePerRepSec * reps;
+
+      // Total Session (Run + Rest)
+      const totalSessionDist = totalMainDist + (restDistPerRep * reps);
+      const totalSessionTimeSec = totalMainTimeSec + (restTime * reps);
+
+      // Display HTML
+      const card = document.getElementById('resultCard');
+      card.style.display = 'block';
+      card.innerHTML = `
+        <div class=&quot;result-item&quot;>
+          <span class=&quot;result-label&quot;>เวลาวิ่งต่อเที่ยว (${dist}m):</span>
+          <span class=&quot;result-value highlight&quot;>${formatTime(timePerRepSec)} นาที</span>
+        </div>
+        <div class=&quot;result-item&quot;>
+          <span class=&quot;result-label&quot;>ระยะทางวิ่ง (Main Set):</span>
+          <span class=&quot;result-value&quot;>${(totalMainDist/1000).toFixed(2)} km</span>
+        </div>
+        <div class=&quot;result-item&quot;>
+          <span class=&quot;result-label&quot;>เวลาวิ่งรวม (Main Set):</span>
+          <span class=&quot;result-value&quot;>${formatTime(totalMainTimeSec)} นาที</span>
+        </div>
+        <hr style=&quot;border:0; border-top:1px dashed #ccc; margin:10px 0;&quot;>
+        <div class=&quot;result-item&quot;>
+          <span class=&quot;result-label&quot;>ระยะทางรวมทั้งหมด (วิ่ง+พัก):</span>
+          <span class=&quot;result-value&quot;>${(totalSessionDist/1000).toFixed(2)} km</span>
+        </div>
+        <div class=&quot;result-item&quot;>
+          <span class=&quot;result-label&quot;>เวลารวมทั้งหมด (วิ่ง+พัก):</span>
+          <span class=&quot;result-value&quot;>${formatTime(totalSessionTimeSec)} นาที</span>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
+"></iframe>
+    
   </main>
 
   <script>
