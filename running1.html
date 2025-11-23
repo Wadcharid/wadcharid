@@ -907,6 +907,8 @@
 
 
 
+    
+
     <iframe id="page-interval" title="Interval Calculator" srcdoc="
 <!DOCTYPE html>
 <html lang=&quot;th&quot;>
@@ -1102,6 +1104,12 @@
           <span class=&quot;result-label&quot;>เวลาวิ่งต่อเที่ยว (${dist}m):</span>
           <span class=&quot;result-value highlight&quot;>${formatTime(timePerRepSec)} นาที</span>
         </div>
+        
+        <div class=&quot;result-item&quot;>
+          <span class=&quot;result-label&quot;>ระยะพักต่อเที่ยว:</span>
+          <span class=&quot;result-value&quot;>${restDistPerRep.toFixed(0)} m</span>
+        </div>
+
         <div class=&quot;result-item&quot;>
           <span class=&quot;result-label&quot;>ระยะทางวิ่ง (Main Set):</span>
           <span class=&quot;result-value&quot;>${(totalMainDist/1000).toFixed(2)} km</span>
@@ -1125,6 +1133,9 @@
 </body>
 </html>
 "></iframe>
+
+
+
     
   </main>
 
