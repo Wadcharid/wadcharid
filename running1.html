@@ -460,7 +460,7 @@
       
       // แสดง % ของ Pace จาก LT Pace (70% - 125% ทุก 5%)
       let ltPacePercentHTML = &quot;<h3&gt;ผลลัพธ์ % ของ Pace จาก LT Pace:</h3&gt;<ul class=&#x27;standard-list&#x27;&gt;&quot;;
-      for (let percent = 60; percent <= 125; percent += 5) {
+      for (let percent = 50; percent <= 125; percent += 5) {
         let paceAtPercent = (ltTotalSec * (100 / percent)) / 60; 
         ltPacePercentHTML += `<li&gt;${percent}%: ${formatPace(paceAtPercent)} นาที/กม.</li&gt;`;
       }
