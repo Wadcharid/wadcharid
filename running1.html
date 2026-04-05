@@ -314,10 +314,31 @@
       .container { margin: 10px; padding: 15px 20px; }
       button { padding: 10px; }
     }
-  </style></head><body>  <div class=&quot;container&quot;>    <h1&gt;Race Predict Calculator</h1>    <form id=&quot;raceForm&quot; onsubmit=&quot;event.preventDefault(); calculateRacePredict();&quot;>      
-      <!-- 1. ผลการแข่งขันที่เคยทำได้ -->      <div class=&quot;form-group&quot;>        <label for=&quot;achievedDistance&quot;&gt;ผลการแข่งขันที่เคยทำได้ (ระยะทาง กม.)</label>        <input type=&quot;number&quot; id=&quot;achievedDistance&quot; name=&quot;achievedDistance&quot; step=&quot;any&quot; placeholder=&quot;เช่น 5 - 42.195&quot; required>      </div>      <div class=&quot;form-group&quot;>        <label&gt;เวลา (ที่ทำได้) <small&gt;(ชั่วโมง, นาที, วินาที)</small&gt;</label>        <div class=&quot;inline-inputs&quot;>          <input type=&quot;number&quot; id=&quot;achievedHours&quot; name=&quot;achievedHours&quot; min=&quot;0&quot; placeholder=&quot;ชั่วโมง&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedMinutes&quot; name=&quot;achievedMinutes&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;นาที&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedSeconds&quot; name=&quot;achievedSeconds&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;วินาที&quot; value=&quot;0&quot;>        </div>      </div>      
-      <!-- 2. ระยะทางคาดการณ์ -->      <div class=&quot;form-group&quot;>        <label for=&quot;distance&quot;&gt;ระยะทางคาดการณ์ (กม.)</label>        <input type="number" id="distance" name="distance" step="any" placeholder="เช่น 21.1" value="5" required>      </div>      
-      <button type=&quot;submit&quot;&gt;คำนวณ</button>    </form>  
+  </style></head><body>  <div class=&quot;container&quot;>    <h1&gt;Race Predict Calculator</h1>   <form id="raceForm" onsubmit="event.preventDefault(); calculateRacePredict();">      
+  
+  <div class="form-group">        
+    <label for="achievedDistance">ผลการแข่งขันที่เคยทำได้ (ระยะทาง กม.)</label>        
+    <input type="number" id="achievedDistance" name="achievedDistance" step="any" placeholder="เช่น 5 - 42.195" required>      
+  </div>      
+
+  <div class="form-group">        
+    <label>เวลา (ที่ทำได้) <small>(ชั่วโมง, นาที, วินาที)</small></label>        
+    <div class="inline-inputs" style="display: flex; align-items: center; gap: 5px;">          
+      <input type="number" id="achievedHours" name="achievedHours" min="0" placeholder="ชั่วโมง" value="0" style="width: 60px;">          
+      <span>:</span>          
+      <input type="number" id="achievedMinutes" name="achievedMinutes" min="0" max="59" placeholder="นาที" value="0" style="width: 60px;">          
+      <span>:</span>          
+      <input type="number" id="achievedSeconds" name="achievedSeconds" min="0" max="59" placeholder="วินาที" value="0" style="width: 60px;">          
+    </div>      
+  </div>      
+      
+  <div class="form-group" style="margin-top: 15px;">        
+    <label for="distance">ระยะทางคาดการณ์ (กม.)</label>        
+    <input type="number" id="distance" name="distance" step="any" placeholder="เช่น 21.1" value="5" required>      
+  </div>      
+      
+  <button type="submit" style="margin-top: 20px; padding: 10px 20px; cursor: pointer;">คำนวณ</button>    
+</form>
     <!-- แสดงผลลัพธ์สำหรับข้อมูล Input -->    <div id=&quot;result&quot;&gt;</div>    
     <!-- แสดงผลลัพธ์สำหรับระยะมาตรฐานและ % Pace -->    <div id=&quot;standardResults&quot;&gt;</div>  </div>
   <script>    // ฟังก์ชันช่วยแปลงเวลา (วินาที) เป็น &quot;ชั่วโมง นาที วินาที&quot;
