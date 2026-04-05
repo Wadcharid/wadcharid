@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Training Load Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px 40px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 28px 24px 32px;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 0.8rem;
+      color: #718096;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 12px 48px 12px 14px;
+      font-size: 1.05rem;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 10px;
+      background: #f7fafc;
+      color: #1a202c;
+      outline: none;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:focus {
+      border-color: #4299e1;
+      background: #fff;
+    }
+
+    .unit {
+      position: absolute;
+      right: 14px;
+      font-size: 0.78rem;
+      color: #a0aec0;
+      pointer-events: none;
+      font-weight: 500;
+    }
+
+    .duration-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      margin-top: 8px;
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #3182ce;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.08s;
+      letter-spacing: 0.03em;
+    }
+
+    button:hover { background: #2b6cb0; }
+    button:active { transform: scale(0.98); }
+
+    .result-box {
+      margin-top: 24px;
+      display: none;
+    }
+
+    .result-box.show { display: block; }
+
+    .hr-result {
+      background: #ebf8ff;
+      border: 1.5px solid #bee3f8;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hr-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .hr-label {
+      font-size: 0.75rem;
+      color: #2b6cb0;
+      font-weight: 600;
+    }
+
+    .hr-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #1a365d;
+      line-height: 1.1;
+    }
+
+    .hr-sub {
+      font-size: 0.72rem;
+      color: #4a90d9;
+    }
+
+    .tl-section {
+      background: #f7fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .tl-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #4a5568;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .tl-main {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .tl-main-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #2d3748;
+      line-height: 1;
+    }
+
+    .tl-main-label {
+      font-size: 0.75rem;
+      color: #718096;
+      margin-top: 2px;
+    }
+
+    .tl-range {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .tl-range-item {
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .tl-range-item.low {
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+    }
+
+    .tl-range-item.high {
+      background: #f0fff4;
+      border: 1px solid #c6f6d5;
+    }
+
+    .tl-range-pct {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .tl-range-item.low .tl-range-pct { color: #c53030; }
+    .tl-range-item.high .tl-range-pct { color: #276749; }
+
+    .tl-range-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .tl-range-item.low .tl-range-val { color: #9b2c2c; }
+    .tl-range-item.high .tl-range-val { color: #22543d; }
+
+    .formula-note {
+      margin-top: 14px;
+      font-size: 0.68rem;
+      color: #a0aec0;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .error-msg {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: 8px;
+      color: #c53030;
+      font-size: 0.82rem;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>Training Load Calculator</h1>
+  <p class="subtitle">คำนวณ Training Load จาก %LTHR</p>
+
+  <div class="field">
+    <label>%LTHR</label>
+    <div class="input-wrap">
+      <input type="number" id="pctLTHR" placeholder="เช่น 85" min="50" max="130" step="0.1" />
+      <span class="unit">%</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>LTHR (Lactate Threshold Heart Rate)</label>
+    <div class="input-wrap">
+      <input type="number" id="lthr" placeholder="168" value="168" min="100" max="220" step="1" />
+      <span class="unit">bpm</span>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>ระยะเวลาออกกำลังกาย</label>
+    <div class="duration-row">
+      <div class="input-wrap">
+        <input type="number" id="durationHr" placeholder="0" min="0" max="24" step="1" />
+        <span class="unit">ชม.</span>
+      </div>
+      <div class="input-wrap">
+        <input type="number" id="durationMin" placeholder="30" min="0" max="59" step="1" />
+        <span class="unit">นาที</span>
+      </div>
+    </div>
+  </div>
+
+  <button id="calcBtn">คำนวณ</button>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="result-box" id="resultBox">
+    <div class="hr-result">
+      <div class="hr-icon">❤️</div>
+      <div>
+        <div class="hr-label">Heart Rate ที่ %LTHR นี้</div>
+        <div class="hr-value"><span id="hrVal">—</span> <span style="font-size:1rem;font-weight:500">bpm</span></div>
+        <div class="hr-sub" id="hrSub"></div>
+      </div>
+    </div>
+
+    <div class="tl-section">
+      <div class="tl-title">Training Load (TL)</div>
+      <div class="tl-main">
+        <div class="tl-main-value" id="tlMain">—</div>
+        <div class="tl-main-label" id="tlDuration"></div>
+      </div>
+      <div class="tl-range">
+        <div class="tl-range-item low">
+          <div class="tl-range-pct">90% TL</div>
+          <div class="tl-range-val" id="tl90">—</div>
+        </div>
+        <div class="tl-range-item high">
+          <div class="tl-range-pct">110% TL</div>
+          <div class="tl-range-val" id="tl110">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula-note">
+      TL/30นาที = 0.000739x³ − 0.118275x² + 6.819512x − 132.697544<br>
+      (x = %LTHR)
+    </div>
+  </div>
+</div>
+
+<script>
+  function calcTL(x) {
+    return (0.000739 * x ** 3) - (0.118275 * x ** 2) + (6.819512 * x) - 132.697544;
+  }
+
+  function calculate() {
+    const errorEl = document.getElementById('errorMsg');
+    const resultEl = document.getElementById('resultBox');
+    errorEl.classList.remove('show');
+    resultEl.classList.remove('show');
+
+    const pctLTHR = parseFloat(document.getElementById('pctLTHR').value);
+    const lthr = parseFloat(document.getElementById('lthr').value) || 168;
+    const hrs = parseInt(document.getElementById('durationHr').value) || 0;
+    const mins = parseInt(document.getElementById('durationMin').value) || 0;
+    const totalMins = hrs * 60 + mins;
+
+    if (isNaN(pctLTHR) || pctLTHR <= 0) {
+      errorEl.textContent = 'กรุณากรอก %LTHR ให้ถูกต้อง';
+      errorEl.classList.add('show');
+      return;
+    }
+    if (totalMins <= 0) {
+      errorEl.textContent = 'กรุณากรอกระยะเวลาออกกำลังกาย';
+      errorEl.classList.add('show');
+      return;
+    }
+
+    const tlPer30 = calcTL(pctLTHR);
+    const tlTotal = tlPer30 * (totalMins / 30);
+    const hr = Math.round((pctLTHR / 100) * lthr);
+
+    document.getElementById('hrVal').textContent = hr;
+    document.getElementById('hrSub').textContent =
+      `${pctLTHR}% × LTHR ${lthr} bpm`;
+
+    document.getElementById('tlMain').textContent = tlTotal.toFixed(1);
+
+    const dLabel = [];
+    if (hrs > 0) dLabel.push(`${hrs} ชั่วโมง`);
+    if (mins > 0) dLabel.push(`${mins} นาที`);
+    document.getElementById('tlDuration').textContent = `ใน ${dLabel.join(' ')}`;
+
+    document.getElementById('tl90').textContent = (tlTotal * 0.9).toFixed(1);
+    document.getElementById('tl110').textContent = (tlTotal * 1.1).toFixed(1);
+
+    resultEl.classList.add('show');
+  }
+
+  document.getElementById('calcBtn').addEventListener('click', calculate);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') calculate();
+  });
+</script>
+</body>
+</html>
