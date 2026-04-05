@@ -1,1184 +1,1161 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Running Calculator — All-in-One</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Running Calculator — All-in-One</title>
 <style>
-  :root{
-    --bg:#f4f7fb; 
-    --card:#ffffff; 
-    --text:#233041; 
-    --muted:#6b7a90; 
-    --primary:#0d6efd; 
-    --primary-700:#0b5ed7; 
-    --ring: rgba(13,110,253,.25);
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;background:var(--bg);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    color:var(--text)
-  }
+:root{
+--bg:#f4f7fb; 
+--card:#ffffff; 
+--text:#233041; 
+--muted:#6b7a90; 
+--primary:#0d6efd; 
+--primary-700:#0b5ed7; 
+--ring: rgba(13,110,253,.25);
+}
+*{box-sizing:border-box}
+body{
+margin:0;background:var(--bg);
+font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+color:var(--text)
+}
 
-  /* Header เตี้ยลง */
-  header{
-    position:sticky; top:0; z-index:10;
-    background:var(--card);
-    border-bottom:1px solid #e6eef8;
-  }
-  .wrap{
-    max-width:1000px; margin:0 auto;
-    padding:6px 12px;                   /* เดิม 10px 16px → ลดลง */
-    display:flex; gap:6px; align-items:center; flex-wrap:wrap;
-  }
-  h1{
-    font-size:14px;                     /* เดิม 18px → ลดลง */
-    margin:0; white-space:nowrap;
-  }
+/* Header เตี้ยลง */
+header{
+position:sticky; top:0; z-index:10;
+background:var(--card);
+border-bottom:1px solid #e6eef8;
+}
+.wrap{
+max-width:1000px; margin:0 auto;
+padding:6px 12px;                   /* เดิม 10px 16px → ลดลง */
+display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+}
+h1{
+font-size:14px;                     /* เดิม 18px → ลดลง */
+margin:0; white-space:nowrap;
+}
 
-  /* ปุ่มเมนูแบบกระชับ */
-  .tabs{ display:flex; gap:6px; flex:1; flex-wrap:wrap }
-  .tab-btn{
-    appearance:none; cursor:pointer; transition:.2s;
-    border:1px solid #d6e2f3; background:#fff;
-    padding:6px 10px;                   /* เดิม 10px 14px → ลดลง */
-    border-radius:999px; font-weight:600; font-size:14px; /* เดิม ~16px */
-    text-align:center;
-    flex:1 1 140px;                     /* เดิม 160px → ลดลง */
-  }
-  .tab-btn[aria-selected="true"]{
-    background:var(--primary); color:#fff; border-color:var(--primary);
-  }
-  .tab-btn:focus-visible{ outline:3px solid var(--ring) }
+/* ปุ่มเมนูแบบกระชับ */
+.tabs{ display:flex; gap:6px; flex:1; flex-wrap:wrap }
+.tab-btn{
+appearance:none; cursor:pointer; transition:.2s;
+border:1px solid #d6e2f3; background:#fff;
+padding:6px 10px;                   /* เดิม 10px 14px → ลดลง */
+border-radius:999px; font-weight:600; font-size:14px; /* เดิม ~16px */
+text-align:center;
+flex:1 1 140px;                     /* เดิม 160px → ลดลง */
+}
+.tab-btn[aria-selected="true"]{
+background:var(--primary); color:#fff; border-color:var(--primary);
+}
+.tab-btn:focus-visible{ outline:3px solid var(--ring) }
 
-  /* ซ่อนคำอธิบายเพื่อประหยัดพื้นที่ */
-  .note{ display:none; }
+/* ซ่อนคำอธิบายเพื่อประหยัดพื้นที่ */
+.note{ display:none; }
 
-  /* พื้นที่แสดงผลสูงขึ้นตาม header ที่เตี้ยลง */
-  .view{ height:calc(100vh - 48px) }    /* เดิม 68px → 48px */
+/* พื้นที่แสดงผลสูงขึ้นตาม header ที่เตี้ยลง */
+.view{ height:calc(100vh - 48px) }    /* เดิม 68px → 48px */
 
-  iframe{
-    display:none; border:0; width:100%; height:100%;
-    background:#fff; border-radius:0;
-  }
-  iframe.active{ display:block }
+iframe{
+display:none; border:0; width:100%; height:100%;
+background:#fff; border-radius:0;
+}
+iframe.active{ display:block }
 
-  /* ให้ปุ่มมีขนาดคงที่บนจอใหญ่ */
-  @media (min-width: 900px) {
-    .tab-btn{ flex:0 0 auto; min-width:140px } /* เดิม 160px → 140px */
-  }
+/* ให้ปุ่มมีขนาดคงที่บนจอใหญ่ */
+@media (min-width: 900px) {
+.tab-btn{ flex:0 0 auto; min-width:140px } /* เดิม 160px → 140px */
+}
 
-  /* โหมดจอเล็กมาก: ลดระยะห่างเพิ่มอีกนิด */
-  @media (max-width: 360px) {
-    .wrap{ padding:4px 8px; gap:4px }
-    .tabs{ gap:4px }
-    .tab-btn{ padding:5px 8px; font-size:13px; min-width:120px }
-    .view{ height:calc(100vh - 42px) }
-  }
+/* โหมดจอเล็กมาก: ลดระยะห่างเพิ่มอีกนิด */
+@media (max-width: 360px) {
+.wrap{ padding:4px 8px; gap:4px }
+.tabs{ gap:4px }
+.tab-btn{ padding:5px 8px; font-size:13px; min-width:120px }
+.view{ height:calc(100vh - 42px) }
+}
 </style>
 
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <h1>🏃‍♂️ Running Calculator</h1>
-      <div class="tabs" role="tablist" aria-label="Calculator pages">
-        <button class="tab-btn" role="tab" id="tab-pace" aria-selected="true" data-target="page-pace">Time/Pace/Distance</button>
-        <button class="tab-btn" role="tab" id="tab-race" aria-selected="false" data-target="page-race">Race Predict</button>
-        <button class="tab-btn" role="tab" id="tab-train" aria-selected="false" data-target="page-train">Training Pace</button>
-        <button class="tab-btn" role="tab" id="tab-time" aria-selected="false" data-target="page-time">Pace Table</button>
-       
-        <button class="tab-btn" role="tab" id="tab-interval" aria-selected="false" data-target="page-interval">Interval Cal</button>
+<header>
+<div class="wrap">
+<h1>🏃‍♂️ Running Calculator</h1>
+<div class="tabs" role="tablist" aria-label="Calculator pages">
+<button class="tab-btn" role="tab" id="tab-pace" aria-selected="true" data-target="page-pace">Time/Pace/Distance</button>
+<button class="tab-btn" role="tab" id="tab-race" aria-selected="false" data-target="page-race">Race Predict</button>
+<button class="tab-btn" role="tab" id="tab-train" aria-selected="false" data-target="page-train">Training Pace</button>
+<button class="tab-btn" role="tab" id="tab-time" aria-selected="false" data-target="page-time">Pace Table</button>
 
-      </div>
-      <div class="note">เลือกการคำนวณ</div>
-    </div>
-  </header>
+<button class="tab-btn" role="tab" id="tab-interval" aria-selected="false" data-target="page-interval">Interval Cal</button>
 
-  <main class="view">
-    <!-- Each page is the original file embedded intact via iframe srcdoc -->
-    <iframe id="page-time" title="Time, Pace, Distance" srcdoc="<!DOCTYPE html><html lang=&quot;en&quot;><head>    <meta charset=&quot;UTF-8&quot; />    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot; />    <title&gt;Pace Calculator</title>    <style>        body {
-            max-width: 800px;
-            margin: 0 auto;
-            font-family: Arial, sans-serif;
-        }
+</div>
+<div class="note">เลือกการคำนวณ</div>
+</div>
+</header>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+<main class="view">
+<!-- Each page is the original file embedded intact via iframe srcdoc -->
+<iframe id="page-time" title="Time, Pace, Distance" srcdoc="<!DOCTYPE html><html lang=&quot;en&quot;><head>    <meta charset=&quot;UTF-8&quot; />    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot; />    <title&gt;Pace Calculator</title>    <style>        body {
+           max-width: 800px;
+           margin: 0 auto;
+           font-family: Arial, sans-serif;
+       }
 
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }
+       table {
+           width: 100%;
+           border-collapse: collapse;
+       }
 
-        th {
-            background-color: #f4f4f4;
-        }
+       th, td {
+           border: 1px solid #ccc;
+           padding: 8px;
+           text-align: center;
+       }
 
-        input {
-            width: 90%;
-            padding: 4px;
-        }
+       th {
+           background-color: #f4f4f4;
+       }
 
-        .result {
-            background-color: #e9f7e9;
-        }
+       input {
+           width: 90%;
+           padding: 4px;
+       }
 
-        .accumulated {
-            background-color: #fef7e0;
-        }
+       .result {
+           background-color: #e9f7e9;
+       }
 
-        .summary {
-            font-weight: bold;
-            background-color: #d9edf7;
-        }
-    </style></head><body>
+       .accumulated {
+           background-color: #fef7e0;
+       }
+
+       .summary {
+           font-weight: bold;
+           background-color: #d9edf7;
+       }
+   </style></head><body>
 <div id=&quot;menu-container&quot;&gt;</div><script src=&quot;menu.js&quot;&gt;</script>    
 <h1&gt;Pace and Time Calculator</h1><table>    <thead>        <tr>            <th&gt;Distance (km)</th>            <th&gt;Pace (Minutes)</th>            <th&gt;Pace (Seconds)</th>            <th&gt;Time (Minutes:Seconds)</th>            <th&gt;Accumulated Time</th&gt; <!-- เพิ่มคอลัมน์นี้ -->        </tr>    </thead>    <tbody id=&quot;calculatorTable&quot;>        <tr>            <td&gt;<input type=&quot;number&quot; class=&quot;distance&quot; step=&quot;0.1&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td&gt;<input type=&quot;number&quot; class=&quot;pace-minutes&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td&gt;<input type=&quot;number&quot; class=&quot;pace-seconds&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td class=&quot;result&quot;&gt;0:00</td>            <td class=&quot;accumulated&quot;&gt;0:00</td&gt; <!-- ช่องเวลาสะสม -->        </tr>    </tbody>    <tfoot>        <tr class=&quot;summary&quot;>            <td id=&quot;totalDistance&quot;&gt;0</td>            <td colspan=&quot;2&quot;&gt;Average Pace: <span id=&quot;averagePace&quot;&gt;0:00</span&gt;</td>            <td id=&quot;totalTime&quot;&gt;0:00:00</td>            <td&gt;</td&gt; <!-- เวลาสะสมที่ footer ไม่ต้องแสดง -->        </tr>    </tfoot></table><button onclick=&quot;addRow()&quot;&gt;Add Row</button>
 <script>    function addRow() {
-        const table = document.getElementById(&#x27;calculatorTable&#x27;);
-        const newRow = document.createElement(&#x27;tr&#x27;);
+       const table = document.getElementById(&#x27;calculatorTable&#x27;);
+       const newRow = document.createElement(&#x27;tr&#x27;);
 
-        newRow.innerHTML = `
-            <td&gt;<input type=&quot;number&quot; class=&quot;distance&quot; step=&quot;0.1&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td&gt;<input type=&quot;number&quot; class=&quot;pace-minutes&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td&gt;<input type=&quot;number&quot; class=&quot;pace-seconds&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td class=&quot;result&quot;&gt;0:00</td>            <td class=&quot;accumulated&quot;&gt;0:00</td>        `;
+       newRow.innerHTML = `
+           <td&gt;<input type=&quot;number&quot; class=&quot;distance&quot; step=&quot;0.1&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td&gt;<input type=&quot;number&quot; class=&quot;pace-minutes&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td&gt;<input type=&quot;number&quot; class=&quot;pace-seconds&quot; oninput=&quot;calculateRow(this)&quot;&gt;</td>            <td class=&quot;result&quot;&gt;0:00</td>            <td class=&quot;accumulated&quot;&gt;0:00</td>        `;
 
-        table.appendChild(newRow);
-    }
+       table.appendChild(newRow);
+   }
 
-    function calculateRow(inputElement) {
-        const row = inputElement.closest(&#x27;tr&#x27;);
-        const distance = parseFloat(row.querySelector(&#x27;.distance&#x27;).value) || 0;
-        const paceMinutes = parseInt(row.querySelector(&#x27;.pace-minutes&#x27;).value) || 0;
-        const paceSeconds = parseInt(row.querySelector(&#x27;.pace-seconds&#x27;).value) || 0;
+   function calculateRow(inputElement) {
+       const row = inputElement.closest(&#x27;tr&#x27;);
+       const distance = parseFloat(row.querySelector(&#x27;.distance&#x27;).value) || 0;
+       const paceMinutes = parseInt(row.querySelector(&#x27;.pace-minutes&#x27;).value) || 0;
+       const paceSeconds = parseInt(row.querySelector(&#x27;.pace-seconds&#x27;).value) || 0;
 
-        const totalPaceSeconds = (paceMinutes * 60) + paceSeconds;
-        const totalSeconds = distance * totalPaceSeconds;
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = Math.round(totalSeconds % 60);
+       const totalPaceSeconds = (paceMinutes * 60) + paceSeconds;
+       const totalSeconds = distance * totalPaceSeconds;
+       const minutes = Math.floor(totalSeconds / 60);
+       const seconds = Math.round(totalSeconds % 60);
 
-        row.querySelector(&#x27;.result&#x27;).textContent = `${minutes}:${seconds.toString().padStart(2, &#x27;0&#x27;)}`;
+       row.querySelector(&#x27;.result&#x27;).textContent = `${minutes}:${seconds.toString().padStart(2, &#x27;0&#x27;)}`;
 
-        calculateSummary();
-        updateAccumulatedTimes();
-    }
+       calculateSummary();
+       updateAccumulatedTimes();
+   }
 
-    function calculateSummary() {
-        const rows = document.querySelectorAll(&#x27;#calculatorTable tr&#x27;);
-        let totalDistance = 0;
-        let totalTimeInSeconds = 0;
+   function calculateSummary() {
+       const rows = document.querySelectorAll(&#x27;#calculatorTable tr&#x27;);
+       let totalDistance = 0;
+       let totalTimeInSeconds = 0;
 
-        rows.forEach(row =&gt; {
-            const distance = parseFloat(row.querySelector(&#x27;.distance&#x27;).value) || 0;
-            const result = row.querySelector(&#x27;.result&#x27;).textContent.split(&#x27;:&#x27;);
-            const timeInSeconds = (parseInt(result[0]) * 60) + parseInt(result[1]);
+       rows.forEach(row =&gt; {
+           const distance = parseFloat(row.querySelector(&#x27;.distance&#x27;).value) || 0;
+           const result = row.querySelector(&#x27;.result&#x27;).textContent.split(&#x27;:&#x27;);
+           const timeInSeconds = (parseInt(result[0]) * 60) + parseInt(result[1]);
 
-            totalDistance += distance;
-            totalTimeInSeconds += timeInSeconds;
-        });
+           totalDistance += distance;
+           totalTimeInSeconds += timeInSeconds;
+       });
 
-        const totalHours = Math.floor(totalTimeInSeconds / 3600);
-        const totalMinutes = Math.floor((totalTimeInSeconds % 3600) / 60);
-        const totalSeconds = totalTimeInSeconds % 60;
+       const totalHours = Math.floor(totalTimeInSeconds / 3600);
+       const totalMinutes = Math.floor((totalTimeInSeconds % 3600) / 60);
+       const totalSeconds = totalTimeInSeconds % 60;
 
-        const averagePaceInSeconds = totalDistance &gt; 0 ? Math.ceil(totalTimeInSeconds / totalDistance) : 0;
-        const averagePaceMinutes = Math.floor(averagePaceInSeconds / 60);
-        const averagePaceSeconds = averagePaceInSeconds % 60;
+       const averagePaceInSeconds = totalDistance &gt; 0 ? Math.ceil(totalTimeInSeconds / totalDistance) : 0;
+       const averagePaceMinutes = Math.floor(averagePaceInSeconds / 60);
+       const averagePaceSeconds = averagePaceInSeconds % 60;
 
-        document.getElementById(&#x27;totalDistance&#x27;).textContent = totalDistance.toFixed(2);
-        document.getElementById(&#x27;totalTime&#x27;).textContent = `${totalHours}:${totalMinutes.toString().padStart(2, &#x27;0&#x27;)}:${totalSeconds.toString().padStart(2, &#x27;0&#x27;)}`;
-        document.getElementById(&#x27;averagePace&#x27;).textContent = `${averagePaceMinutes}:${averagePaceSeconds.toString().padStart(2, &#x27;0&#x27;)}`;
-    }
+       document.getElementById(&#x27;totalDistance&#x27;).textContent = totalDistance.toFixed(2);
+       document.getElementById(&#x27;totalTime&#x27;).textContent = `${totalHours}:${totalMinutes.toString().padStart(2, &#x27;0&#x27;)}:${totalSeconds.toString().padStart(2, &#x27;0&#x27;)}`;
+       document.getElementById(&#x27;averagePace&#x27;).textContent = `${averagePaceMinutes}:${averagePaceSeconds.toString().padStart(2, &#x27;0&#x27;)}`;
+   }
 
-    function updateAccumulatedTimes() {
-        const rows = document.querySelectorAll(&#x27;#calculatorTable tr&#x27;);
-        let accumulatedSeconds = 0;
+   function updateAccumulatedTimes() {
+       const rows = document.querySelectorAll(&#x27;#calculatorTable tr&#x27;);
+       let accumulatedSeconds = 0;
 
-        rows.forEach(row =&gt; {
-            const result = row.querySelector(&#x27;.result&#x27;).textContent.split(&#x27;:&#x27;);
-            const timeInSeconds = (parseInt(result[0]) * 60) + parseInt(result[1]);
-            accumulatedSeconds += timeInSeconds;
+       rows.forEach(row =&gt; {
+           const result = row.querySelector(&#x27;.result&#x27;).textContent.split(&#x27;:&#x27;);
+           const timeInSeconds = (parseInt(result[0]) * 60) + parseInt(result[1]);
+           accumulatedSeconds += timeInSeconds;
 
-            // แปลงเวลาสะสมเป็น mm:ss
-            const accMinutes = Math.floor(accumulatedSeconds / 60);
-            const accSeconds = accumulatedSeconds % 60;
+           // แปลงเวลาสะสมเป็น mm:ss
+           const accMinutes = Math.floor(accumulatedSeconds / 60);
+           const accSeconds = accumulatedSeconds % 60;
 
-            row.querySelector(&#x27;.accumulated&#x27;).textContent = `${accMinutes}:${accSeconds.toString().padStart(2, &#x27;0&#x27;)}`;
-        });
-    }
+           row.querySelector(&#x27;.accumulated&#x27;).textContent = `${accMinutes}:${accSeconds.toString().padStart(2, &#x27;0&#x27;)}`;
+       });
+   }
 </script></body></html>"></iframe>
-    
-    
-    
-    <iframe id="page-race" title="Race Predict" srcdoc="<!DOCTYPE html><html lang=&quot;th&quot;><head>  <meta charset=&quot;UTF-8&quot;>  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>  <title&gt;Race Predict (Race Pace) Calculator - Reverse LT Pace</title>  <style>    /* Reset พื้นฐาน */
-    * { box-sizing: border-box; }
-    body {
-      font-family: &#x27;Segoe UI&#x27;, Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      background: #fff;
-      margin: 30px auto;
-      padding: 20px 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    h1, h2, h3 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 15px;
-    }
-    form { margin-top: 20px; }
-    .form-group { margin-bottom: 20px; }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #555;
-      font-weight: 500;
-    }
-    .inline-inputs {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .inline-inputs input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-    .inline-inputs span {
-      font-size: 16px;
-      color: #555;
-      white-space: nowrap;
-    }
-    input[type=&quot;number&quot;] {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    small {
-      display: block;
-      margin-top: 5px;
-      color: #888;
-    }
-    button {
-      background: #007bff;
-      color: #fff;
-      border: none;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 10px;
-      transition: background 0.3s ease;
-    }
-    button:hover { background: #0056b3; }
-    #result, #standardResults {
-      margin-top: 25px;
-      padding: 15px;
-      background: #e9ecef;
-      border-radius: 4px;
-    }
-    .standard-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .standard-list li {
-      background: #fff;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-left: 4px solid #007bff;
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      font-size: 16px;
-    }
-    .badge {
-      background: #007bff;
-      color: #fff;
-      border-radius: 12px;
-      padding: 2px 6px;
-      font-size: 14px;
-      margin-left: 8px;
-      display: inline-block;
-    }
-    @media (max-width: 600px) {
-      .container { margin: 10px; padding: 15px 20px; }
-      button { padding: 10px; }
-    }
-  </style></head><body>  <div class=&quot;container&quot;>    <h1&gt;Race Predict Calculator</h1>   <form id="raceForm" onsubmit="event.preventDefault(); calculateRacePredict();">      
-  
-  <div class="form-group">        
-    <label for="achievedDistance">ผลการแข่งขันที่เคยทำได้ (ระยะทาง กม.)</label>        
-    <input type="number" id=&quot;achievedDistance&quot; name=&quot;achievedDistance&quot; step=&quot;any&quot; placeholder=&quot;เช่น 5 - 42.195&quot; required>      
-  </div>      
+<iframe id="page-race" title="Race Predict" srcdoc="<!DOCTYPE html><html lang=&quot;th&quot;><head>  <meta charset=&quot;UTF-8&quot;>  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>  <title&gt;Race Predict (Race Pace) Calculator - Reverse LT Pace</title>  <style>    /* Reset พื้นฐาน */
+   * { box-sizing: border-box; }
+   body {
+     font-family: &#x27;Segoe UI&#x27;, Tahoma, Geneva, Verdana, sans-serif;
+     background: #f5f5f5;
+     margin: 0;
+     padding: 0;
+   }
+   .container {
+     max-width: 600px;
+     background: #fff;
+     margin: 30px auto;
+     padding: 20px 30px;
+     border-radius: 8px;
+     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+   }
+   h1, h2, h3 {
+     text-align: center;
+     color: #333;
+     margin-bottom: 15px;
+   }
+   form { margin-top: 20px; }
+   .form-group { margin-bottom: 20px; }
+   label {
+     display: block;
+     margin-bottom: 5px;
+     color: #555;
+     font-weight: 500;
+   }
+   .inline-inputs {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+   }
+   .inline-inputs input {
+     flex: 1;
+     padding: 10px;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+     font-size: 16px;
+   }
+   .inline-inputs span {
+     font-size: 16px;
+     color: #555;
+     white-space: nowrap;
+   }
+   input[type=&quot;number&quot;] {
+     width: 100%;
+     padding: 10px;
+     font-size: 16px;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+   }
+   small {
+     display: block;
+     margin-top: 5px;
+     color: #888;
+   }
+   button {
+     background: #007bff;
+     color: #fff;
+     border: none;
+     padding: 12px;
+     font-size: 16px;
+     border-radius: 4px;
+     cursor: pointer;
+     width: 100%;
+     margin-top: 10px;
+     transition: background 0.3s ease;
+   }
+   button:hover { background: #0056b3; }
+   #result, #standardResults {
+     margin-top: 25px;
+     padding: 15px;
+     background: #e9ecef;
+     border-radius: 4px;
+   }
+   .standard-list {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+   }
+   .standard-list li {
+     background: #fff;
+     padding: 10px;
+     margin-bottom: 10px;
+     border-left: 4px solid #007bff;
+     border-radius: 4px;
+     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+     font-size: 16px;
+   }
+   .badge {
+     background: #007bff;
+     color: #fff;
+     border-radius: 12px;
+     padding: 2px 6px;
+     font-size: 14px;
+     margin-left: 8px;
+     display: inline-block;
+   }
+   @media (max-width: 600px) {
+     .container { margin: 10px; padding: 15px 20px; }
+     button { padding: 10px; }
+   }
+ </style></head><body>  <div class=&quot;container&quot;>    <h1&gt;Race Predict Calculator</h1>    <form id=&quot;raceForm&quot; onsubmit=&quot;event.preventDefault(); calculateRacePredict();&quot;>      
+     <!-- 1. ผลการแข่งขันที่เคยทำได้ -->      <div class=&quot;form-group&quot;>        <label for=&quot;achievedDistance&quot;&gt;ผลการแข่งขันที่เคยทำได้ (ระยะทาง กม.)</label>        <input type=&quot;number&quot; id=&quot;achievedDistance&quot; name=&quot;achievedDistance&quot; step=&quot;any&quot; placeholder=&quot;เช่น 5 - 42.195&quot; required>      </div>      <div class=&quot;form-group&quot;>        <label&gt;เวลา (ที่ทำได้) <small&gt;(ชั่วโมง, นาที, วินาที)</small&gt;</label>        <div class=&quot;inline-inputs&quot;>          <input type=&quot;number&quot; id=&quot;achievedHours&quot; name=&quot;achievedHours&quot; min=&quot;0&quot; placeholder=&quot;ชั่วโมง&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedMinutes&quot; name=&quot;achievedMinutes&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;นาที&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedSeconds&quot; name=&quot;achievedSeconds&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;วินาที&quot; value=&quot;0&quot;>        </div>      </div>      
+     <!-- 2. ระยะทางคาดการณ์ -->      <div class=&quot;form-group&quot;>        <label for=&quot;distance&quot;&gt;ระยะทางคาดการณ์ (กม.)</label>        <input type=&quot;number&quot; id=&quot;distance&quot; name=&quot;distance&quot; step=&quot;any&quot; placeholder=&quot;เช่น 21.1&quot; required>      </div>      
+     <button type=&quot;submit&quot;&gt;คำนวณ</button>    </form>  
+   <!-- แสดงผลลัพธ์สำหรับข้อมูล Input -->    <div id=&quot;result&quot;&gt;</div>    
+   <!-- แสดงผลลัพธ์สำหรับระยะมาตรฐานและ % Pace -->    <div id=&quot;standardResults&quot;&gt;</div>  </div>
+ <script>    // ฟังก์ชันช่วยแปลงเวลา (วินาที) เป็น &quot;ชั่วโมง นาที วินาที&quot;
+   function formatTime(totalSeconds) {
+     const hours = Math.floor(totalSeconds / 3600);
+     const minutes = Math.floor((totalSeconds % 3600) / 60);
+     const seconds = totalSeconds % 60;
+     let timeString = &quot;&quot;;
+     if (hours &gt; 0) { timeString += hours + &quot; ชั่วโมง &quot;; }
+     if (minutes &gt; 0 || hours &gt; 0) { timeString += minutes + &quot; นาที &quot;; }
+     timeString += seconds + &quot; วินาที&quot;;
+     return timeString;
+   }
 
-  <div class="form-group">        
-    <label>เวลา (ที่ทำได้) <small>(ชั่วโมง, นาที, วินาที)</small></label>        
-    <div class="inline-inputs" style="display: flex; align-items: center; gap: 5px;">          
-      <input type="number" id="achievedHours" name="achievedHours" min="0" placeholder="ชั่วโมง" value="0" style="width: 60px;">          
-      <span>:</span>          
-      <input type="number" id="achievedMinutes" name="achievedMinutes" min="0" max="59" placeholder="นาที" value="0" style="width: 60px;">          
-      <span>:</span>          
-      <input type="number" id="achievedSeconds" name="achievedSeconds" min="0" max="59" placeholder="วินาที" value="0" style="width: 60px;">          
-    </div>      
-  </div>      
-      
-  <div class="form-group" style="margin-top: 15px;">        
-    <label for="distance">ระยะทางคาดการณ์ (กม.)</label>        
-    <input type="number" id="distance" name="distance" step="any" placeholder="เช่น 21.1" value="5" required>      
-  </div>      
-      
-  <button type="submit" style="margin-top: 20px; padding: 10px 20px; cursor: pointer;">คำนวณ</button>    
-</form>
-    <!-- แสดงผลลัพธ์สำหรับข้อมูล Input -->    <div id=&quot;result&quot;&gt;</div>    
-    <!-- แสดงผลลัพธ์สำหรับระยะมาตรฐานและ % Pace -->    <div id=&quot;standardResults&quot;&gt;</div>  </div>
-  <script>    // ฟังก์ชันช่วยแปลงเวลา (วินาที) เป็น &quot;ชั่วโมง นาที วินาที&quot;
-    function formatTime(totalSeconds) {
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      let timeString = &quot;&quot;;
-      if (hours &gt; 0) { timeString += hours + &quot; ชั่วโมง &quot;; }
-      if (minutes &gt; 0 || hours &gt; 0) { timeString += minutes + &quot; นาที &quot;; }
-      timeString += seconds + &quot; วินาที&quot;;
-      return timeString;
-    }
-
-    // แปลง pace (นาที/กม.) ให้อยู่ในรูปแบบ &quot;m:ss&quot;
-    function formatPace(pace) {
-  const totalSeconds = Math.round(pace * 60);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  const secondsStr = seconds < 10 ? &quot;0&quot; + seconds : seconds;
-  return minutes + &quot;:&quot; + secondsStr;
+   // แปลง pace (นาที/กม.) ให้อยู่ในรูปแบบ &quot;m:ss&quot;
+   function formatPace(pace) {
+ const totalSeconds = Math.round(pace * 60);
+ const minutes = Math.floor(totalSeconds / 60);
+ const seconds = totalSeconds % 60;
+ const secondsStr = seconds < 10 ? &quot;0&quot; + seconds : seconds;
+ return minutes + &quot;:&quot; + secondsStr;
 }
 
 
-    // ฟังก์ชันคำนวณเวลาที่คาดว่าจะใช้ในการวิ่งสำหรับระยะทางที่กำหนด โดยใช้ LT Pace (ltTotalSec: วินาที/กม.)
-    function computeRaceTime(targetDistance, ltTotalSec) {
-      const segments = [
-        { duration: 2, percent: 118 },
-        { duration: 6 , percent: 110 },
-        { duration: 26, percent: 100 },
-        { duration: 120, percent: 92 },
-        { duration: 120, percent: 80 },
-        { duration: 120, percent: 60 }
-      ];
-      let totalTimeMinutes = 0;
-      let remainingDistance = targetDistance;
+   // ฟังก์ชันคำนวณเวลาที่คาดว่าจะใช้ในการวิ่งสำหรับระยะทางที่กำหนด โดยใช้ LT Pace (ltTotalSec: วินาที/กม.)
+   function computeRaceTime(targetDistance, ltTotalSec) {
+     const segments = [
+       { duration: 2, percent: 118 },
+       { duration: 6 , percent: 110 },
+       { duration: 26, percent: 100 },
+       { duration: 120, percent: 92 },
+       { duration: 120, percent: 80 },
+       { duration: 120, percent: 60 }
+     ];
+     let totalTimeMinutes = 0;
+     let remainingDistance = targetDistance;
 
-      function adjustedPace(percent) {
-        return (ltTotalSec * (100 / percent)) / 60; // pace in นาที/กม.
-      }
-      
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i];
-        const pace = adjustedPace(seg.percent);
-        const segDistance = seg.duration / pace;
-        if (segDistance < remainingDistance) {
-          totalTimeMinutes += seg.duration;
-          remainingDistance -= segDistance;
-        } else {
-          totalTimeMinutes += remainingDistance * pace;
-          remainingDistance = 0;
-          break;
-        }
-      }
-      // ถ้ายังมีระยะทางเหลือ ให้วิ่งส่วนที่เหลือด้วยความเร็วที่ปรับที่ 50%
-      if (remainingDistance &gt; 0) {
-        const pace50 = adjustedPace(50);
-        totalTimeMinutes += remainingDistance * pace50;
-      }
-      return totalTimeMinutes;
-    }
-
-    // ฟังก์ชันหา LT Pace (ltTotalSec) จากผลการแข่งขันที่ทำได้ (โดยใช้ binary search)
-    function findLTPace(achievedDistance, achievedTimeMinutes) {
-      let low = 120;  
-      let high = 600; 
-      let mid;
-      for (let i = 0; i < 30; i++) {
-        mid = (low + high) / 2;
-        const computedTime = computeRaceTime(achievedDistance, mid);
-        if (computedTime &gt; achievedTimeMinutes) {
-          high = mid;
-        } else {
-          low = mid;
-        }
-      }
-      return mid;
-    }
-
-    function calculateRacePredict() {
-      const achievedDistance = parseFloat(document.getElementById(&quot;achievedDistance&quot;).value);
-      let achievedHours = parseInt(document.getElementById(&quot;achievedHours&quot;).value, 10);
-      let achievedMinutes = parseInt(document.getElementById(&quot;achievedMinutes&quot;).value, 10);
-      let achievedSeconds = parseInt(document.getElementById(&quot;achievedSeconds&quot;).value, 10);
-      
-      achievedHours = isNaN(achievedHours) ? 0 : achievedHours;
-      achievedMinutes = isNaN(achievedMinutes) ? 0 : achievedMinutes;
-      achievedSeconds = isNaN(achievedSeconds) ? 0 : achievedSeconds;
-      
-      const forecastDistance = parseFloat(document.getElementById(&quot;distance&quot;).value);
-
-      if (isNaN(achievedDistance) || isNaN(forecastDistance)) {
-        document.getElementById(&quot;result&quot;).innerHTML = &quot;<p style=&#x27;color:red;&#x27;&gt;กรุณากรอกข้อมูลให้ครบถ้วน</p&gt;&quot;;
-        return;
-      }
-      
-      // คำนวณเวลาที่ทำได้ทั้งหมด (นาที)
-      const totalAchievedTimeMinutes = achievedHours * 60 + achievedMinutes + achievedSeconds / 60;
-      // คำนวณ pace จากผลการแข่งขันที่ทำได้ (นาที/กม.)
-      const inputPace = totalAchievedTimeMinutes / achievedDistance;
-      
-      // คำนวณ LT Pace (วินาที/กม.)
-      const ltTotalSec = findLTPace(achievedDistance, totalAchievedTimeMinutes);
-      const ltPaceInMinutes = ltTotalSec / 60;
-      const ltPaceStr = formatPace(ltPaceInMinutes);
-
-      // คำนวณผลลัพธ์สำหรับระยะทางคาดการณ์
-      const forecastTimeMinutes = computeRaceTime(forecastDistance, ltTotalSec);
-      const forecastTimeSec = Math.round(forecastTimeMinutes * 60);
-      const forecastTimeStr = formatTime(forecastTimeSec);
-      const avgPaceForecast = forecastTimeMinutes / forecastDistance;
-      const avgPaceForecastStr = formatPace(avgPaceForecast);
-      
-      let resultHTML = `<p&gt;<strong&gt;Pace จากผลการแข่งขันที่ทำได้:</strong&gt; ${formatPace(inputPace)} นาที/กม.</p&gt;`;
-      resultHTML += `<p&gt;<strong&gt;LT Pace ที่คำนวณได้:</strong&gt; ${ltPaceStr} นาที/กม.</p&gt;`;
-      resultHTML += `<p&gt;<strong&gt;สำหรับระยะทาง ${forecastDistance} กม. คาดว่าจะใช้เวลา:</strong&gt; ${forecastTimeStr} <br&gt;(Pace เฉลี่ย: ${avgPaceForecastStr} นาที/กม.)</p&gt;`;
-      document.getElementById(&quot;result&quot;).innerHTML = resultHTML;
-      
-      // ผลลัพธ์สำหรับระยะมาตรฐาน
-      const standardDistances = [
-        { label: &quot;5K&quot;, distance: 5 },
-        { label: &quot;5M&quot;, distance: 8.04672 },
-        { label: &quot;10K&quot;, distance: 10 },
-        { label: &quot;10M&quot;, distance: 16.09344 },
-        { label: &quot;Half Marathon&quot;, distance: 21.0975 },
-        { label: &quot;33K&quot;, distance: 33 },
-        { label: &quot;Marathon&quot;, distance: 42.195 }
-      ];
-      
-      let standardHTML = &quot;<h3&gt;ผลลัพธ์สำหรับระยะมาตรฐาน:</h3&gt;<ul class=&#x27;standard-list&#x27;&gt;&quot;;
-      standardDistances.forEach(function(item) {
-        const timeMin = computeRaceTime(item.distance, ltTotalSec);
-        const timeSec = Math.round(timeMin * 60);
-        const timeStr = formatTime(timeSec);
-        const avgPaceForStandard = timeMin / item.distance;
-        const avgPaceForStandardStr = formatPace(avgPaceForStandard);
-        standardHTML += `<li&gt;${item.label} (${item.distance} กม.): ${timeStr} <span class=&quot;badge&quot;&gt;(${avgPaceForStandardStr} นาที/กม.)</span&gt;</li&gt;`;
-      });
-      standardHTML += &quot;</ul&gt;&quot;;
-      
-      // แสดง % ของ Pace จาก LT Pace (70% - 125% ทุก 5%)
-      let ltPacePercentHTML = &quot;<h3&gt;ผลลัพธ์ % ของ Pace จาก LT Pace:</h3&gt;<ul class=&#x27;standard-list&#x27;&gt;&quot;;
-      for (let percent = 50; percent <= 125; percent += 5) {
-        let paceAtPercent = (ltTotalSec * (100 / percent)) / 60; 
-        ltPacePercentHTML += `<li&gt;${percent}%: ${formatPace(paceAtPercent)} นาที/กม.</li&gt;`;
-      }
-      ltPacePercentHTML += &quot;</ul&gt;&quot;;
-
-  
+     function adjustedPace(percent) {
+       return (ltTotalSec * (100 / percent)) / 60; // pace in นาที/กม.
+     }
      
+     for (let i = 0; i < segments.length; i++) {
+       const seg = segments[i];
+       const pace = adjustedPace(seg.percent);
+       const segDistance = seg.duration / pace;
+       if (segDistance < remainingDistance) {
+         totalTimeMinutes += seg.duration;
+         remainingDistance -= segDistance;
+       } else {
+         totalTimeMinutes += remainingDistance * pace;
+         remainingDistance = 0;
+         break;
+       }
+     }
+     // ถ้ายังมีระยะทางเหลือ ให้วิ่งส่วนที่เหลือด้วยความเร็วที่ปรับที่ 50%
+     if (remainingDistance &gt; 0) {
+       const pace50 = adjustedPace(50);
+       totalTimeMinutes += remainingDistance * pace50;
+     }
+     return totalTimeMinutes;
+   }
+
+   // ฟังก์ชันหา LT Pace (ltTotalSec) จากผลการแข่งขันที่ทำได้ (โดยใช้ binary search)
+   function findLTPace(achievedDistance, achievedTimeMinutes) {
+     let low = 120;  
+     let high = 600; 
+     let mid;
+     for (let i = 0; i < 30; i++) {
+       mid = (low + high) / 2;
+       const computedTime = computeRaceTime(achievedDistance, mid);
+       if (computedTime &gt; achievedTimeMinutes) {
+         high = mid;
+       } else {
+         low = mid;
+       }
+     }
+     return mid;
+   }
+
+   function calculateRacePredict() {
+     const achievedDistance = parseFloat(document.getElementById(&quot;achievedDistance&quot;).value);
+     let achievedHours = parseInt(document.getElementById(&quot;achievedHours&quot;).value, 10);
+     let achievedMinutes = parseInt(document.getElementById(&quot;achievedMinutes&quot;).value, 10);
+     let achievedSeconds = parseInt(document.getElementById(&quot;achievedSeconds&quot;).value, 10);
+     
+     achievedHours = isNaN(achievedHours) ? 0 : achievedHours;
+     achievedMinutes = isNaN(achievedMinutes) ? 0 : achievedMinutes;
+     achievedSeconds = isNaN(achievedSeconds) ? 0 : achievedSeconds;
+     
+     const forecastDistance = parseFloat(document.getElementById(&quot;distance&quot;).value);
+
+     if (isNaN(achievedDistance) || isNaN(forecastDistance)) {
+       document.getElementById(&quot;result&quot;).innerHTML = &quot;<p style=&#x27;color:red;&#x27;&gt;กรุณากรอกข้อมูลให้ครบถ้วน</p&gt;&quot;;
+       return;
+     }
+     
+     // คำนวณเวลาที่ทำได้ทั้งหมด (นาที)
+     const totalAchievedTimeMinutes = achievedHours * 60 + achievedMinutes + achievedSeconds / 60;
+     // คำนวณ pace จากผลการแข่งขันที่ทำได้ (นาที/กม.)
+     const inputPace = totalAchievedTimeMinutes / achievedDistance;
+     
+     // คำนวณ LT Pace (วินาที/กม.)
+     const ltTotalSec = findLTPace(achievedDistance, totalAchievedTimeMinutes);
+     const ltPaceInMinutes = ltTotalSec / 60;
+     const ltPaceStr = formatPace(ltPaceInMinutes);
+
+     // คำนวณผลลัพธ์สำหรับระยะทางคาดการณ์
+     const forecastTimeMinutes = computeRaceTime(forecastDistance, ltTotalSec);
+     const forecastTimeSec = Math.round(forecastTimeMinutes * 60);
+     const forecastTimeStr = formatTime(forecastTimeSec);
+     const avgPaceForecast = forecastTimeMinutes / forecastDistance;
+     const avgPaceForecastStr = formatPace(avgPaceForecast);
+     
+     let resultHTML = `<p&gt;<strong&gt;Pace จากผลการแข่งขันที่ทำได้:</strong&gt; ${formatPace(inputPace)} นาที/กม.</p&gt;`;
+     resultHTML += `<p&gt;<strong&gt;LT Pace ที่คำนวณได้:</strong&gt; ${ltPaceStr} นาที/กม.</p&gt;`;
+     resultHTML += `<p&gt;<strong&gt;สำหรับระยะทาง ${forecastDistance} กม. คาดว่าจะใช้เวลา:</strong&gt; ${forecastTimeStr} <br&gt;(Pace เฉลี่ย: ${avgPaceForecastStr} นาที/กม.)</p&gt;`;
+     document.getElementById(&quot;result&quot;).innerHTML = resultHTML;
+     
+     // ผลลัพธ์สำหรับระยะมาตรฐาน
+     const standardDistances = [
+       { label: &quot;5K&quot;, distance: 5 },
+       { label: &quot;5M&quot;, distance: 8.04672 },
+       { label: &quot;10K&quot;, distance: 10 },
+       { label: &quot;10M&quot;, distance: 16.09344 },
+       { label: &quot;Half Marathon&quot;, distance: 21.0975 },
+       { label: &quot;33K&quot;, distance: 33 },
+       { label: &quot;Marathon&quot;, distance: 42.195 }
+     ];
+     
+     let standardHTML = &quot;<h3&gt;ผลลัพธ์สำหรับระยะมาตรฐาน:</h3&gt;<ul class=&#x27;standard-list&#x27;&gt;&quot;;
+     standardDistances.forEach(function(item) {
+       const timeMin = computeRaceTime(item.distance, ltTotalSec);
+       const timeSec = Math.round(timeMin * 60);
+       const timeStr = formatTime(timeSec);
+       const avgPaceForStandard = timeMin / item.distance;
+       const avgPaceForStandardStr = formatPace(avgPaceForStandard);
+       standardHTML += `<li&gt;${item.label} (${item.distance} กม.): ${timeStr} <span class=&quot;badge&quot;&gt;(${avgPaceForStandardStr} นาที/กม.)</span&gt;</li&gt;`;
+     });
+     standardHTML += &quot;</ul&gt;&quot;;
+     
+     // แสดง % ของ Pace จาก LT Pace (70% - 125% ทุก 5%)
+     let ltPacePercentHTML = &quot;<h3&gt;ผลลัพธ์ % ของ Pace จาก LT Pace:</h3&gt;<ul class=&#x27;standard-list&#x27;&gt;&quot;;
       
-      // รวมผลลัพธ์ทั้งหมดใน standardResults
-      document.getElementById(&quot;standardResults&quot;).innerHTML = standardHTML + ltPacePercentHTML ;
-    }
-  </script></body></html>"></iframe>
-    <iframe id="page-train" title="Training Pace" srcdoc="<!DOCTYPE html><html lang=&quot;th&quot;><head>  <meta charset=&quot;UTF-8&quot;>  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>  <title&gt;Training Pace Calculator from LT Pace</title>  <style>    /* Reset พื้นฐาน */
-    * { box-sizing: border-box; }
-    body {
-      font-family: &#x27;Segoe UI&#x27;, Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 650px;
-      background: #fff;
-      margin: 30px auto;
-      padding: 20px 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    h1, h2, h3 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 15px;
-    }
-    form { margin-top: 20px; }
-    .form-group { margin-bottom: 20px; }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #555;
-      font-weight: 500;
-    }
-    .inline-inputs {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .inline-inputs input {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-    .inline-inputs span {
-      font-size: 16px;
-      color: #555;
-      white-space: nowrap;
-    }
-    input[type=&quot;number&quot;] {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    small {
-      display: block;
-      margin-top: 5px;
-      color: #888;
-    }
-    button {
-      background: #007bff;
-      color: #fff;
-      border: none;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 10px;
-      transition: background 0.3s ease;
-    }
-    button:hover { background: #0056b3; }
-    #result {
-      margin-top: 25px;
-      padding: 15px;
-      background: #e9ecef;
-      border-radius: 4px;
-      text-align: center;
-    }
-    #training-paces {
-        margin-top: 20px;
-    }
-    .pace-category {
-        background: #fff;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-left: 5px solid #007bff;
-        border-radius: 4px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-    .pace-category h3 {
-        margin-top: 0;
-        margin-bottom: 10px;
-        color: #0056b3;
-        text-align: left;
-    }
-    .pace-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    .pace-list li {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px solid #eee;
-        font-size: 16px;
-    }
-    .pace-list li:last-child {
-        border-bottom: none;
-    }
-    .pace-value {
-        font-weight: bold;
-        color: #333;
-    }
-    .pace-label {
-        color: #555;
-    }
-    @media (max-width: 600px) {
-      .container { margin: 10px; padding: 15px 20px; }
-      button { padding: 10px; }
-      .pace-list li { flex-direction: column; align-items: flex-start; gap: 5px; }
-    }
-  </style></head><body>  <div class=&quot;container&quot;>    <h1&gt;Training Pace Calculator</h1>    <form id=&quot;raceForm&quot; onsubmit=&quot;event.preventDefault(); calculateRacePredict();&quot;>      
-      <div class=&quot;form-group&quot;>        <label for=&quot;achievedDistance&quot;&gt;ผผลการแข่งขันทีเคยทำได้(ระยะทาง กม.)</label>        <input type=&quot;number&quot; id=&quot;achievedDistance&quot; name=&quot;achievedDistance&quot; step=&quot;any&quot; placeholder=&quot;เช่น ตั้งแต่ 5 กม. - 42.2 กม.&quot; required>      </div>      <div class=&quot;form-group&quot;>        <label&gt;เวลา (ที่ทำได้) <small&gt;(ชั่วโมง, นาที, วินาที)</small&gt;</label>        <div class=&quot;inline-inputs&quot;>          <input type=&quot;number&quot; id=&quot;achievedHours&quot; name=&quot;achievedHours&quot; min=&quot;0&quot; placeholder=&quot;ชั่วโมง&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedMinutes&quot; name=&quot;achievedMinutes&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;นาที&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedSeconds&quot; name=&quot;achievedSeconds&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;วินาที&quot; value=&quot;0&quot;>        </div>      </div>      
-      <button type=&quot;submit&quot;&gt;คำนวณ Pace การซ้อม</button>    </form>  
-    <div id=&quot;result&quot;&gt;</div>    
-    <div id=&quot;training-paces&quot;&gt;</div>  </div>
-  <script>    // แปลง pace (นาที/กม.) ให้อยู่ในรูปแบบ &quot;m:ss&quot;
-    function formatPace(pace) {
-      const totalSeconds = Math.round(pace * 60);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      const secondsStr = seconds < 10 ? &quot;0&quot; + seconds : String(seconds).padStart(2, &#x27;0&#x27;);
-      return minutes + &quot;:&quot; + secondsStr;
-    }
+      for (let percent = 50; percent <= 125; percent += 5) {
+       let paceAtPercent = (ltTotalSec * (100 / percent)) / 60; 
+       ltPacePercentHTML += `<li&gt;${percent}%: ${formatPace(paceAtPercent)} นาที/กม.</li&gt;`;
+     }
+     ltPacePercentHTML += &quot;</ul&gt;&quot;;
+
+ 
     
-    // ฟังก์ชันคำนวณ Pace Range จาก %
-    function getPaceRange(ltTotalSec, lowPercent, highPercent) {
-        // Note: highPercent (เร็ว) จะให้ค่า pace ต่ำ, lowPercent (ช้า) จะให้ค่า pace สูง
-        const paceAtHighPercent = (ltTotalSec * (100 / highPercent)) / 60;
-        const paceAtLowPercent = (ltTotalSec * (100 / lowPercent)) / 60;
-        return `${formatPace(paceAtHighPercent)} - ${formatPace(paceAtLowPercent)}`;
-    }
+     
+     // รวมผลลัพธ์ทั้งหมดใน standardResults
+     document.getElementById(&quot;standardResults&quot;).innerHTML = standardHTML + ltPacePercentHTML ;
+   }
+ </script></body></html>"></iframe>
+<iframe id="page-train" title="Training Pace" srcdoc="<!DOCTYPE html><html lang=&quot;th&quot;><head>  <meta charset=&quot;UTF-8&quot;>  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>  <title&gt;Training Pace Calculator from LT Pace</title>  <style>    /* Reset พื้นฐาน */
+   * { box-sizing: border-box; }
+   body {
+     font-family: &#x27;Segoe UI&#x27;, Tahoma, Geneva, Verdana, sans-serif;
+     background: #f5f5f5;
+     margin: 0;
+     padding: 0;
+     line-height: 1.6;
+   }
+   .container {
+     max-width: 650px;
+     background: #fff;
+     margin: 30px auto;
+     padding: 20px 30px;
+     border-radius: 8px;
+     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+   }
+   h1, h2, h3 {
+     text-align: center;
+     color: #333;
+     margin-bottom: 15px;
+   }
+   form { margin-top: 20px; }
+   .form-group { margin-bottom: 20px; }
+   label {
+     display: block;
+     margin-bottom: 5px;
+     color: #555;
+     font-weight: 500;
+   }
+   .inline-inputs {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+   }
+   .inline-inputs input {
+     flex: 1;
+     padding: 10px;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+     font-size: 16px;
+   }
+   .inline-inputs span {
+     font-size: 16px;
+     color: #555;
+     white-space: nowrap;
+   }
+   input[type=&quot;number&quot;] {
+     width: 100%;
+     padding: 10px;
+     font-size: 16px;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+   }
+   small {
+     display: block;
+     margin-top: 5px;
+     color: #888;
+   }
+   button {
+     background: #007bff;
+     color: #fff;
+     border: none;
+     padding: 12px;
+     font-size: 16px;
+     border-radius: 4px;
+     cursor: pointer;
+     width: 100%;
+     margin-top: 10px;
+     transition: background 0.3s ease;
+   }
+   button:hover { background: #0056b3; }
+   #result {
+     margin-top: 25px;
+     padding: 15px;
+     background: #e9ecef;
+     border-radius: 4px;
+     text-align: center;
+   }
+   #training-paces {
+       margin-top: 20px;
+   }
+   .pace-category {
+       background: #fff;
+       padding: 15px;
+       margin-bottom: 15px;
+       border-left: 5px solid #007bff;
+       border-radius: 4px;
+       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+   }
+   .pace-category h3 {
+       margin-top: 0;
+       margin-bottom: 10px;
+       color: #0056b3;
+       text-align: left;
+   }
+   .pace-list {
+       list-style: none;
+       padding: 0;
+       margin: 0;
+   }
+   .pace-list li {
+       display: flex;
+       justify-content: space-between;
+       padding: 8px 0;
+       border-bottom: 1px solid #eee;
+       font-size: 16px;
+   }
+   .pace-list li:last-child {
+       border-bottom: none;
+   }
+   .pace-value {
+       font-weight: bold;
+       color: #333;
+   }
+   .pace-label {
+       color: #555;
+   }
+   @media (max-width: 600px) {
+     .container { margin: 10px; padding: 15px 20px; }
+     button { padding: 10px; }
+     .pace-list li { flex-direction: column; align-items: flex-start; gap: 5px; }
+   }
+ </style></head><body>  <div class=&quot;container&quot;>    <h1&gt;Training Pace Calculator</h1>    <form id=&quot;raceForm&quot; onsubmit=&quot;event.preventDefault(); calculateRacePredict();&quot;>      
+     <div class=&quot;form-group&quot;>        <label for=&quot;achievedDistance&quot;&gt;ผผลการแข่งขันทีเคยทำได้(ระยะทาง กม.)</label>        <input type=&quot;number&quot; id=&quot;achievedDistance&quot; name=&quot;achievedDistance&quot; step=&quot;any&quot; placeholder=&quot;เช่น ตั้งแต่ 5 กม. - 42.2 กม.&quot; required>      </div>      <div class=&quot;form-group&quot;>        <label&gt;เวลา (ที่ทำได้) <small&gt;(ชั่วโมง, นาที, วินาที)</small&gt;</label>        <div class=&quot;inline-inputs&quot;>          <input type=&quot;number&quot; id=&quot;achievedHours&quot; name=&quot;achievedHours&quot; min=&quot;0&quot; placeholder=&quot;ชั่วโมง&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedMinutes&quot; name=&quot;achievedMinutes&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;นาที&quot; value=&quot;0&quot;>          <span&gt;:</span>          <input type=&quot;number&quot; id=&quot;achievedSeconds&quot; name=&quot;achievedSeconds&quot; min=&quot;0&quot; max=&quot;59&quot; placeholder=&quot;วินาที&quot; value=&quot;0&quot;>        </div>      </div>      
+     <button type=&quot;submit&quot;&gt;คำนวณ Pace การซ้อม</button>    </form>  
+   <div id=&quot;result&quot;&gt;</div>    
+   <div id=&quot;training-paces&quot;&gt;</div>  </div>
+ <script>    // แปลง pace (นาที/กม.) ให้อยู่ในรูปแบบ &quot;m:ss&quot;
+   function formatPace(pace) {
+     const totalSeconds = Math.round(pace * 60);
+     const minutes = Math.floor(totalSeconds / 60);
+     const seconds = totalSeconds % 60;
+     const secondsStr = seconds < 10 ? &quot;0&quot; + seconds : String(seconds).padStart(2, &#x27;0&#x27;);
+     return minutes + &quot;:&quot; + secondsStr;
+   }
+   
+   // ฟังก์ชันคำนวณ Pace Range จาก %
+   function getPaceRange(ltTotalSec, lowPercent, highPercent) {
+       // Note: highPercent (เร็ว) จะให้ค่า pace ต่ำ, lowPercent (ช้า) จะให้ค่า pace สูง
+       const paceAtHighPercent = (ltTotalSec * (100 / highPercent)) / 60;
+       const paceAtLowPercent = (ltTotalSec * (100 / lowPercent)) / 60;
+       return `${formatPace(paceAtHighPercent)} - ${formatPace(paceAtLowPercent)}`;
+   }
 
 
-    // ฟังก์ชันคำนวณเวลาที่คาดว่าจะใช้ในการวิ่งสำหรับระยะทางที่กำหนด โดยใช้ LT Pace (ltTotalSec: วินาที/กม.)
-    function computeRaceTime(targetDistance, ltTotalSec) {
-      const segments = [
-        { duration: 2, percent: 118 },
-        { duration: 6 , percent: 110 },
-        { duration: 26, percent: 100 },
-        { duration: 120, percent: 92 },
-        { duration: 120, percent: 82 },
-        { duration: 120, percent: 65 }
-      ];
-      let totalTimeMinutes = 0;
-      let remainingDistance = targetDistance;
+   // ฟังก์ชันคำนวณเวลาที่คาดว่าจะใช้ในการวิ่งสำหรับระยะทางที่กำหนด โดยใช้ LT Pace (ltTotalSec: วินาที/กม.)
+   function computeRaceTime(targetDistance, ltTotalSec) {
+     const segments = [
+       { duration: 2, percent: 118 },
+       { duration: 6 , percent: 110 },
+       { duration: 26, percent: 100 },
+       { duration: 120, percent: 92 },
+       { duration: 120, percent: 82 },
+       { duration: 120, percent: 65 }
+     ];
+     let totalTimeMinutes = 0;
+     let remainingDistance = targetDistance;
 
-      function adjustedPace(percent) {
-        return (ltTotalSec * (100 / percent)) / 60; // pace in นาที/กม.
-      }
-      
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i];
-        const pace = adjustedPace(seg.percent);
-        const segDistance = seg.duration / pace;
-        if (segDistance < remainingDistance) {
-          totalTimeMinutes += seg.duration;
-          remainingDistance -= segDistance;
-        } else {
-          totalTimeMinutes += remainingDistance * pace;
-          remainingDistance = 0;
-          break;
-        }
-      }
-      if (remainingDistance &gt; 0) {
-        const pace50 = adjustedPace(50);
-        totalTimeMinutes += remainingDistance * pace50;
-      }
-      return totalTimeMinutes;
-    }
+     function adjustedPace(percent) {
+       return (ltTotalSec * (100 / percent)) / 60; // pace in นาที/กม.
+     }
+     
+     for (let i = 0; i < segments.length; i++) {
+       const seg = segments[i];
+       const pace = adjustedPace(seg.percent);
+       const segDistance = seg.duration / pace;
+       if (segDistance < remainingDistance) {
+         totalTimeMinutes += seg.duration;
+         remainingDistance -= segDistance;
+       } else {
+         totalTimeMinutes += remainingDistance * pace;
+         remainingDistance = 0;
+         break;
+       }
+     }
+     if (remainingDistance &gt; 0) {
+       const pace50 = adjustedPace(50);
+       totalTimeMinutes += remainingDistance * pace50;
+     }
+     return totalTimeMinutes;
+   }
 
-    // ฟังก์ชันหา LT Pace (ltTotalSec) จากผลการแข่งขันที่ทำได้ (โดยใช้ binary search)
-    function findLTPace(achievedDistance, achievedTimeMinutes) {
-      let low = 120;  
-      let high = 720; // เพิ่ม high range สำหรับ pace ที่ช้าลง
-      let mid;
-      for (let i = 0; i < 30; i++) { // 30 iterations for precision
-        mid = (low + high) / 2;
-        const computedTime = computeRaceTime(achievedDistance, mid);
-        if (computedTime &gt; achievedTimeMinutes) {
-          high = mid;
-        } else {
-          low = mid;
-        }
-      }
-      return mid;
-    }
+   // ฟังก์ชันหา LT Pace (ltTotalSec) จากผลการแข่งขันที่ทำได้ (โดยใช้ binary search)
+   function findLTPace(achievedDistance, achievedTimeMinutes) {
+     let low = 120;  
+     let high = 720; // เพิ่ม high range สำหรับ pace ที่ช้าลง
+     let mid;
+     for (let i = 0; i < 30; i++) { // 30 iterations for precision
+       mid = (low + high) / 2;
+       const computedTime = computeRaceTime(achievedDistance, mid);
+       if (computedTime &gt; achievedTimeMinutes) {
+         high = mid;
+       } else {
+         low = mid;
+       }
+     }
+     return mid;
+   }
 
-    function calculateRacePredict() {
-      const achievedDistance = parseFloat(document.getElementById(&quot;achievedDistance&quot;).value);
-      let achievedHours = parseInt(document.getElementById(&quot;achievedHours&quot;).value, 10) || 0;
-      let achievedMinutes = parseInt(document.getElementById(&quot;achievedMinutes&quot;).value, 10) || 0;
-      let achievedSeconds = parseInt(document.getElementById(&quot;achievedSeconds&quot;).value, 10) || 0;
+   function calculateRacePredict() {
+     const achievedDistance = parseFloat(document.getElementById(&quot;achievedDistance&quot;).value);
+     let achievedHours = parseInt(document.getElementById(&quot;achievedHours&quot;).value, 10) || 0;
+     let achievedMinutes = parseInt(document.getElementById(&quot;achievedMinutes&quot;).value, 10) || 0;
+     let achievedSeconds = parseInt(document.getElementById(&quot;achievedSeconds&quot;).value, 10) || 0;
 
-      if (isNaN(achievedDistance) || achievedDistance <= 0) {
-        document.getElementById(&quot;result&quot;).innerHTML = &quot;<p style=&#x27;color:red;&#x27;&gt;กรุณากรอกระยะทางให้ถูกต้อง</p&gt;&quot;;
-        document.getElementById(&quot;training-paces&quot;).innerHTML = &quot;&quot;; // Clear previous results
-        return;
-      }
-       if (achievedHours === 0 &amp;&amp; achievedMinutes === 0 &amp;&amp; achievedSeconds === 0) {
-        document.getElementById(&quot;result&quot;).innerHTML = &quot;<p style=&#x27;color:red;&#x27;&gt;กรุณากรอกเวลาที่ทำได้</p&gt;&quot;;
-        document.getElementById(&quot;training-paces&quot;).innerHTML = &quot;&quot;; // Clear previous results
-        return;
-      }
-      
-      // คำนวณเวลาที่ทำได้ทั้งหมด (นาที) และ Pace
-      const totalAchievedTimeMinutes = achievedHours * 60 + achievedMinutes + achievedSeconds / 60;
-      const inputPace = totalAchievedTimeMinutes / achievedDistance;
-      
-      // คำนวณ LT Pace (วินาที/กม.)
-      const ltTotalSec = findLTPace(achievedDistance, totalAchievedTimeMinutes);
-      const ltPaceInMinutes = ltTotalSec / 60;
-      const ltPaceStr = formatPace(ltPaceInMinutes);
+     if (isNaN(achievedDistance) || achievedDistance <= 0) {
+       document.getElementById(&quot;result&quot;).innerHTML = &quot;<p style=&#x27;color:red;&#x27;&gt;กรุณากรอกระยะทางให้ถูกต้อง</p&gt;&quot;;
+       document.getElementById(&quot;training-paces&quot;).innerHTML = &quot;&quot;; // Clear previous results
+       return;
+     }
+      if (achievedHours === 0 &amp;&amp; achievedMinutes === 0 &amp;&amp; achievedSeconds === 0) {
+       document.getElementById(&quot;result&quot;).innerHTML = &quot;<p style=&#x27;color:red;&#x27;&gt;กรุณากรอกเวลาที่ทำได้</p&gt;&quot;;
+       document.getElementById(&quot;training-paces&quot;).innerHTML = &quot;&quot;; // Clear previous results
+       return;
+     }
+     
+     // คำนวณเวลาที่ทำได้ทั้งหมด (นาที) และ Pace
+     const totalAchievedTimeMinutes = achievedHours * 60 + achievedMinutes + achievedSeconds / 60;
+     const inputPace = totalAchievedTimeMinutes / achievedDistance;
+     
+     // คำนวณ LT Pace (วินาที/กม.)
+     const ltTotalSec = findLTPace(achievedDistance, totalAchievedTimeMinutes);
+     const ltPaceInMinutes = ltTotalSec / 60;
+     const ltPaceStr = formatPace(ltPaceInMinutes);
 
-      // --- แสดงผลลัพธ์ Pace พื้นฐาน ---
-      let resultHTML = `
-        <p&gt;<strong&gt;Pace จากผลการแข่งขัน:</strong&gt; ${formatPace(inputPace)} นาที/กม.</p>        <h2 style=&quot;margin-bottom:0;&quot;&gt;<strong&gt;LT Pace ที่คำนวณได้: ${ltPaceStr} นาที/กม.</strong&gt;</h2&gt;`;
-      document.getElementById(&quot;result&quot;).innerHTML = resultHTML;
-      
-      // --- แสดงผลลัพธ์ Pace การซ้อม ---
-      let trainingHTML = `
-        <div class=&quot;pace-category&quot;>          <h3&gt;Easy Run Pace วิ่งต่อเนื่อง</h3>          <ul class=&quot;pace-list&quot;>            <li&gt;<span class=&quot;pace-label&quot;&gt;60-120 นาที (70-85% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 70, 85)}</span&gt;</li>          </ul>        </div>        
-        <div class=&quot;pace-category&quot;>          <h3&gt;Threshold Run Pace (Tempo) วิ่งต่อเนื่อง</h3>          <ul class=&quot;pace-list&quot;>             <li&gt;<span class=&quot;pace-label&quot;&gt;20-40 นาที (95-103% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 94, 102)}</span&gt;</li>          </ul>        </div>
-        <div class=&quot;pace-category&quot;>            <h3&gt;Interval Run Pace าวิ่งรวม 20-30 นาที</h3>            <ul class=&quot;pace-list&quot;>
-                <li&gt;<span class=&quot;pace-label&quot;&gt;วิ่ง 3-5 นาที พัก 1-2 นาที(105-110% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 103, 112)}</span&gt;</li>
-            </ul>        </div>      `;
-      document.getElementById(&quot;training-paces&quot;).innerHTML = trainingHTML;
-    }
-  </script></body></html>"></iframe>
-    <iframe id="page-pace" class="active" title="Pace Table" srcdoc="<!DOCTYPE html><html lang=&quot;en&quot;><head>    <meta charset=&quot;UTF-8&quot;>    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>    <title&gt;Time, Pace, Distance Calculator</title>    <style>        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-            display: flex;
-            justify-content: center;
+     // --- แสดงผลลัพธ์ Pace พื้นฐาน ---
+     let resultHTML = `
+       <p&gt;<strong&gt;Pace จากผลการแข่งขัน:</strong&gt; ${formatPace(inputPace)} นาที/กม.</p>        <h2 style=&quot;margin-bottom:0;&quot;&gt;<strong&gt;LT Pace ที่คำนวณได้: ${ltPaceStr} นาที/กม.</strong&gt;</h2&gt;`;
+     document.getElementById(&quot;result&quot;).innerHTML = resultHTML;
+     
+     // --- แสดงผลลัพธ์ Pace การซ้อม ---
+     let trainingHTML = `
+       <div class=&quot;pace-category&quot;>          <h3&gt;Easy Run Pace วิ่งต่อเนื่อง</h3>          <ul class=&quot;pace-list&quot;>            <li&gt;<span class=&quot;pace-label&quot;&gt;60-120 นาที (70-85% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 70, 85)}</span&gt;</li>          </ul>        </div>        
+       <div class=&quot;pace-category&quot;>          <h3&gt;Threshold Run Pace (Tempo) วิ่งต่อเนื่อง</h3>          <ul class=&quot;pace-list&quot;>             <li&gt;<span class=&quot;pace-label&quot;&gt;20-40 นาที (95-103% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 94, 102)}</span&gt;</li>          </ul>        </div>
+       <div class=&quot;pace-category&quot;>            <h3&gt;Interval Run Pace ระยะเวลาวิ่งรวม 20-30 นาที</h3>            <ul class=&quot;pace-list&quot;>
+               <li&gt;<span class=&quot;pace-label&quot;&gt;วิ่ง 3-5 นาที พัก 1-2 นาที(105-110% LT)</span&gt; <span class=&quot;pace-value&quot;&gt;${getPaceRange(ltTotalSec, 103, 112)}</span&gt;</li>
+           </ul>        </div>      `;
+     document.getElementById(&quot;training-paces&quot;).innerHTML = trainingHTML;
+   }
+ </script></body></html>"></iframe>
+<iframe id="page-pace" class="active" title="Pace Table" srcdoc="<!DOCTYPE html><html lang=&quot;en&quot;><head>    <meta charset=&quot;UTF-8&quot;>    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>    <title&gt;Time, Pace, Distance Calculator</title>    <style>        body {
+           font-family: Arial, sans-serif;
+           margin: 20px;
+           padding: 0;
+           display: flex;
+           justify-content: center;
 /*             align-items: center; */
 /*             height: 100vh; */
-            background-color: #f4f4f9;
-        }
+           background-color: #f4f4f9;
+       }
 
-        .calculator {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            
+       .calculator {
+           background: #fff;
+           padding: 20px;
+           border-radius: 8px;
+           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+           max-width: 400px;
+           width: 100%;
+           text-align: center;
+           
 
-        }
+       }
 
-        .calculator h1 {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-            color: #333;
-        }
+       .calculator h1 {
+           font-size: 1.2em;
+           margin-bottom: 20px;
+           color: #333;
+       }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+       .form-group {
+           margin-bottom: 15px;
+       }
 
-        .input-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+       .input-container {
+           display: flex;
+           justify-content: center;
+           gap: 10px;
+           margin-bottom: 10px;
+       }
 
-        input {
-            width: 70px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1em;
-            text-align: center;
-        }
+       input {
+           width: 70px;
+           padding: 8px;
+           border: 1px solid #ddd;
+           border-radius: 4px;
+           font-size: 1em;
+           text-align: center;
+       }
 
-        button {
-            width: 100%;
-            padding: 10px;
-            max-width: 150px;
-            background-color: #007BFF;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+       button {
+           width: 100%;
+           padding: 10px;
+           max-width: 150px;
+           background-color: #007BFF;
+           border: none;
+           border-radius: 4px;
+           color: white;
+           font-size: 1em;
+           cursor: pointer;
+           transition: background-color 0.3s ease;
+       }
 
-        button:hover {
-            background-color: #0056b3;
-        }
+       button:hover {
+           background-color: #0056b3;
+       }
 
-        #pacePercentResults {
-            margin-top: 20px;
+       #pacePercentResults {
+           margin-top: 20px;
 /*             max-height: 300px; */
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            text-align: left;
-        }
+           overflow-y: auto;
+           border: 1px solid #ddd;
+           padding: 10px;
+           background-color: #f9f9f9;
+           border-radius: 4px;
+           text-align: left;
+       }
 
-        .pace-item {
-            background: #f9f9f9;
-            padding: 8px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-        }
+       .pace-item {
+           background: #f9f9f9;
+           padding: 8px;
+           margin-bottom: 5px;
+           border-radius: 4px;
+       }
 
-        .memory {
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #666;
-        }
-    </style></head><body>    <div class=&quot;calculator&quot;>        <h1&gt;Enter 2 values, calculate the 3rd.</h1>
-        <div class=&quot;form-group&quot;>            <div class=&quot;input-container&quot;>                <input type=&quot;number&quot; id=&quot;timeHours&quot; placeholder=&quot;h&quot; min=&quot;0&quot;>                <input type=&quot;number&quot; id=&quot;timeMinutes&quot; placeholder=&quot;m&quot; min=&quot;0&quot; max=&quot;59&quot;>                <input type=&quot;number&quot; id=&quot;timeSeconds&quot; placeholder=&quot;s&quot; min=&quot;0&quot; max=&quot;59&quot;>            </div>            <button onclick=&quot;calculateTime()&quot;&gt;TIME</button>        </div>
-        <div class=&quot;form-group&quot;>            <div class=&quot;input-container&quot;>                <input type=&quot;number&quot; id=&quot;paceMinutes&quot; placeholder=&quot;m&quot; min=&quot;0&quot;>                <input type=&quot;number&quot; id=&quot;paceSeconds&quot; placeholder=&quot;s&quot; min=&quot;0&quot; max=&quot;59&quot;>            </div>            <button onclick=&quot;calculatePace()&quot;&gt;PACE</button>        </div>
-        <div class=&quot;form-group&quot;>            <div class=&quot;input-container&quot;>                <input type=&quot;number&quot; id=&quot;distance&quot; placeholder=&quot;km&quot; min=&quot;0&quot; step=&quot;0.01&quot;>            </div>            <button onclick=&quot;calculateDistance()&quot;&gt;DISTANCE</button>        </div>
-        <div class=&quot;form-group&quot;>            <button onclick=&quot;calculatePacePercent()&quot;&gt;%PACE</button>        </div>
-        <div id=&quot;pacePercentResults&quot;&gt;</div>
-        <div class=&quot;memory&quot;&gt;ขอให้สนุกกับการวิ่งครับ!</div>    </div>
-    <script>        function calculateTime() {
-            const paceMinutes = parseInt(document.getElementById(&#x27;paceMinutes&#x27;).value) || 0;
-            const paceSeconds = parseInt(document.getElementById(&#x27;paceSeconds&#x27;).value) || 0;
-            const distance = parseFloat(document.getElementById(&#x27;distance&#x27;).value) || 0;
+       .memory {
+           margin-top: 20px;
+           font-size: 0.9em;
+           color: #666;
+       }
+   </style></head><body>    <div class=&quot;calculator&quot;>        <h1&gt;Enter 2 values, calculate the 3rd.</h1>
+       <div class=&quot;form-group&quot;>            <div class=&quot;input-container&quot;>                <input type=&quot;number&quot; id=&quot;timeHours&quot; placeholder=&quot;h&quot; min=&quot;0&quot;>                <input type=&quot;number&quot; id=&quot;timeMinutes&quot; placeholder=&quot;m&quot; min=&quot;0&quot; max=&quot;59&quot;>                <input type=&quot;number&quot; id=&quot;timeSeconds&quot; placeholder=&quot;s&quot; min=&quot;0&quot; max=&quot;59&quot;>            </div>            <button onclick=&quot;calculateTime()&quot;&gt;TIME</button>        </div>
+       <div class=&quot;form-group&quot;>            <div class=&quot;input-container&quot;>                <input type=&quot;number&quot; id=&quot;paceMinutes&quot; placeholder=&quot;m&quot; min=&quot;0&quot;>                <input type=&quot;number&quot; id=&quot;paceSeconds&quot; placeholder=&quot;s&quot; min=&quot;0&quot; max=&quot;59&quot;>            </div>            <button onclick=&quot;calculatePace()&quot;&gt;PACE</button>        </div>
+       <div class=&quot;form-group&quot;>            <div class=&quot;input-container&quot;>                <input type=&quot;number&quot; id=&quot;distance&quot; placeholder=&quot;km&quot; min=&quot;0&quot; step=&quot;0.01&quot;>            </div>            <button onclick=&quot;calculateDistance()&quot;&gt;DISTANCE</button>        </div>
+       <div class=&quot;form-group&quot;>            <button onclick=&quot;calculatePacePercent()&quot;&gt;%PACE</button>        </div>
+       <div id=&quot;pacePercentResults&quot;&gt;</div>
+       <div class=&quot;memory&quot;&gt;ขอให้สนุกกับการวิ่งครับ!</div>    </div>
+   <script>        function calculateTime() {
+           const paceMinutes = parseInt(document.getElementById(&#x27;paceMinutes&#x27;).value) || 0;
+           const paceSeconds = parseInt(document.getElementById(&#x27;paceSeconds&#x27;).value) || 0;
+           const distance = parseFloat(document.getElementById(&#x27;distance&#x27;).value) || 0;
 
-            if (distance <= 0) {
-                alert(&quot;กรุณากรอกระยะทางให้มากกว่า 0&quot;);
-                return;
-            }
+           if (distance <= 0) {
+               alert(&quot;กรุณากรอกระยะทางให้มากกว่า 0&quot;);
+               return;
+           }
 
-            const totalPaceInSeconds = (paceMinutes * 60) + paceSeconds;
-            const totalTimeInSeconds = totalPaceInSeconds * distance;
+           const totalPaceInSeconds = (paceMinutes * 60) + paceSeconds;
+           const totalTimeInSeconds = totalPaceInSeconds * distance;
 
-            const hours = Math.floor(totalTimeInSeconds / 3600);
-            const minutes = Math.floor((totalTimeInSeconds % 3600) / 60);
-            const seconds = Math.round(totalTimeInSeconds % 60);
+           const hours = Math.floor(totalTimeInSeconds / 3600);
+           const minutes = Math.floor((totalTimeInSeconds % 3600) / 60);
+           const seconds = Math.round(totalTimeInSeconds % 60);
 
-            document.getElementById(&#x27;timeHours&#x27;).value = hours;
-            document.getElementById(&#x27;timeMinutes&#x27;).value = minutes;
-            document.getElementById(&#x27;timeSeconds&#x27;).value = seconds;
-        }
+           document.getElementById(&#x27;timeHours&#x27;).value = hours;
+           document.getElementById(&#x27;timeMinutes&#x27;).value = minutes;
+           document.getElementById(&#x27;timeSeconds&#x27;).value = seconds;
+       }
 
-        function calculatePace() {
-            const timeHours = parseInt(document.getElementById(&#x27;timeHours&#x27;).value) || 0;
-            const timeMinutes = parseInt(document.getElementById(&#x27;timeMinutes&#x27;).value) || 0;
-            const timeSeconds = parseInt(document.getElementById(&#x27;timeSeconds&#x27;).value) || 0;
-            const distance = parseFloat(document.getElementById(&#x27;distance&#x27;).value) || 0;
+       function calculatePace() {
+           const timeHours = parseInt(document.getElementById(&#x27;timeHours&#x27;).value) || 0;
+           const timeMinutes = parseInt(document.getElementById(&#x27;timeMinutes&#x27;).value) || 0;
+           const timeSeconds = parseInt(document.getElementById(&#x27;timeSeconds&#x27;).value) || 0;
+           const distance = parseFloat(document.getElementById(&#x27;distance&#x27;).value) || 0;
 
-            if (distance <= 0) {
-                alert(&quot;กรุณากรอกระยะทางให้มากกว่า 0&quot;);
-                return;
-            }
+           if (distance <= 0) {
+               alert(&quot;กรุณากรอกระยะทางให้มากกว่า 0&quot;);
+               return;
+           }
 
-            const totalTimeInSeconds = (timeHours * 3600) + (timeMinutes * 60) + timeSeconds;
-            const totalPaceInSeconds = totalTimeInSeconds / distance;
+           const totalTimeInSeconds = (timeHours * 3600) + (timeMinutes * 60) + timeSeconds;
+           const totalPaceInSeconds = totalTimeInSeconds / distance;
 
-            const paceMinutes = Math.floor(totalPaceInSeconds / 60);
-            const paceSeconds = Math.round(totalPaceInSeconds % 60);
+           const paceMinutes = Math.floor(totalPaceInSeconds / 60);
+           const paceSeconds = Math.round(totalPaceInSeconds % 60);
 
-            document.getElementById(&#x27;paceMinutes&#x27;).value = paceMinutes;
-            document.getElementById(&#x27;paceSeconds&#x27;).value = paceSeconds;
-        }
+           document.getElementById(&#x27;paceMinutes&#x27;).value = paceMinutes;
+           document.getElementById(&#x27;paceSeconds&#x27;).value = paceSeconds;
+       }
 
-        function calculateDistance() {
-            const timeHours = parseInt(document.getElementById(&#x27;timeHours&#x27;).value) || 0;
-            const timeMinutes = parseInt(document.getElementById(&#x27;timeMinutes&#x27;).value) || 0;
-            const timeSeconds = parseInt(document.getElementById(&#x27;timeSeconds&#x27;).value) || 0;
-            const paceMinutes = parseInt(document.getElementById(&#x27;paceMinutes&#x27;).value) || 0;
-            const paceSeconds = parseInt(document.getElementById(&#x27;paceSeconds&#x27;).value) || 0;
+       function calculateDistance() {
+           const timeHours = parseInt(document.getElementById(&#x27;timeHours&#x27;).value) || 0;
+           const timeMinutes = parseInt(document.getElementById(&#x27;timeMinutes&#x27;).value) || 0;
+           const timeSeconds = parseInt(document.getElementById(&#x27;timeSeconds&#x27;).value) || 0;
+           const paceMinutes = parseInt(document.getElementById(&#x27;paceMinutes&#x27;).value) || 0;
+           const paceSeconds = parseInt(document.getElementById(&#x27;paceSeconds&#x27;).value) || 0;
 
-            const totalTimeInSeconds = (timeHours * 3600) + (timeMinutes * 60) + timeSeconds;
-            const totalPaceInSeconds = (paceMinutes * 60) + paceSeconds;
+           const totalTimeInSeconds = (timeHours * 3600) + (timeMinutes * 60) + timeSeconds;
+           const totalPaceInSeconds = (paceMinutes * 60) + paceSeconds;
 
-            if (totalPaceInSeconds <= 0) {
-                alert(&quot;กรุณากรอก Pace ให้ถูกต้องก่อน&quot;);
-                return;
-            }
+           if (totalPaceInSeconds <= 0) {
+               alert(&quot;กรุณากรอก Pace ให้ถูกต้องก่อน&quot;);
+               return;
+           }
 
-            const distance = totalTimeInSeconds / totalPaceInSeconds;
+           const distance = totalTimeInSeconds / totalPaceInSeconds;
 
-            document.getElementById(&#x27;distance&#x27;).value = distance.toFixed(2);
-        }
+           document.getElementById(&#x27;distance&#x27;).value = distance.toFixed(2);
+       }
 
-        function calculatePacePercent() {
-            const paceMinutes = parseInt(document.getElementById(&#x27;paceMinutes&#x27;).value) || 0;
-            const paceSeconds = parseInt(document.getElementById(&#x27;paceSeconds&#x27;).value) || 0;
+       function calculatePacePercent() {
+           const paceMinutes = parseInt(document.getElementById(&#x27;paceMinutes&#x27;).value) || 0;
+           const paceSeconds = parseInt(document.getElementById(&#x27;paceSeconds&#x27;).value) || 0;
 
-            const totalPaceSeconds = (paceMinutes * 60) + paceSeconds;
+           const totalPaceSeconds = (paceMinutes * 60) + paceSeconds;
 
-            if (totalPaceSeconds <= 0) {
-                alert(&quot;กรุณากรอก Pace (นาที/วินาที) ให้ถูกต้องก่อน&quot;);
-                return;
-            }
+           if (totalPaceSeconds <= 0) {
+               alert(&quot;กรุณากรอก Pace (นาที/วินาที) ให้ถูกต้องก่อน&quot;);
+               return;
+           }
 
-            const percentages = [55, 60, 65, 70, 75, 80, 85, 90, 95, 97, 100, 105, 110, 115, 120, 125];
-            let resultHTML = &#x27;&#x27;;
+           const percentages = [55, 60, 65, 70, 75, 80, 85, 90, 95, 97, 100, 105, 110, 115, 120, 125];
+           let resultHTML = &#x27;&#x27;;
 
-            percentages.forEach(percent =&gt; {
-                const newPaceSeconds = totalPaceSeconds / (percent / 100);
-                const newPaceMinutes = Math.floor(newPaceSeconds / 60);
-                const newPaceRemainSec = Math.round(newPaceSeconds % 60);
+           percentages.forEach(percent =&gt; {
+               const newPaceSeconds = totalPaceSeconds / (percent / 100);
+               const newPaceMinutes = Math.floor(newPaceSeconds / 60);
+               const newPaceRemainSec = Math.round(newPaceSeconds % 60);
 
-                resultHTML += `
-                    <div class=&quot;pace-item&quot;>                        <strong&gt;${percent}%</strong&gt; = 
-                        ${newPaceMinutes}:${newPaceRemainSec.toString().padStart(2, &#x27;0&#x27;)} นาที/กม.
-                    </div>                `;
-            });
+               resultHTML += `
+                   <div class=&quot;pace-item&quot;>                        <strong&gt;${percent}%</strong&gt; = 
+                       ${newPaceMinutes}:${newPaceRemainSec.toString().padStart(2, &#x27;0&#x27;)} นาที/กม.
+                   </div>                `;
+           });
 
-            const resultDiv = document.getElementById(&#x27;pacePercentResults&#x27;);
-            resultDiv.innerHTML = resultHTML;
+           const resultDiv = document.getElementById(&#x27;pacePercentResults&#x27;);
+           resultDiv.innerHTML = resultHTML;
 
-            document.querySelector(&#x27;.calculator&#x27;).scrollIntoView({ behavior: &#x27;smooth&#x27;, block: &#x27;start&#x27; });
-        }
-    </script></body></html>"></iframe>
+           document.querySelector(&#x27;.calculator&#x27;).scrollIntoView({ behavior: &#x27;smooth&#x27;, block: &#x27;start&#x27; });
+       }
+   </script></body></html>"></iframe>
 
 
 
-    
 
-    <iframe id="page-interval" title="Interval Calculator" srcdoc="
+
+<iframe id="page-interval" title="Interval Calculator" srcdoc="
 <!DOCTYPE html>
 <html lang=&quot;th&quot;>
 <head>
-  <meta charset=&quot;UTF-8&quot;>
-  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
-  <title>Interval Calculator</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    .container {
-      max-width: 500px;
-      background: #fff;
-      margin: 0 auto;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      margin-top: 0;
-      color: #0d6efd;
-    }
-    .form-group { margin-bottom: 15px; }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .row { display: flex; gap: 10px; }
-    .col { flex: 1; }
-    input[type=&quot;number&quot;] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
-      text-align: center;
-    }
-    .note {
-      font-size: 12px;
-      color: #666;
-      margin-top: 2px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #0d6efd;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.2s;
-      margin-top: 10px;
-    }
-    button:hover { background: #0b5ed7; }
-    .result-card {
-      background: #e9f7e9;
-      border: 1px solid #c3e6cb;
-      padding: 15px;
-      border-radius: 6px;
-      margin-top: 20px;
-      display: none;
-    }
-    .result-item {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 15px;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      padding-bottom: 8px;
-    }
-    .result-item:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-    .result-label { color: #555; }
-    .result-value { font-weight: bold; color: #333; }
-    .highlight { color: #0d6efd; font-size: 1.1em; }
-  </style>
+ <meta charset=&quot;UTF-8&quot;>
+ <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+ <title>Interval Calculator</title>
+ <style>
+   * { box-sizing: border-box; }
+   body {
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     background: #f5f5f5;
+     margin: 0;
+     padding: 20px;
+     color: #333;
+   }
+   .container {
+     max-width: 500px;
+     background: #fff;
+     margin: 0 auto;
+     padding: 20px;
+     border-radius: 8px;
+     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+   }
+   h2 {
+     text-align: center;
+     margin-top: 0;
+     color: #0d6efd;
+   }
+   .form-group { margin-bottom: 15px; }
+   label {
+     display: block;
+     margin-bottom: 5px;
+     font-weight: 600;
+     font-size: 14px;
+   }
+   .row { display: flex; gap: 10px; }
+   .col { flex: 1; }
+   input[type=&quot;number&quot;] {
+     width: 100%;
+     padding: 10px;
+     border: 1px solid #ccc;
+     border-radius: 4px;
+     font-size: 16px;
+     text-align: center;
+   }
+   .note {
+     font-size: 12px;
+     color: #666;
+     margin-top: 2px;
+   }
+   button {
+     width: 100%;
+     padding: 12px;
+     background: #0d6efd;
+     color: white;
+     border: none;
+     border-radius: 4px;
+     font-size: 16px;
+     cursor: pointer;
+     transition: 0.2s;
+     margin-top: 10px;
+   }
+   button:hover { background: #0b5ed7; }
+   .result-card {
+     background: #e9f7e9;
+     border: 1px solid #c3e6cb;
+     padding: 15px;
+     border-radius: 6px;
+     margin-top: 20px;
+     display: none;
+   }
+   .result-item {
+     display: flex;
+     justify-content: space-between;
+     margin-bottom: 8px;
+     font-size: 15px;
+     border-bottom: 1px solid rgba(0,0,0,0.05);
+     padding-bottom: 8px;
+   }
+   .result-item:last-child {
+     border-bottom: none;
+     margin-bottom: 0;
+     padding-bottom: 0;
+   }
+   .result-label { color: #555; }
+   .result-value { font-weight: bold; color: #333; }
+   .highlight { color: #0d6efd; font-size: 1.1em; }
+ </style>
 </head>
 <body>
-  <div class=&quot;container&quot;>
-    <h2>Interval Calculator</h2>
+ <div class=&quot;container&quot;>
+   <h2>Interval Calculator</h2>
 
-    <div class=&quot;form-group&quot;>
-      <label>ระยะทางวิ่ง (เมตร)</label>
-      <input type=&quot;number&quot; id=&quot;runDist&quot; placeholder=&quot;เช่น 400, 1000&quot;>
-    </div>
+   <div class=&quot;form-group&quot;>
+     <label>ระยะทางวิ่ง (เมตร)</label>
+     <input type=&quot;number&quot; id=&quot;runDist&quot; placeholder=&quot;เช่น 400, 1000&quot;>
+   </div>
 
-    <div class=&quot;form-group&quot;>
-      <label>ความเร็วเป้าหมาย (Pace)</label>
-      <div class=&quot;row&quot;>
-        <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;paceMin&quot; placeholder=&quot;นาที&quot;></div>
-        <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;paceSec&quot; placeholder=&quot;วินาที&quot;></div>
-      </div>
-    </div>
+   <div class=&quot;form-group&quot;>
+     <label>ความเร็วเป้าหมาย (Pace)</label>
+     <div class=&quot;row&quot;>
+       <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;paceMin&quot; placeholder=&quot;นาที&quot;></div>
+       <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;paceSec&quot; placeholder=&quot;วินาที&quot;></div>
+     </div>
+   </div>
 
-    <div class=&quot;form-group&quot;>
-      <label>จำนวนเที่ยว (Reps)</label>
-      <input type=&quot;number&quot; id=&quot;reps&quot; placeholder=&quot;เช่น 10&quot;>
-    </div>
+   <div class=&quot;form-group&quot;>
+     <label>จำนวนเที่ยว (Reps)</label>
+     <input type=&quot;number&quot; id=&quot;reps&quot; placeholder=&quot;เช่น 10&quot;>
+   </div>
 
-    <div class=&quot;form-group&quot; style=&quot;background:#f8f9fa; padding:10px; border-radius:6px;&quot;>
-      <label>การพัก (Rest)</label>
-      <div class=&quot;row&quot; style=&quot;margin-bottom:10px;&quot;>
-        <div class=&quot;col&quot;>
-          <label style=&quot;font-weight:normal; font-size:12px;&quot;>เวลาพัก (วินาที)</label>
-          <input type=&quot;number&quot; id=&quot;restTime&quot; placeholder=&quot;วินาที&quot;>
-        </div>
-      </div>
-      <div class=&quot;row&quot;>
-        <div class=&quot;col&quot;>
-          <label style=&quot;font-weight:normal; font-size:12px;&quot;>Pace ตอนพัก (ใส่ถ้าจ็อกพัก)</label>
-          <div class=&quot;row&quot;>
-            <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;restPaceMin&quot; placeholder=&quot;นาที&quot;></div>
-            <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;restPaceSec&quot; placeholder=&quot;วินาที&quot;></div>
-          </div>
-          <div class=&quot;note&quot;>*ถ้าไม่ใส่ Pace จะถือว่ายืนพักเฉยๆ</div>
-        </div>
-      </div>
-    </div>
+   <div class=&quot;form-group&quot; style=&quot;background:#f8f9fa; padding:10px; border-radius:6px;&quot;>
+     <label>การพัก (Rest)</label>
+     <div class=&quot;row&quot; style=&quot;margin-bottom:10px;&quot;>
+       <div class=&quot;col&quot;>
+         <label style=&quot;font-weight:normal; font-size:12px;&quot;>เวลาพัก (วินาที)</label>
+         <input type=&quot;number&quot; id=&quot;restTime&quot; placeholder=&quot;วินาที&quot;>
+       </div>
+     </div>
+     <div class=&quot;row&quot;>
+       <div class=&quot;col&quot;>
+         <label style=&quot;font-weight:normal; font-size:12px;&quot;>Pace ตอนพัก (ใส่ถ้าจ็อกพัก)</label>
+         <div class=&quot;row&quot;>
+           <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;restPaceMin&quot; placeholder=&quot;นาที&quot;></div>
+           <div class=&quot;col&quot;><input type=&quot;number&quot; id=&quot;restPaceSec&quot; placeholder=&quot;วินาที&quot;></div>
+         </div>
+         <div class=&quot;note&quot;>*ถ้าไม่ใส่ Pace จะถือว่ายืนพักเฉยๆ</div>
+       </div>
+     </div>
+   </div>
 
-    <button onclick=&quot;calculateInterval()&quot;>คำนวณ</button>
+   <button onclick=&quot;calculateInterval()&quot;>คำนวณ</button>
 
-    <div id=&quot;resultCard&quot; class=&quot;result-card&quot;>
-      </div>
-  </div>
+   <div id=&quot;resultCard&quot; class=&quot;result-card&quot;>
+     </div>
+ </div>
 
-  <script>
-    function formatTime(totalSeconds) {
-      const mins = Math.floor(totalSeconds / 60);
-      const secs = Math.round(totalSeconds % 60);
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }
+ <script>
+   function formatTime(totalSeconds) {
+     const mins = Math.floor(totalSeconds / 60);
+     const secs = Math.round(totalSeconds % 60);
+     return `${mins}:${secs.toString().padStart(2, '0')}`;
+   }
 
-    function calculateInterval() {
-      // Get Values
-      const dist = parseFloat(document.getElementById('runDist').value) || 0;
-      const paceMin = parseInt(document.getElementById('paceMin').value) || 0;
-      const paceSec = parseInt(document.getElementById('paceSec').value) || 0;
-      const reps = parseInt(document.getElementById('reps').value) || 1;
-      const restTime = parseInt(document.getElementById('restTime').value) || 0;
-      const restPaceMin = parseInt(document.getElementById('restPaceMin').value) || 0;
-      const restPaceSec = parseInt(document.getElementById('restPaceSec').value) || 0;
+   function calculateInterval() {
+     // Get Values
+     const dist = parseFloat(document.getElementById('runDist').value) || 0;
+     const paceMin = parseInt(document.getElementById('paceMin').value) || 0;
+     const paceSec = parseInt(document.getElementById('paceSec').value) || 0;
+     const reps = parseInt(document.getElementById('reps').value) || 1;
+     const restTime = parseInt(document.getElementById('restTime').value) || 0;
+     const restPaceMin = parseInt(document.getElementById('restPaceMin').value) || 0;
+     const restPaceSec = parseInt(document.getElementById('restPaceSec').value) || 0;
 
-      if (dist === 0) {
-        alert('กรุณากรอกระยะทางวิ่ง');
-        return;
-      }
+     if (dist === 0) {
+       alert('กรุณากรอกระยะทางวิ่ง');
+       return;
+     }
 
-      // 1. Calculate Run Time per Rep
-      const totalPaceSec = (paceMin * 60) + paceSec;
-      if (totalPaceSec === 0) {
-        alert('กรุณากรอก Pace เป้าหมาย');
-        return;
-      }
-      const timePerRepSec = (dist / 1000) * totalPaceSec;
+     // 1. Calculate Run Time per Rep
+     const totalPaceSec = (paceMin * 60) + paceSec;
+     if (totalPaceSec === 0) {
+       alert('กรุณากรอก Pace เป้าหมาย');
+       return;
+     }
+     const timePerRepSec = (dist / 1000) * totalPaceSec;
 
-      // 2. Calculate Rest
-      const restPaceTotalSec = (restPaceMin * 60) + restPaceSec;
-      let restDistPerRep = 0;
+     // 2. Calculate Rest
+     const restPaceTotalSec = (restPaceMin * 60) + restPaceSec;
+     let restDistPerRep = 0;
 
-      if (restPaceTotalSec > 0 && restTime > 0) {
-        // Active Rest: Distance = Speed * Time
-        // Speed (m/s) = 1000 / PaceSec
-        restDistPerRep = (1000 / restPaceTotalSec) * restTime;
-      }
+     if (restPaceTotalSec > 0 && restTime > 0) {
+       // Active Rest: Distance = Speed * Time
+       // Speed (m/s) = 1000 / PaceSec
+       restDistPerRep = (1000 / restPaceTotalSec) * restTime;
+     }
 
-      // 3. Totals
-      // Main Set Only
-      const totalMainDist = dist * reps;
-      const totalMainTimeSec = timePerRepSec * reps;
+     // 3. Totals
+     // Main Set Only
+     const totalMainDist = dist * reps;
+     const totalMainTimeSec = timePerRepSec * reps;
 
-      // Total Session (Run + Rest)
-      const totalSessionDist = totalMainDist + (restDistPerRep * reps);
-      const totalSessionTimeSec = totalMainTimeSec + (restTime * reps);
+     // Total Session (Run + Rest)
+     const totalSessionDist = totalMainDist + (restDistPerRep * reps);
+     const totalSessionTimeSec = totalMainTimeSec + (restTime * reps);
 
-      // Display HTML
-      const card = document.getElementById('resultCard');
-      card.style.display = 'block';
-      card.innerHTML = `
-        <div class=&quot;result-item&quot;>
-          <span class=&quot;result-label&quot;>เวลาวิ่งต่อเที่ยว (${dist}m):</span>
-          <span class=&quot;result-value highlight&quot;>${formatTime(timePerRepSec)} นาที</span>
-        </div>
-        
-        <div class=&quot;result-item&quot;>
-          <span class=&quot;result-label&quot;>ระยะพักต่อเที่ยว:</span>
-          <span class=&quot;result-value&quot;>${restDistPerRep.toFixed(0)} m</span>
-        </div>
+     // Display HTML
+     const card = document.getElementById('resultCard');
+     card.style.display = 'block';
+     card.innerHTML = `
+       <div class=&quot;result-item&quot;>
+         <span class=&quot;result-label&quot;>เวลาวิ่งต่อเที่ยว (${dist}m):</span>
+         <span class=&quot;result-value highlight&quot;>${formatTime(timePerRepSec)} นาที</span>
+       </div>
+       
+       <div class=&quot;result-item&quot;>
+         <span class=&quot;result-label&quot;>ระยะพักต่อเที่ยว:</span>
+         <span class=&quot;result-value&quot;>${restDistPerRep.toFixed(0)} m</span>
+       </div>
 
-        <div class=&quot;result-item&quot;>
-          <span class=&quot;result-label&quot;>ระยะทางวิ่ง (Main Set):</span>
-          <span class=&quot;result-value&quot;>${(totalMainDist/1000).toFixed(2)} km</span>
-        </div>
-        <div class=&quot;result-item&quot;>
-          <span class=&quot;result-label&quot;>เวลาวิ่งรวม (Main Set):</span>
-          <span class=&quot;result-value&quot;>${formatTime(totalMainTimeSec)} นาที</span>
-        </div>
-        <hr style=&quot;border:0; border-top:1px dashed #ccc; margin:10px 0;&quot;>
-        <div class=&quot;result-item&quot;>
-          <span class=&quot;result-label&quot;>ระยะทางรวมทั้งหมด (วิ่ง+พัก):</span>
-          <span class=&quot;result-value&quot;>${(totalSessionDist/1000).toFixed(2)} km</span>
-        </div>
-        <div class=&quot;result-item&quot;>
-          <span class=&quot;result-label&quot;>เวลารวมทั้งหมด (วิ่ง+พัก):</span>
-          <span class=&quot;result-value&quot;>${formatTime(totalSessionTimeSec)} นาที</span>
-        </div>
-      `;
-    }
-  </script>
+       <div class=&quot;result-item&quot;>
+         <span class=&quot;result-label&quot;>ระยะทางวิ่ง (Main Set):</span>
+         <span class=&quot;result-value&quot;>${(totalMainDist/1000).toFixed(2)} km</span>
+       </div>
+       <div class=&quot;result-item&quot;>
+         <span class=&quot;result-label&quot;>เวลาวิ่งรวม (Main Set):</span>
+         <span class=&quot;result-value&quot;>${formatTime(totalMainTimeSec)} นาที</span>
+       </div>
+       <hr style=&quot;border:0; border-top:1px dashed #ccc; margin:10px 0;&quot;>
+       <div class=&quot;result-item&quot;>
+         <span class=&quot;result-label&quot;>ระยะทางรวมทั้งหมด (วิ่ง+พัก):</span>
+         <span class=&quot;result-value&quot;>${(totalSessionDist/1000).toFixed(2)} km</span>
+       </div>
+       <div class=&quot;result-item&quot;>
+         <span class=&quot;result-label&quot;>เวลารวมทั้งหมด (วิ่ง+พัก):</span>
+         <span class=&quot;result-value&quot;>${formatTime(totalSessionTimeSec)} นาที</span>
+       </div>
+     `;
+   }
+ </script>
 </body>
 </html>
 "></iframe>
 
 
 
-    
-  </main>
 
-  <script>
-    const buttons = document.querySelectorAll('.tab-btn');
-    const frames = document.querySelectorAll('iframe');
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        // switch active button
-        buttons.forEach(b => b.setAttribute('aria-selected', 'false'));
-        btn.setAttribute('aria-selected', 'true');
-        // switch visible iframe
-        frames.forEach(f => f.classList.remove('active'));
-        const id = btn.dataset.target;
-        document.getElementById(id).classList.add('active');
-        // Move focus to frame for accessibility
-        document.getElementById(id).focus({preventScroll:true});
-      });
-    });
-  </script>
+</main>
+
+<script>
+const buttons = document.querySelectorAll('.tab-btn');
+const frames = document.querySelectorAll('iframe');
+buttons.forEach(btn => {
+btn.addEventListener('click', () => {
+// switch active button
+buttons.forEach(b => b.setAttribute('aria-selected', 'false'));
+btn.setAttribute('aria-selected', 'true');
+// switch visible iframe
+frames.forEach(f => f.classList.remove('active'));
+const id = btn.dataset.target;
+document.getElementById(id).classList.add('active');
+// Move focus to frame for accessibility
+document.getElementById(id).focus({preventScroll:true});
+});
+});
+</script>
 </body>
 </html>
