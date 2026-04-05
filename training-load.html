@@ -356,10 +356,6 @@
       `${pctLTHR}% × LTHR ${lthr} bpm`;
 
     document.getElementById('tlMain').textContent = tlTotal.toFixed(1);
-
-    const dLabel = [];
-    if (hrs > 0) dLabel.push(`${hrs} ชั่วโมง`);
-    if (mins > 0) dLabel.push(`${mins} นาที`);
     document.getElementById('tlDuration').textContent = `ใน ${totalMins} นาที`;
 
     document.getElementById('tl90').textContent = (tlTotal * 0.9).toFixed(1);
