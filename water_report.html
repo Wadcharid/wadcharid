@@ -23,7 +23,7 @@
     border: 1px solid #ccc;
     border-radius: 6px;
     padding: 10px 18px;
-    margin-bottom: 18px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -46,6 +46,47 @@
     cursor: pointer;
   }
   .date-bar button:hover { background: #154360; }
+
+  /* ── Debug panel ── */
+  .debug-panel {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    width: 780px;
+    font-size: 13px;
+  }
+  .debug-panel summary {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    color: #1a5276;
+    user-select: none;
+  }
+  .debug-panel .status {
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .status.loading { background: #eaf2fb; color: #1a5276; }
+  .status.ok      { background: #eafaf1; color: #1e8449; }
+  .status.warn    { background: #fef9e7; color: #9a7d0a; }
+  .status.err     { background: #fdedec; color: #c0392b; }
+  .debug-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+  .debug-table th, .debug-table td {
+    border: 1px solid #ddd;
+    padding: 3px 8px;
+    text-align: left;
+  }
+  .debug-table th { background: #f2f2f2; }
+  .debug-col-a { font-family: monospace; color: #555; }
 
   /* ── Report wrapper ── */
   .report {
@@ -169,6 +210,13 @@
   <input type="date" id="date">
   <button onclick="updateReport()">แสดงรายงาน</button>
 </div>
+
+<!-- Debug panel -->
+<details class="debug-panel" id="debug-panel">
+  <summary>🔍 ข้อมูล Debug / ตรวจสอบการดึงข้อมูล</summary>
+  <div id="debug-status" class="status loading">กำลังเตรียมข้อมูล...</div>
+  <div id="debug-body"></div>
+</details>
 
 <!-- Report -->
 <div class="report">
@@ -426,98 +474,231 @@
 </div><!-- /report -->
 
 <script>
-  // ── Mock data — replace with Google Sheets fetch later ──
-  const mockData = {
-    '1.1':  '1,607,000',
-    '1.2':  '1,529,900',
-    '1.3':  '8,829',
-    '1.4':  '18,401',
-    '1.5':  '18',
-    '1.6':  '1.69',
-    '1.7':  '43.49',
-    '2.1':  '-',
-    '2.2':  '-',
-    '2.3':  '1,442,651',
-    '2.4':  '50,998',
-    '2.5':  '0.1997',
-    '2.6':  '63,427',
-    '2.7':  '2,647',
-    '2.8':  '3,053',
-    '2.9':  '5,700',
-    '2.10': '0.0285',
-    '2.11': '63,130',
-    '2.12': '-',
-    '2.13': '-',
-    '2.14': '-',
-    '2.15': '-',
-    '2.16': '-',
-    '2.17': '349,083.02',
-    '3.1':  '234,109',
-    '3.2':  '0.1530',
-    '3.3':  '753,703.21',
-    '4.1':  '0.2282',
-    '4.2':  '0.4926',
-    '4.3a': '0.0056',
-    '4.3b': '0.7264',
-    '5.1':  'สทน.ผม.',
+  // ════════════════════════════════════════════════════════
+  //  CONFIG
+  // ════════════════════════════════════════════════════════
+  const SHEET_ID  = '1wR9XOXr3EiwhjCJpWPc-QqwZD2Ikq_aBqYxyUUfX77Q';
+  const CSV_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+
+  // Column indices (0-based): A=0, B=1, ..., Z=25, AA=26, ...
+  const COL_DATE = 0;   // A
+  const COL_MAP  = {
+    '1.1':  5,   // F
+    '1.2':  16,  // Q
+    '1.3':  35,  // AJ
+    '1.4':  40,  // AO
   };
 
-  const thaiMonths = [
+  // ════════════════════════════════════════════════════════
+  //  DATE HELPERS
+  // ════════════════════════════════════════════════════════
+  const THAI_MONTHS = [
     '', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน',
     'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม',
     'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
   function toThaiDate(dateStr) {
-    // dateStr = 'YYYY-MM-DD'
     const [y, m, d] = dateStr.split('-').map(Number);
-    return `${d} ${thaiMonths[m]} ${y + 543}`;
+    return `${d} ${THAI_MONTHS[m]} ${y + 543}`;
   }
 
-  function todayStr() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+  /** Returns 'YYYY-MM-DD' for N days ago (default 1 = yesterday) */
+  function offsetDateStr(n = 1) {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    const y  = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${da}`;
   }
 
-  function fillTable(data) {
-    // Map data keys to element ids (dots replaced with dashes)
-    const idMap = {
-      '1.1':'d-1-1','1.2':'d-1-2','1.3':'d-1-3','1.4':'d-1-4',
-      '1.5':'d-1-5','1.6':'d-1-6','1.7':'d-1-7',
-      '2.1':'d-2-1','2.2':'d-2-2','2.3':'d-2-3','2.4':'d-2-4',
-      '2.5':'d-2-5','2.6':'d-2-6','2.7':'d-2-7','2.8':'d-2-8',
-      '2.9':'d-2-9','2.10':'d-2-10','2.11':'d-2-11','2.12':'d-2-12',
-      '2.13':'d-2-13','2.14':'d-2-14','2.15':'d-2-15','2.16':'d-2-16',
-      '2.17':'d-2-17',
-      '3.1':'d-3-1','3.2':'d-3-2','3.3':'d-3-3',
-      '4.1':'d-4-1','4.2':'d-4-2','4.3a':'d-4-3a','4.3b':'d-4-3b',
-      '5.1':'d-5-1',
-    };
-    for (const [key, elId] of Object.entries(idMap)) {
-      const el = document.getElementById(elId);
-      if (el) el.textContent = data[key] ?? '';
+  /**
+   * Try to match a cell value from column A against targetDate ('YYYY-MM-DD').
+   * Handles common formats: ISO, D/M/YYYY (CE), D/M/YYYY (BE).
+   */
+  function matchesDate(cellValue, targetDate) {
+    if (!cellValue || !cellValue.trim()) return false;
+    const cell = cellValue.trim();
+    const [ty, tm, td] = targetDate.split('-').map(Number);
+
+    // ISO: YYYY-MM-DD or YYYY/MM/DD
+    let m = cell.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (m) {
+      return +m[1] === ty && +m[2] === tm && +m[3] === td;
     }
+
+    // D/M/YYYY (try CE then BE)
+    m = cell.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const [, dd, mo, yr] = m.map(Number);
+      if (yr === ty  && mo === tm && dd === td) return true;   // CE
+      if (yr - 543 === ty && mo === tm && dd === td) return true; // BE
+    }
+
+    // Fallback: let the browser parse it
+    const parsed = new Date(cell);
+    if (!isNaN(parsed)) {
+      return parsed.getFullYear() === ty &&
+             parsed.getMonth() + 1 === tm &&
+             parsed.getDate() === td;
+    }
+
+    return false;
   }
 
-  function updateReport() {
+  // ════════════════════════════════════════════════════════
+  //  CSV PARSER  (handles quoted fields)
+  // ════════════════════════════════════════════════════════
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], cell = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i], nx = text[i + 1];
+      if (inQ) {
+        if (ch === '"' && nx === '"') { cell += '"'; i++; }
+        else if (ch === '"') inQ = false;
+        else cell += ch;
+      } else {
+        if (ch === '"') { inQ = true; }
+        else if (ch === ',') { row.push(cell); cell = ''; }
+        else if (ch === '\r' && nx === '\n') {
+          row.push(cell); rows.push(row); row = []; cell = ''; i++;
+        } else if (ch === '\n') {
+          row.push(cell); rows.push(row); row = []; cell = '';
+        } else { cell += ch; }
+      }
+    }
+    if (row.length || cell) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  DEBUG PANEL HELPERS
+  // ════════════════════════════════════════════════════════
+  function setStatus(cls, msg) {
+    const el = document.getElementById('debug-status');
+    el.className = `status ${cls}`;
+    el.textContent = msg;
+  }
+
+  function renderDebug(rows, matchedIdx, targetDate) {
+    const container = document.getElementById('debug-body');
+
+    // Show first 10 non-empty values from column A
+    const colASamples = rows
+      .map((r, i) => ({ row: i + 1, val: (r[COL_DATE] || '').trim() }))
+      .filter(x => x.val)
+      .slice(0, 10);
+
+    let html = `
+      <p style="margin-top:8px; font-weight:bold;">ค่าใน Column A (10 แถวแรกที่มีข้อมูล):</p>
+      <table class="debug-table">
+        <tr><th>แถว (row)</th><th class="debug-col-a">ค่า Column A</th><th>ตรงกับวันที่เลือก?</th></tr>`;
+    for (const s of colASamples) {
+      const match = matchesDate(s.val, targetDate);
+      html += `<tr>
+        <td>${s.row}</td>
+        <td class="debug-col-a">${s.val}</td>
+        <td style="color:${match ? 'green' : '#aaa'}">${match ? '✅ ตรง' : '-'}</td>
+      </tr>`;
+    }
+    html += `</table>`;
+
+    if (matchedIdx >= 0) {
+      const matchedRow = rows[matchedIdx];
+      html += `
+        <p style="margin-top:10px; font-weight:bold;">ค่าที่ดึงได้จากแถวที่ ${matchedIdx + 1}:</p>
+        <table class="debug-table">
+          <tr><th>รายการ</th><th>Column</th><th>Index</th><th>ค่าดิบจาก Sheet</th></tr>`;
+      for (const [key, colIdx] of Object.entries(COL_MAP)) {
+        html += `<tr>
+          <td>${key}</td>
+          <td>${colIndexToLetter(colIdx)}</td>
+          <td>${colIdx}</td>
+          <td><strong>${matchedRow[colIdx] ?? '(ไม่มีข้อมูล)'}</strong></td>
+        </tr>`;
+      }
+      html += `</table>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  /** Convert 0-based column index to spreadsheet letter (0→A, 25→Z, 26→AA ...) */
+  function colIndexToLetter(n) {
+    let s = '';
+    n++;
+    while (n > 0) {
+      const r = (n - 1) % 26;
+      s = String.fromCharCode(65 + r) + s;
+      n = Math.floor((n - 1) / 26);
+    }
+    return s;
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  FILL TABLE
+  // ════════════════════════════════════════════════════════
+  function setCell(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? '';
+  }
+
+  function fillFromSheet(row) {
+    setCell('d-1-1', row[COL_MAP['1.1']] ?? '');
+    setCell('d-1-2', row[COL_MAP['1.2']] ?? '');
+    setCell('d-1-3', row[COL_MAP['1.3']] ?? '');
+    setCell('d-1-4', row[COL_MAP['1.4']] ?? '');
+  }
+
+  function clearSheetCells() {
+    ['d-1-1','d-1-2','d-1-3','d-1-4'].forEach(id => setCell(id, '-'));
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  MAIN: FETCH & UPDATE
+  // ════════════════════════════════════════════════════════
+  async function updateReport() {
     const dateVal = document.getElementById('date').value;
     if (!dateVal) return;
 
-    // Update displayed Thai date
     document.getElementById('display-date').textContent = toThaiDate(dateVal);
+    setStatus('loading', '⏳ กำลังโหลดข้อมูลจาก Google Sheets...');
+    document.getElementById('debug-body').innerHTML = '';
 
-    // TODO: Replace mockData with actual Google Sheets fetch
-    // e.g. fetch(`/api/sheets?date=${dateVal}`).then(r => r.json()).then(fillTable);
-    fillTable(mockData);
+    // Open debug panel automatically
+    document.getElementById('debug-panel').open = true;
+
+    try {
+      const resp = await fetch(CSV_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+      const text  = await resp.text();
+      const rows  = parseCSV(text);
+
+      // Find matching row by date in column A
+      const matchedIdx = rows.findIndex(r => matchesDate(r[COL_DATE], dateVal));
+
+      renderDebug(rows, matchedIdx, dateVal);
+
+      if (matchedIdx < 0) {
+        setStatus('warn', `⚠️ ไม่พบข้อมูลสำหรับวันที่ ${toThaiDate(dateVal)} ใน Column A (ดูรูปแบบวันที่ในตาราง Debug ด้านล่าง)`);
+        clearSheetCells();
+      } else {
+        fillFromSheet(rows[matchedIdx]);
+        setStatus('ok', `✅ โหลดสำเร็จ — พบข้อมูลในแถวที่ ${matchedIdx + 1} (Column A: "${rows[matchedIdx][COL_DATE]}")`);
+      }
+    } catch (err) {
+      setStatus('err', `❌ โหลดไม่สำเร็จ: ${err.message} — ตรวจสอบว่าเปิดไฟล์ผ่าน web server (php -S localhost:8080) และ Sheet เป็น public`);
+      console.error(err);
+      clearSheetCells();
+    }
   }
 
   // ── Init on page load ──
   window.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('date');
-    input.value = todayStr();
+    input.value = offsetDateStr(1); // yesterday
     updateReport();
   });
 </script>
