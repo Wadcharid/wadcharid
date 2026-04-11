@@ -1,0 +1,500 @@
+<?php
+// Date handling
+$selectedDate = isset($_GET['date']) ? $_GET['date'] : date('Y-m-d');
+$dateObj = new DateTime($selectedDate);
+$thaiYear = (int)$dateObj->format('Y') + 543;
+$thaiMonths = [
+    1  => 'มกราคม',    2  => 'กุมภาพันธ์', 3  => 'มีนาคม',
+    4  => 'เมษายน',    5  => 'พฤษภาคม',   6  => 'มิถุนายน',
+    7  => 'กรกฎาคม',   8  => 'สิงหาคม',   9  => 'กันยายน',
+    10 => 'ตุลาคม',    11 => 'พฤศจิกายน', 12 => 'ธันวาคม',
+];
+$thaiDate = $dateObj->format('j') . ' ' . $thaiMonths[(int)$dateObj->format('n')] . ' ' . $thaiYear;
+
+// ---------------------------------------------------------------
+// Mock data — replace each value with Google Sheets lookup later
+// ---------------------------------------------------------------
+$d = [
+    // Section 1
+    '1.1'  => '1,607,000',
+    '1.2'  => '1,529,900',
+    '1.3'  => '8,829',
+    '1.4'  => '18,401',
+    '1.5'  => '18',
+    '1.6'  => '1.69',
+    '1.7'  => '43.49',
+    // Section 2
+    '2.1'  => '-',
+    '2.2'  => '-',
+    '2.3'  => '1,442,651',
+    '2.4'  => '50,998',
+    '2.5'  => '0.1997',
+    '2.6'  => '63,427',
+    '2.7'  => '2,647',
+    '2.8'  => '3,053',
+    '2.9'  => '5,700',
+    '2.10' => '0.0285',
+    '2.11' => '63,130',
+    '2.12' => '-',
+    '2.13' => '-',
+    '2.14' => '-',
+    '2.15' => '-',
+    '2.16' => '-',
+    '2.17' => '349,083.02',
+    // Section 3
+    '3.1'  => '234,109',
+    '3.2'  => '0.1530',
+    '3.3'  => '753,703.21',
+    // Section 4
+    '4.1'  => '0.2282',
+    '4.2'  => '0.4926',
+    '4.3a' => '0.0056',
+    '4.3b' => '0.7264',
+    // Section 5
+    '5.1'  => 'สทน.ผม.',
+];
+?>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายงานการผลิตน้ำ</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'TH Sarabun New', 'Sarabun', 'Cordia New', Arial, sans-serif;
+    font-size: 15px;
+    background: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  /* ── Date picker bar ── */
+  .date-bar {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px 18px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+  }
+  .date-bar label { font-weight: bold; }
+  .date-bar input[type="date"] {
+    padding: 4px 8px;
+    font-size: 15px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+  }
+  .date-bar button {
+    padding: 5px 14px;
+    font-size: 15px;
+    background: #1a5276;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .date-bar button:hover { background: #154360; }
+
+  /* ── Report wrapper ── */
+  .report {
+    background: #fff;
+    padding: 16px 20px 24px;
+    width: 780px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .header img {
+    position: absolute;
+    left: 0;
+    height: 70px;
+  }
+  .header-text { text-align: center; }
+  .header-text h2 {
+    font-size: 17px;
+    font-weight: bold;
+    line-height: 1.4;
+  }
+  .header-text h3 {
+    font-size: 15px;
+    font-weight: normal;
+    margin-top: 2px;
+  }
+
+  /* ── Main table ── */
+  table.main {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  table.main th, table.main td {
+    border: 1px solid #555;
+    padding: 3px 6px;
+    vertical-align: middle;
+  }
+  table.main th {
+    background: #d6e4f7;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  /* Column widths */
+  col.c-sec  { width: 70px; }
+  col.c-item { width: 370px; }
+  col.c-unit { width: 180px; }
+  col.c-val  { width: 120px; }
+
+  /* Section label cell (vertical text) */
+  td.sec-label {
+    text-align: center;
+    vertical-align: middle;
+    background: #eaf2fb;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 4px 2px;
+    line-height: 1.35;
+  }
+  td.sec-label .vtext {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    display: inline-block;
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  /* Item number cell */
+  td.item-no {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* Value cell */
+  td.val {
+    text-align: right;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+
+  /* Unit cell */
+  td.unit {
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* Sub-header rows (e.g., blank separator) */
+  tr.sub-header td {
+    background: #f2f2f2;
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+  /* Total / summary rows */
+  tr.total-row td {
+    background: #fef9e7;
+    font-weight: bold;
+  }
+
+  /* Note section */
+  tr.note-row td { background: #fdfefe; font-size: 13px; }
+
+  /* Signature row */
+  tr.sig-row td {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+
+  /* Footer row */
+  tr.footer-row td {
+    font-size: 12px;
+    color: #555;
+    padding: 6px;
+    background: #f9f9f9;
+  }
+</style>
+</head>
+<body>
+
+<!-- Date picker -->
+<form class="date-bar" method="GET">
+  <label for="date">เลือกวันที่:</label>
+  <input type="date" id="date" name="date" value="<?= htmlspecialchars($selectedDate) ?>">
+  <button type="submit">แสดงรายงาน</button>
+</form>
+
+<!-- Report -->
+<div class="report">
+
+  <!-- Header -->
+  <div class="header">
+    <!-- Replace src with actual seal/logo path if available -->
+    <img src="seal.png" alt="ตราสัญลักษณ์"
+         onerror="this.style.display='none'">
+    <div class="header-text">
+      <h2>รายงานการผลิต จ่ายน้ำประปาและต้นทุนในการผลิตน้ำ<br>โรงงานผลิตน้ำมหาสวัสดิ์</h2>
+      <h3>ประจำวันที่ <?= $thaiDate ?></h3>
+    </div>
+  </div>
+
+  <!-- Main table -->
+  <table class="main">
+    <colgroup>
+      <col class="c-sec">
+      <col class="c-item">
+      <col class="c-unit">
+      <col class="c-val">
+    </colgroup>
+    <thead>
+      <tr>
+        <th colspan="2">รายการ</th>
+        <th>หน่วย</th>
+        <th>จำนวน</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- ═══════════════════════════════════════════════
+           Section 1 : ปริมาณน้ำจ่าย (7 rows)
+           ═══════════════════════════════════════════════ -->
+      <tr>
+        <td class="sec-label" rowspan="7">
+          <span class="vtext">๑. ปริมาณน้ำจ่าย</span>
+        </td>
+        <td>1.1 ปริมาณการสูบน้ำดิบ</td>
+        <td class="unit">ลูกบาศก์เมตรต่อวัน</td>
+        <td class="val"><?= $d['1.1'] ?></td>
+      </tr>
+      <tr>
+        <td>1.2 ปริมาณน้ำผลิตจ่าย</td>
+        <td class="unit">ลูกบาศก์เมตรต่อวัน</td>
+        <td class="val"><?= $d['1.2'] ?></td>
+      </tr>
+      <tr>
+        <td>1.3 น้ำระบายตะกอน</td>
+        <td class="unit">ลูกบาศก์เมตรต่อวัน</td>
+        <td class="val"><?= $d['1.3'] ?></td>
+      </tr>
+      <tr>
+        <td>1.4 น้ำที่ใช้คืนปลาป้องกรอง</td>
+        <td class="unit">ลูกบาศก์เมตรต่อวัน</td>
+        <td class="val"><?= $d['1.4'] ?></td>
+      </tr>
+      <tr>
+        <td>1.5 จำนวนปั๊มกรองทำงาน</td>
+        <td class="unit">ปั๊ม</td>
+        <td class="val"><?= $d['1.5'] ?></td>
+      </tr>
+      <tr>
+        <td>1.6 น้ำสั่งป้อนและระบายตะกอน</td>
+        <td class="unit">%</td>
+        <td class="val"><?= $d['1.6'] ?></td>
+      </tr>
+      <tr>
+        <td>1.7 ชั่วโมงใช้งานปั๊มกรองเลี้ยง</td>
+        <td class="unit">ชั่วโมง</td>
+        <td class="val"><?= $d['1.7'] ?></td>
+      </tr>
+
+      <!-- ═══════════════════════════════════════════════
+           Section 2 : ปริมาณการใช้สารเคมี (17 rows)
+           ═══════════════════════════════════════════════ -->
+      <tr>
+        <td class="sec-label" rowspan="17">
+          <span class="vtext">๒. ปริมาณการใช้สารเคมี</span>
+        </td>
+        <td>2.1 สารส้มใช้ไป</td>
+        <td class="unit">ตันต่อวัน</td>
+        <td class="val"><?= $d['2.1'] ?></td>
+      </tr>
+      <tr>
+        <td>2.2 ต้นทุนสารส้ม (2,530 บาท/ตัน)</td>
+        <td class="unit">บาทต่อลบ.ม.น้ำผลิตจ่าย<u>รวม</u></td>
+        <td class="val"><?= $d['2.2'] ?></td>
+      </tr>
+      <tr>
+        <td>2.3 Stock สารส้ม</td>
+        <td class="unit">ตัน</td>
+        <td class="val"><?= $d['2.3'] ?></td>
+      </tr>
+      <tr>
+        <td>2.4 PACl ใช้ไป</td>
+        <td class="unit">ตันต่อวัน</td>
+        <td class="val"><?= $d['2.4'] ?></td>
+      </tr>
+      <tr>
+        <td>2.5 ต้นทุน PACl (3,880 บาท/ตัน)</td>
+        <td class="unit">บาทต่อลบ.ม.น้ำผลิตจ่าย<u>รวม</u></td>
+        <td class="val"><?= $d['2.5'] ?></td>
+      </tr>
+      <tr>
+        <td>2.6 Stock PACl</td>
+        <td class="unit">ตัน</td>
+        <td class="val"><?= $d['2.6'] ?></td>
+      </tr>
+      <tr>
+        <td>2.7 คลอรีน (Pre)</td>
+        <td class="unit">ตันต่อวัน</td>
+        <td class="val"><?= $d['2.7'] ?></td>
+      </tr>
+      <tr>
+        <td>2.8 คลอรีน (Post)</td>
+        <td class="unit">ตันต่อวัน</td>
+        <td class="val"><?= $d['2.8'] ?></td>
+      </tr>
+      <tr>
+        <td>2.9 คลอรีนใช้ไป (Pre + Inter + Post)</td>
+        <td class="unit">ตันต่อวัน</td>
+        <td class="val"><?= $d['2.9'] ?></td>
+      </tr>
+      <tr>
+        <td>2.10 ต้นทุนคลอรีน (14,900 บาท/ตัน)</td>
+        <td class="unit">บาทต่อลบ.ม.น้ำผลิตจ่าย<u>รวม</u></td>
+        <td class="val"><?= $d['2.10'] ?></td>
+      </tr>
+      <tr>
+        <td>2.11 Stock คลอรีน</td>
+        <td class="unit">ตัน</td>
+        <td class="val"><?= $d['2.11'] ?></td>
+      </tr>
+      <tr>
+        <td>2.12 โพลิเมอร์ใช้ไป</td>
+        <td class="unit">ตันต่อวัน</td>
+        <td class="val"><?= $d['2.12'] ?></td>
+      </tr>
+      <tr>
+        <td>2.13 ต้นทุนโพลิเมอร์ (82,000 บาท/ตัน)</td>
+        <td class="unit">บาทต่อลบ.ม.น้ำผลิตจ่าย<u>รวม</u></td>
+        <td class="val"><?= $d['2.13'] ?></td>
+      </tr>
+      <tr>
+        <td>2.14 Stock โพลิเมอร์</td>
+        <td class="unit">ตัน</td>
+        <td class="val"><?= $d['2.14'] ?></td>
+      </tr>
+      <tr>
+        <td>2.15 ปูนขาว</td>
+        <td class="unit">ตันต่อวัน</td>
+        <td class="val"><?= $d['2.15'] ?></td>
+      </tr>
+      <tr>
+        <td>2.16 Stock ปูนขาว</td>
+        <td class="unit">ตัน</td>
+        <td class="val"><?= $d['2.16'] ?></td>
+      </tr>
+      <tr class="total-row">
+        <td>2.17 รวมค่าใช้จ่ายสารเคมี</td>
+        <td class="unit">บาทต่อวัน</td>
+        <td class="val"><?= $d['2.17'] ?></td>
+      </tr>
+
+      <!-- ═══════════════════════════════════════════════
+           Section 3 : ค่าพลังงานไฟฟ้า (3 rows)
+           ═══════════════════════════════════════════════ -->
+      <tr>
+        <td class="sec-label" rowspan="3">
+          <span class="vtext">๓. ค่าพลังงานไฟฟ้า</span>
+        </td>
+        <td>3.1 พลังงานไฟฟ้าที่ใช้ในการผลิตและสูบจ่าย</td>
+        <td class="unit">kWhr</td>
+        <td class="val"><?= $d['3.1'] ?></td>
+      </tr>
+      <tr>
+        <td>3.2 ไฟฟ้าโดยประมาณต่อหน่วยน้ำผลิตจ่าย</td>
+        <td class="unit">kWhr/ลูกบาศก์เมตร</td>
+        <td class="val"><?= $d['3.2'] ?></td>
+      </tr>
+      <tr class="total-row">
+        <td>3.3 ค่าไฟฟ้าในการผลิตและสูบจ่าย</td>
+        <td class="unit">บาทต่อวัน</td>
+        <td class="val"><?= $d['3.3'] ?></td>
+      </tr>
+
+      <!-- ═══════════════════════════════════════════════
+           Section 4 : ทุนค่าใช้จ่าย (4 rows)
+           ═══════════════════════════════════════════════ -->
+      <tr>
+        <td class="sec-label" rowspan="4">
+          <span class="vtext">๔. ทุนค่าใช้จ่าย</span>
+        </td>
+        <td>4.1 ค่าจัดซื้อสารเคมี</td>
+        <td class="unit">บาทต่อ ลบ.ม.น้ำผลิตจ่าย</td>
+        <td class="val"><?= $d['4.1'] ?></td>
+      </tr>
+      <tr>
+        <td>4.2 ค่าไฟฟ้า</td>
+        <td class="unit">บาทต่อ ลบ.ม.น้ำผลิตจ่าย</td>
+        <td class="val"><?= $d['4.2'] ?></td>
+      </tr>
+      <tr>
+        <td>4.3 ค่ากำจัดตะกอน (โดยวิธีธรรมชาติ)</td>
+        <td class="unit">บาทต่อ ลบ.ม.น้ำผลิตจ่าย</td>
+        <td class="val"><?= $d['4.3a'] ?></td>
+      </tr>
+      <tr class="total-row">
+        <td>4.3 รวมค่าใช้จ่ายในการผลิตน้ำ</td>
+        <td class="unit">บาทต่อ ลบ.ม.น้ำผลิตจ่าย</td>
+        <td class="val"><?= $d['4.3b'] ?></td>
+      </tr>
+
+      <!-- ═══════════════════════════════════════════════
+           Section 5 : หมายเหตุ
+           ═══════════════════════════════════════════════ -->
+      <tr class="note-row">
+        <td class="sec-label">
+          <span class="vtext">๕. หมายเหตุ</span>
+        </td>
+        <td>5.1 คุณภาพน้ำ เรียกดูข้อมูลจาก <?= $d['5.1'] ?></td>
+        <td class="unit"></td>
+        <td class="val"></td>
+      </tr>
+
+      <!-- ═══════════════════════════════════════════════
+           Signature row
+           ═══════════════════════════════════════════════ -->
+      <tr class="sig-row">
+        <td colspan="4" style="padding: 14px 10px 6px;">
+          <table style="width:100%; border:none; font-size:14px;">
+            <tr>
+              <td style="border:none; text-align:center; width:50%;">
+                ลงชื่อ .................................................<br>
+                <span style="font-size:12px; color:#555;">ผู้รายงาน / วันที่ ............</span>
+              </td>
+              <td style="border:none; text-align:center; width:50%;">
+                ลงชื่อ .................................................<br>
+                <span style="font-size:12px; color:#555;">ผู้ตรวจสอบ / วันที่ ............</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr class="footer-row">
+        <td colspan="4" style="text-align:center;">
+          หมายเหตุ: ข้อมูลดึงจาก Google Sheets — กรุณาระบุแหล่งข้อมูลเพิ่มเติม
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</div><!-- /report -->
+
+</body>
+</html>
