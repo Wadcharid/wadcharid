@@ -52,6 +52,10 @@
     white-space: nowrap;
   }
   .date-bar button:hover { background: #154360; }
+  .btn-export {
+    background: #1e8449 !important;
+  }
+  .btn-export:hover { background: #196f3d !important; }
 
   /* ── Debug panel ── */
   .debug-panel {
@@ -263,6 +267,7 @@
   <label for="date">เลือกวันที่:</label>
   <input type="date" id="date">
   <button onclick="updateReport()">แสดงรายงาน</button>
+  <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
 </div>
 
 <!-- Debug panel -->
@@ -817,6 +822,52 @@
       console.error(err);
       clearSheetCells();
     }
+  }
+
+  // ════════════════════════════════════════════════════════
+  //  EXPORT CSV
+  // ════════════════════════════════════════════════════════
+  function exportCSV() {
+    const date        = document.getElementById('date').value || 'nodate';
+    const displayDate = document.getElementById('display-date').textContent || date;
+
+    const escape = s => `"${String(s).replace(/"/g, '""')}"`;
+
+    const lines = [];
+
+    // Title rows
+    lines.push([escape('รายงานการผลิต จ่ายน้ำประปาและต้นทุนในการผลิตน้ำ โรงงานผลิตน้ำมหาสวัสดิ์')]);
+    lines.push([escape(`ประจำวันที่ ${displayDate}`)]);
+    lines.push([]); // blank
+
+    // Header
+    lines.push([escape('หมวด'), escape('รายการ'), escape('จำนวน'), escape('หน่วย')]);
+
+    // Data rows — after reorderColumns() DOM order: [sec-label?] item val unit
+    let currentSection = '';
+    document.querySelectorAll('table.main tbody tr').forEach(tr => {
+      const secEl = tr.querySelector('td.sec-label');
+      if (secEl) currentSection = secEl.textContent.trim().replace(/\s+/g, ' ');
+
+      const cells = Array.from(tr.querySelectorAll('td:not(.sec-label)'));
+      if (cells.length >= 3) {
+        const item = cells[0].textContent.trim();
+        const val  = cells[1].textContent.trim();
+        const unit = cells[2].textContent.trim();
+        lines.push([escape(currentSection), escape(item), escape(val), escape(unit)]);
+      }
+    });
+
+    const csv  = lines.map(r => r.join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `รายงานน้ำ_${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   // ════════════════════════════════════════════════════════
