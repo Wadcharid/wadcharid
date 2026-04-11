@@ -211,18 +211,14 @@
     .header-text h3 { font-size: 13px; }
     .header img { height: 44px; }
 
-    /* ── Remove horizontal scroll — fit everything on screen ── */
+    /* ── Remove horizontal scroll — fit all 4 columns on screen ── */
     .table-scroll { overflow-x: visible; }
-    table.main { min-width: 0; width: 100%; font-size: 13px; }
+    table.main { min-width: 0; width: 100%; font-size: 12px; }
 
-    /* ── Hide unit column (header + all cells) ── */
-    thead tr th:nth-child(2) { display: none; }
-    td.unit { display: none; }
-
-    /* ── Section label: keep vertical text but narrower ── */
+    /* ── Section label: narrow vertical text ── */
     td.sec-label {
-      width: 22px;
-      max-width: 22px;
+      width: 20px;
+      max-width: 20px;
       padding: 2px 1px;
     }
     td.sec-label .vtext {
@@ -231,20 +227,31 @@
     }
 
     /* ── Item cell: wrap long Thai text ── */
-    table.main td:not(.sec-label):not(.val) {
+    table.main td:not(.sec-label):not(.val):not(.unit) {
       white-space: normal;
       word-break: keep-all;
       overflow-wrap: break-word;
-      font-size: 13px;
-      padding: 4px 5px;
+      font-size: 12px;
+      padding: 3px 4px;
     }
 
-    /* ── Value: readable size, fixed width ── */
+    /* ── Value: bold, fixed width ── */
     td.val {
-      font-size: 16px;
-      width: 90px;
-      min-width: 90px;
-      padding: 4px 5px;
+      font-size: 15px;
+      width: 82px;
+      min-width: 82px;
+      padding: 3px 4px;
+    }
+
+    /* ── Unit: small text, wraps, rightmost ── */
+    td.unit {
+      font-size: 10px;
+      width: 58px;
+      min-width: 58px;
+      padding: 3px 3px;
+      white-space: normal;
+      word-break: keep-all;
+      color: #555;
     }
   }
 </style>
@@ -283,8 +290,8 @@
     <colgroup>
       <col class="c-sec">
       <col class="c-item">
-      <col class="c-unit">
       <col class="c-val">
+      <col class="c-unit">
     </colgroup>
     <thead>
       <tr>
@@ -812,8 +819,26 @@
     }
   }
 
+  // ════════════════════════════════════════════════════════
+  //  COLUMN REORDER: move จำนวน before หน่วย (val before unit)
+  // ════════════════════════════════════════════════════════
+  function reorderColumns() {
+    // Swap header th: children[1]=หน่วย, children[2]=จำนวน → move จำนวน first
+    const thead = document.querySelector('table.main thead tr');
+    if (thead && thead.children.length >= 3) {
+      thead.insertBefore(thead.children[2], thead.children[1]);
+    }
+    // Swap every body row: move td.val before td.unit
+    document.querySelectorAll('table.main tbody tr').forEach(tr => {
+      const unit = tr.querySelector('td.unit');
+      const val  = tr.querySelector('td.val');
+      if (unit && val) tr.insertBefore(val, unit);
+    });
+  }
+
   // ── Init on page load ──
   window.addEventListener('DOMContentLoaded', () => {
+    reorderColumns();
     const input = document.getElementById('date');
     input.value = offsetDateStr(1); // yesterday
     updateReport();
