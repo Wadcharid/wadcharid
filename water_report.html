@@ -74,17 +74,39 @@
     font-size: 13px;
     color: #1a5276;
     user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
-  .debug-panel .status {
-    margin-top: 8px;
-    padding: 6px 10px;
-    border-radius: 4px;
+  /* Status badge — inline inside summary */
+  #debug-status {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: normal;
+    white-space: normal;
+    word-break: break-word;
+  }
+  #debug-status.loading { background: #eaf2fb; color: #1a5276; }
+  #debug-status.ok      { background: #eafaf1; color: #1e8449; }
+  #debug-status.warn    { background: #fef9e7; color: #9a7d0a; }
+  #debug-status.err     { background: #fdedec; color: #c0392b; }
+
+  /* Cell loading animation */
+  @keyframes cell-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.15; }
+  }
+  td.val.cell-loading::after {
+    content: '• • •';
+    letter-spacing: 2px;
+    color: #bbb;
     font-size: 13px;
+    font-weight: normal;
+    animation: cell-pulse 1.2s ease-in-out infinite;
   }
-  .status.loading { background: #eaf2fb; color: #1a5276; }
-  .status.ok      { background: #eafaf1; color: #1e8449; }
-  .status.warn    { background: #fef9e7; color: #9a7d0a; }
-  .status.err     { background: #fdedec; color: #c0392b; }
   .debug-table {
     width: 100%;
     border-collapse: collapse;
@@ -272,8 +294,9 @@
 
 <!-- Debug panel -->
 <details class="debug-panel" id="debug-panel">
-  <summary>🔍 ข้อมูล Debug / ตรวจสอบการดึงข้อมูล</summary>
-  <div id="debug-status" class="status loading">กำลังเตรียมข้อมูล...</div>
+  <summary>🔍 ข้อมูล Debug / ตรวจสอบการดึงข้อมูล
+    <span id="debug-status" class="loading">⏳ กำลังเตรียมข้อมูล...</span>
+  </summary>
   <div id="debug-body"></div>
 </details>
 
@@ -713,7 +736,25 @@
   // ════════════════════════════════════════════════════════
   function setCell(id, value) {
     const el = document.getElementById(id);
-    if (el) el.textContent = value ?? '';
+    if (el) {
+      el.textContent = value ?? '';
+      el.classList.remove('cell-loading');
+    }
+  }
+
+  function setLoadingCells() {
+    const ids = [
+      'd-1-1','d-1-2','d-1-3','d-1-4','d-1-5','d-1-6','d-1-7',
+      'd-2-1','d-2-2','d-2-3','d-2-4','d-2-5','d-2-6','d-2-7',
+      'd-2-8','d-2-9','d-2-10','d-2-11','d-2-12','d-2-13','d-2-14',
+      'd-2-15','d-2-16','d-2-17',
+      'd-3-1','d-3-2','d-3-3',
+      'd-4-1','d-4-2','d-4-3a','d-4-4',
+    ];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = ''; el.classList.add('cell-loading'); }
+    });
   }
 
   function fillFromSheet(row) {
@@ -798,6 +839,7 @@
     document.getElementById('display-date').textContent = toThaiDate(dateVal);
     setStatus('loading', '⏳ กำลังโหลดข้อมูลจาก Google Sheets...');
     document.getElementById('debug-body').innerHTML = '';
+    setLoadingCells();
 
     try {
       const resp = await fetch(CSV_URL);
