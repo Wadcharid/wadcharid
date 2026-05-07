@@ -29,38 +29,37 @@
 </head>
 <body class="p-4 sm:p-6 md:p-10">
     <div class="max-w-3xl mx-auto glass-card rounded-3xl shadow-2xl overflow-hidden">
-        <!-- App Header & Navigation -->
+        <!-- App Header -->
         <header class="bg-slate-900 p-6 text-white text-center">
             <h1 class="text-2xl font-bold tracking-tight">Investment Calc Pro</h1>
-            <p class="text-slate-400 text-sm mt-1">เครื่องมือวิเคราะห์หุ้นเชิงคุณภาพและปริมาณ</p>
+            <p class="text-slate-400 text-sm mt-1">วิเคราะห์ระยะเวลาทำกำไร 100% (Double Money)</p>
         </header>
 
         <nav class="flex p-2 bg-slate-100 gap-2">
             <button onclick="switchTab('payback')" id="btn-payback" class="nav-transition flex-1 py-3 px-4 rounded-xl font-semibold text-slate-600 active-tab">
-                Payback Period
+                Double Money Period
             </button>
             <button onclick="switchTab('intrinsic')" id="btn-intrinsic" class="nav-transition flex-1 py-3 px-4 rounded-xl font-semibold text-slate-600">
                 Intrinsic Value
             </button>
         </nav>
 
-        <!-- Main Content Area -->
         <main class="p-6 md:p-8">
             
-            <!-- SECTION 1: PAYBACK PERIOD -->
+            <!-- SECTION 1: DOUBLE MONEY PERIOD -->
             <div id="section-payback" class="space-y-6">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
                     </div>
-                    <h2 class="text-xl font-bold text-slate-800">คำนวณระยะเวลาคืนทุน</h2>
+                    <h2 class="text-xl font-bold text-slate-800">คำนวณระยะเวลา "กำไรเท่าตัว"</h2>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-700">P/E ที่ซื้อ (เท่า)</label>
+                        <label class="block text-sm font-medium text-slate-700">P/E ที่ซื้อ (เงินต้น)</label>
                         <input type="number" id="pb-entry-pe" value="25" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                     <div class="space-y-2">
@@ -68,28 +67,29 @@
                         <input type="number" id="pb-growth" value="12" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
                     </div>
                     <div class="md:col-span-2 space-y-2 text-center">
-                        <label class="block text-sm font-medium text-slate-700">P/E ที่เหมาะสมในอนาคต (Exit P/E)</label>
-                        <input type="number" id="pb-exit-pe" value="20" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
-                        <p class="text-[11px] text-slate-400 italic">* คำนวณคืนทุนจาก (มูลค่าหุ้นในอนาคต + กำไรสะสม)</p>
+                        <label class="block text-sm font-medium text-slate-700">คาดการณ์ P/E ในอนาคต (Exit P/E)</label>
+                        <input type="number" id="pb-exit-pe" value="25" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                        <p class="text-[11px] text-slate-400 italic px-4">* คำนวณหาจำนวนปีที่ (มูลค่าหุ้น + กำไรสะสม) จะโตเป็น 2 เท่าของราคาซื้อ</p>
                     </div>
                 </div>
 
                 <button onclick="calcPayback()" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 transition-all active:scale-95">
-                    เริ่มคำนวณคืนทุน
+                    วิเคราะห์ระยะเวลาคืนทุน + กำไร 1 เท่า
                 </button>
 
                 <div id="pb-result-area" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 text-center">
-                        <span class="text-blue-600 font-semibold text-sm">คุณจะคืนทุนในเวลาประมาณ</span>
+                        <span class="text-blue-600 font-semibold text-sm">คุณจะมีกำไรสะสม + ส่วนต่างราคาครบ 100% ใน</span>
                         <div class="text-5xl font-black text-blue-700 my-2"><span id="pb-years">0</span> <span class="text-2xl">ปี</span></div>
                     </div>
                     <div class="mt-6 overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
-                        <table class="w-full text-sm">
+                        <table class="w-full text-xs sm:text-sm">
                             <thead class="bg-slate-50">
                                 <tr>
                                     <th class="p-3 text-left">ปีที่</th>
                                     <th class="p-3 text-right">EPS</th>
-                                    <th class="p-3 text-right">รวมมูลค่าทั้งหมด</th>
+                                    <th class="p-3 text-right">กำไรสะสม</th>
+                                    <th class="p-3 text-right">มูลค่ารวม*</th>
                                 </tr>
                             </thead>
                             <tbody id="pb-table-body"></tbody>
@@ -242,41 +242,48 @@
             const growth = parseFloat(document.getElementById('pb-growth').value) / 100;
             const exitPe = parseFloat(document.getElementById('pb-exit-pe').value);
             
-            if (isNaN(entryPe) || isNaN(growth)) return;
+            if (isNaN(entryPe) || isNaN(growth) || isNaN(exitPe)) return;
 
+            const targetValue = entryPe * 2; // เป้าหมายคือต้องโตเป็น 2 เท่าของเงินต้นที่จ่าย (P/E ที่ซื้อ)
             let currentEps = 1;
             let accEps = 0;
             let finalYear = 0;
             let found = false;
+            let prevTotal = entryPe; // ปีที่ 0 มีมูลค่าเท่ากับที่ซื้อมา
+            
             const tableBody = document.getElementById('pb-table-body');
             tableBody.innerHTML = '';
 
             for (let i = 1; i <= 50; i++) {
                 currentEps *= (1 + growth);
                 accEps += currentEps;
-                const totalValue = (currentEps * exitPe) + accEps;
+                
+                // มูลค่ารวม = (ราคาหุ้นตาม Exit PE) + กำไรสะสม
+                const totalReturn = (currentEps * exitPe) + accEps;
 
-                if (totalValue >= entryPe && !found) {
-                    const prevEps = currentEps / (1 + growth);
-                    const prevAcc = accEps - currentEps;
-                    const prevTotal = (prevEps * exitPe) + prevAcc;
-                    finalYear = (i - 1) + ((entryPe - prevTotal) / (totalValue - prevTotal));
+                if (totalReturn >= targetValue && !found) {
+                    // คำนวณจุดทศนิยมของปี
+                    finalYear = (i - 1) + ((targetValue - prevTotal) / (totalReturn - prevTotal));
                     found = true;
                 }
 
                 const row = document.createElement('tr');
-                if (found && Math.abs(i - finalYear) < 1) row.className = "bg-blue-50 font-bold text-blue-700";
+                if (found && Math.abs(i - Math.ceil(finalYear)) < 1) row.className = "bg-blue-50 font-bold text-blue-700";
+                
                 row.innerHTML = `
                     <td class="p-3 border-b">${i}</td>
                     <td class="p-3 border-b text-right text-slate-500">${currentEps.toFixed(2)}</td>
-                    <td class="p-3 border-b text-right ${totalValue >= entryPe ? 'text-green-600' : 'text-slate-700'}">${totalValue.toFixed(2)}</td>
+                    <td class="p-3 border-b text-right text-slate-500">${accEps.toFixed(2)}</td>
+                    <td class="p-3 border-b text-right ${totalReturn >= targetValue ? 'text-green-600 font-bold' : 'text-slate-700'}">${totalReturn.toFixed(2)}</td>
                 `;
                 tableBody.appendChild(row);
-                if (found && i >= Math.ceil(finalYear) + 2) break;
+                
+                prevTotal = totalReturn;
+                if (found && i >= Math.ceil(finalYear) + 1) break; 
             }
 
             document.getElementById('pb-result-area').classList.remove('hidden');
-            document.getElementById('pb-years').innerText = finalYear.toFixed(2);
+            document.getElementById('pb-years').innerText = found ? finalYear.toFixed(2) : "> 50";
         }
 
         function calcIntrinsic() {
