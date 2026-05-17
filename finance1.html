@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Expense Estimator - เครื่องมือช่วยนึกและประเมินรายจ่าย</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Sarabun) -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons (SVG inline fallback or cdn) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-100 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-500 text-white p-2 rounded-xl">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 tracking-tight">Smart Expense Estimator</h1>
+                    <p class="text-xs text-slate-500">ช่วยนึก ช่วยคำนวณ ประเมินรายจ่ายได้ครบถ้วน</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                    <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                    พร้อมใช้งานออฟไลน์
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Hero & Profile Selection -->
+        <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-6 sm:p-8 text-white mb-8 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-64 h-64 bg-emerald-500 rounded-full blur-3xl opacity-20"></div>
+            <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-10"></div>
+            
+            <div class="relative z-10 max-w-3xl">
+                <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">ตัวช่วยไขปัญหาการลืมรายจ่าย</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold mt-3 mb-2">นึกรายจ่ายไม่ออกใช่ไหม?</h2>
+                <p class="text-slate-300 text-sm sm:text-base mb-6 leading-relaxed">
+                    หมดกังวลเรื่องลืมคิดค่าใช้จ่ายแฝง! เลือกสไตล์ชีวิตของคุณด้านล่างเพื่อดึงรายการรายจ่ายที่พบบ่อยมาเป็นแนวทางนำร่อง หรือสร้างรายการด้วยตัวเองได้ทันที
+                </p>
+                
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">กรุณาเลือกรูปแบบชีวิตของคุณเพื่อเริ่มต้น:</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <button onclick="loadProfile('first-jobber')" class="profile-btn group bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 p-3 rounded-2xl transition text-left focus:outline-none">
+                        <div class="text-emerald-400 group-hover:scale-110 transition duration-300 mb-1"><i data-lucide="briefcase" class="w-5 h-5"></i></div>
+                        <div class="font-bold text-xs">First Jobber</div>
+                        <div class="text-[10px] text-slate-400">พึ่งเริ่มทำงาน, เช่าหอพัก</div>
+                    </button>
+                    <button onclick="loadProfile('family')" class="profile-btn group bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 p-3 rounded-2xl transition text-left focus:outline-none">
+                        <div class="text-indigo-400 group-hover:scale-110 transition duration-300 mb-1"><i data-lucide="home" class="w-5 h-5"></i></div>
+                        <div class="font-bold text-xs">คนมีครอบครัว/มีรถมีบ้าน</div>
+                        <div class="text-[10px] text-slate-400">มีภาระผ่อน, ค่าเทอมลูก</div>
+                    </button>
+                    <button onclick="loadProfile('freelance')" class="profile-btn group bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 p-3 rounded-2xl transition text-left focus:outline-none">
+                        <div class="text-amber-400 group-hover:scale-110 transition duration-300 mb-1"><i data-lucide="coffee" class="w-5 h-5"></i></div>
+                        <div class="font-bold text-xs">ฟรีแลนซ์ / เจ้าของธุรกิจ</div>
+                        <div class="text-[10px] text-slate-400">รายได้ไม่แน่นอน, ค่าอุปกรณ์</div>
+                    </button>
+                    <button onclick="loadProfile('student')" class="profile-btn group bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 p-3 rounded-2xl transition text-left focus:outline-none">
+                        <div class="text-rose-400 group-hover:scale-110 transition duration-300 mb-1"><i data-lucide="book-open" class="w-5 h-5"></i></div>
+                        <div class="font-bold text-xs">นักเรียน / นักศึกษา</div>
+                        <div class="text-[10px] text-slate-400">เน้นค่าหอ, อุปกรณ์การเรียน</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Summary Cards & Input Form -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Panel: Interactive Expense Checklist & Form (7 Columns) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Target Income & Budget Goal Setup -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="badge-dollar-sign" class="w-5 h-5"></i></span>
+                            <h3 class="font-bold text-slate-900">ระบุรายได้ของคุณ (เพื่อช่วยวิเคราะห์ส่วนต่าง)</h3>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1.5">รายได้เฉลี่ยต่อเดือน (บาท)</label>
+                            <div class="relative">
+                                <input type="number" id="monthly-income" oninput="calculateBudget()" placeholder="เช่น 30,000" class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition text-sm">
+                                <span class="absolute left-3.5 top-2.5 text-slate-400 text-sm">฿</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 rounded-xl p-3 flex flex-col justify-center border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase">คำนวณรายได้ต่อปี</span>
+                            <span id="annual-income-disp" class="text-sm font-bold text-indigo-600">฿0 / ปี</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expense Category Selector Tabs -->
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="border-b border-slate-100 bg-slate-50/50 p-4 flex flex-wrap gap-2 items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="list-checks" class="w-5 h-5"></i></span>
+                            <h3 class="font-bold text-slate-900">รายการค่าใช้จ่ายแต่ละหมวด</h3>
+                        </div>
+                        <span class="text-xs text-slate-400 font-medium">สลับเพื่อระบุตามจริง</span>
+                    </div>
+
+                    <!-- Tabs Header -->
+                    <div class="flex overflow-x-auto border-b border-slate-100 scrollbar-none bg-white p-2" id="category-tabs">
+                        <!-- Tabs will be rendered dynamically here -->
+                    </div>
+
+                    <!-- Category Active Content -->
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h4 id="active-cat-name" class="font-bold text-slate-800 text-lg">หมวดหมู่</h4>
+                                <p id="active-cat-desc" class="text-xs text-slate-400">คำอธิบายหมวดหมู่</p>
+                            </div>
+                            <!-- Quick actions -->
+                            <button onclick="openCustomItemModal()" class="flex items-center space-x-1 text-xs text-emerald-600 hover:text-emerald-700 font-medium bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl transition">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                <span>เพิ่มรายการใหม่เอง</span>
+                            </button>
+                        </div>
+
+                        <!-- Expense Inputs Table/List -->
+                        <div id="expense-inputs-container" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                            <!-- Dynamic checklist elements will be added here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forgotten Expenses Suggestion Checklist -->
+                <div class="bg-amber-50/50 border border-amber-200/60 rounded-2xl p-6">
+                    <div class="flex items-start space-x-3">
+                        <div class="p-2 bg-amber-100 text-amber-700 rounded-xl mt-0.5">
+                            <i data-lucide="lightbulb" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-amber-900 text-sm sm:text-base">เช็กด่วน! รายจ่ายรายปีที่คุณอาจจะลืมคิด</h4>
+                            <p class="text-xs text-amber-700 mt-1 mb-3">รายจ่ายเหล่านี้มักจะเกิดขึ้นเป็นครั้งคราว แต่อาจทำให้งบการเงินสะดุดหากไม่ได้เฉลี่ยเงินเตรียมไว้:</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-amber-800" id="annual-forgotten-checklist">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Panel: Results Dashboard & Analysis (5 Columns) -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- Expense Dashboard Summary -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm sticky top-24 space-y-6">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h3 class="font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="p-1.5 bg-emerald-500 text-white rounded-lg"><i data-lucide="pie-chart" class="w-4 h-4"></i></span>
+                            <span>สรุปประเมินรายจ่ายทั้งหมด</span>
+                        </h3>
+                    </div>
+
+                    <!-- Highlight Totals -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-semibold block uppercase">เฉลี่ยต่อเดือน</span>
+                            <span id="total-monthly-disp" class="text-xl sm:text-2xl font-black text-emerald-600 block mt-1">฿0</span>
+                        </div>
+                        <div class="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+                            <span class="text-[10px] text-slate-400 font-semibold block uppercase">รวมทั้งหมดต่อปี</span>
+                            <span id="total-annual-disp" class="text-xl sm:text-2xl font-black text-indigo-600 block mt-1">฿0</span>
+                        </div>
+                    </div>
+
+                    <!-- Doughnut Chart Container -->
+                    <div class="flex justify-center items-center py-4 relative">
+                        <div class="w-48 h-48">
+                            <canvas id="expenseChart"></canvas>
+                        </div>
+                        <!-- Empty state placeholder inside chart area -->
+                        <div id="chart-empty-state" class="absolute inset-0 flex flex-col justify-center items-center text-center bg-white/95 z-10">
+                            <i data-lucide="activity" class="w-8 h-8 text-slate-300 animate-pulse mb-1"></i>
+                            <span class="text-xs text-slate-400 font-medium">เริ่มกรอกข้อมูลเพื่อจำแนกสัดส่วน</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdowns List -->
+                    <div class="space-y-3" id="chart-legend-container">
+                        <!-- Dynamic categories display -->
+                    </div>
+
+                    <!-- Financial Health / 50-30-20 Rule Comparison -->
+                    <div id="financial-advice-box" class="bg-slate-50 rounded-2xl p-4 border border-slate-100 hidden">
+                        <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2.5 flex items-center justify-between">
+                            <span>วิเคราะห์ตามหลักการ 50/30/20</span>
+                            <span class="text-[10px] text-slate-400">สัดส่วนในอุดมคติ</span>
+                        </h4>
+                        <div class="space-y-3">
+                            <!-- Needs 50% -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-500 font-medium">รายจ่ายจำเป็น (Needs - 50%)</span>
+                                    <span id="needs-ratio" class="font-bold text-slate-700">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                    <div id="needs-bar" class="bg-rose-500 h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- Wants 30% -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-500 font-medium">ความสุขส่วนตัว (Wants - 30%)</span>
+                                    <span id="wants-ratio" class="font-bold text-slate-700">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                    <div id="wants-bar" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <!-- Savings 20% -->
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-500 font-medium">เงินออมและลงทุน (Savings - 20%)</span>
+                                    <span id="savings-ratio" class="font-bold text-slate-700">0%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                                    <div id="savings-bar" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="rule-assessment" class="text-xs text-slate-500 mt-3 p-2 bg-white rounded-lg border border-slate-100 leading-relaxed">
+                            ระบบกำลังประเมิน...
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button onclick="resetAllData()" class="flex items-center justify-center space-x-2 py-2.5 px-4 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            <span>ล้างค่าทั้งหมด</span>
+                        </button>
+                        <button onclick="exportToPrint()" class="flex items-center justify-center space-x-2 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition shadow-md">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>พิมพ์ / ส่งออกสรุป</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal for Custom Item Creation -->
+    <div id="custom-item-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <h3 class="font-bold text-slate-900 text-lg flex items-center space-x-2">
+                    <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="plus-circle" class="w-5 h-5"></i></span>
+                    <span>เพิ่มรายการรายจ่ายกำหนดเอง</span>
+                </h3>
+                <button onclick="closeCustomItemModal()" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1.5">ชื่อรายการค่าใช้จ่าย</label>
+                    <input type="text" id="custom-item-name" placeholder="เช่น ค่าสตรีมมิ่งดูซีรีส์, ค่าอาหารเสริม" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">หมวดหมู่</label>
+                        <select id="custom-item-cat" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">ประเภทความต้องการ</label>
+                        <select id="custom-item-type" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                            <option value="needs">จำเป็น (Needs)</option>
+                            <option value="wants">ความสุข (Wants)</option>
+                            <option value="savings">เงินออม (Savings)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">จำนวนเงิน (บาท)</label>
+                        <input type="number" id="custom-item-val" placeholder="0" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1.5">รอบบิล / ความถี่</label>
+                        <select id="custom-item-freq" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-sm">
+                            <option value="monthly">ต่อเดือน</option>
+                            <option value="annual">ต่อปี</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex space-x-3 mt-6 pt-4 border-t border-slate-100">
+                <button onclick="closeCustomItemModal()" class="flex-1 py-2.5 text-slate-500 hover:bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold transition">ยกเลิก</button>
+                <button onclick="submitCustomItem()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition shadow-md">บันทึกรายการ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print / Export Styling Hidden Section -->
+    <div id="print-area" class="hidden">
+        <div class="p-8 max-w-4xl mx-auto space-y-6">
+            <div class="text-center border-b pb-6">
+                <h1 class="text-2xl font-bold text-slate-900">เอกสารประเมินรายจ่ายรายเดือนและรายปี</h1>
+                <p class="text-sm text-slate-500">สร้างด้วยโปรแกรม Smart Expense Estimator</p>
+                <p class="text-xs text-slate-400 mt-1" id="print-date"></p>
+            </div>
+            <div class="grid grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                <div>
+                    <span class="text-xs text-slate-500 block">รายได้ประเมินต่อเดือน:</span>
+                    <span id="print-income-monthly" class="text-lg font-bold text-slate-800">฿0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-500 block">รายได้ประเมินต่อปี:</span>
+                    <span id="print-income-annual" class="text-lg font-bold text-slate-800">฿0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-500 block">สรุปรายจ่ายทั้งหมดต่อเดือน:</span>
+                    <span id="print-expense-monthly" class="text-lg font-bold text-emerald-600">฿0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-500 block">สรุปรายจ่ายทั้งหมดต่อปี:</span>
+                    <span id="print-expense-annual" class="text-lg font-bold text-indigo-600">฿0</span>
+                </div>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 border-b pb-2 mb-4">จำแนกตามหมวดหมู่หลัก</h3>
+                <div id="print-categories-list" class="space-y-3">
+                    <!-- Dynamic category tables for print -->
+                </div>
+            </div>
+            <div class="border-t pt-6 text-center text-xs text-slate-400">
+                ขอบคุณที่ใช้บริการวางแผนการเงินของเรา ขอให้มีสุขภาพทางการเงินที่แข็งแรงและมั่นคง!
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400 space-y-2">
+            <p>Smart Expense Estimator &copy; 2026 - เพื่อนแท้ช่วยสแกนค่าใช้จ่ายของคุณ</p>
+            <p class="text-[10px]">บันทึกข้อมูลเพื่อความปลอดภัยในเบราว์เซอร์ของคุณเท่านั้น ไม่เก็บข้อมูลบนคลาวด์/เซิร์ฟเวอร์โดยไม่ได้รับอนุญาต</p>
+        </div>
+    </footer>
+
+    <!-- Core App Logic Script -->
+    <script>
+        // Database of common expenses categorised for mental stimulation and estimation
+        const expenseCategories = {
+            housing: {
+                id: 'housing',
+                name: 'ที่อยู่อาศัย & สาธารณูปโภค',
+                desc: 'ค่าใช้จ่ายเกี่ยวกับบ้าน ที่พึ่งพิง และระบบน้ำไฟอินเทอร์เน็ต',
+                icon: 'home',
+                color: '#4f46e5', // Indigo
+                items: [
+                    { id: 'rent_mortgage', name: 'ค่าเช่าบ้าน / ผ่อนบ้าน / คอนโด', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'electricity', name: 'ค่าไฟฟ้า', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'water', name: 'ค่าน้ำประปา', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'internet', name: 'ค่าอินเทอร์เน็ตบ้าน', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'phone_bill', name: 'ค่าบริการโทรศัพท์มือถือ', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'condo_fee', name: 'ค่าส่วนกลางหมู่บ้าน/คอนโด', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'house_maintenance', name: 'ค่าซ่อมแซมและบำรุงรักษาบ้าน', defaultVal: 0, freq: 'annual', type: 'needs' }
+                ]
+            },
+            transportation: {
+                id: 'transportation',
+                name: 'การเดินทาง & ยานพาหนะ',
+                desc: 'ค่าน้ำมันรถ ค่าซ่อมบำรุง รวมถึงค่าบัตรรถไฟฟ้าต่างๆ',
+                icon: 'car',
+                color: '#3b82f6', // Blue
+                items: [
+                    { id: 'car_mortgage', name: 'ค่าผ่อนงวดรถยนต์ / รถมอเตอร์ไซค์', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'fuel', name: 'ค่าน้ำมันรถ / ค่าชาร์จรถไฟฟ้า EV', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'public_transport', name: 'ค่าบัตรรถไฟฟ้า (BTS/MRT) / รถเมล์ / วิน', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'car_insurance', name: 'ค่าประกันภัยรถยนต์รายปี', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'car_maintenance', name: 'ค่าตรวจเช็กสภาพรถ / เปลี่ยนยาง / ถ่ายน้ำมันเครื่อง', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'car_tax', name: 'ภาษีรถยนต์ประจำปี + พ.ร.บ.', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'highway_toll', name: 'ค่าทางด่วน / ค่าที่จอดรถ', defaultVal: 0, freq: 'monthly', type: 'needs' }
+                ]
+            },
+            food_groceries: {
+                id: 'food_groceries',
+                name: 'อาหาร & ของใช้ในบ้าน',
+                desc: 'ปากท้องและปัจจัยสำคัญที่ต้องซื้อเข้าครัวเรือนเป็นประจำ',
+                icon: 'shopping-cart',
+                color: '#10b981', // Emerald
+                items: [
+                    { id: 'daily_meals', name: 'ค่าอาหาร 3 มื้อประจำวัน', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'groceries', name: 'ค่าซื้อของเข้าบ้าน (สบู่, แชมพู, กระดาษทิชชู, ผงซักฟอก)', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'dining_out', name: 'สังสรรค์นอกบ้าน / ปาร์ตี้สุดสัปดาห์ / หมูกระทะ', defaultVal: 0, freq: 'monthly', type: 'wants' },
+                    { id: 'coffee_snacks', name: 'ค่ากาแฟสด / ชานมไข่มุก / ขนมขบเคี้ยว', defaultVal: 0, freq: 'monthly', type: 'wants' }
+                ]
+            },
+            personal_lifestyle: {
+                id: 'personal_lifestyle',
+                name: 'ช้อปปิ้ง & ไลฟ์สไตล์',
+                desc: 'ความบันเทิง และสิ่งของนอกเหนือความจำเป็นเพื่อเติมความสุข',
+                icon: 'sparkles',
+                color: '#ec4899', // Pink
+                items: [
+                    { id: 'shopping_clothes', name: 'เสื้อผ้าแฟชั่น / รองเท้า / เครื่องแต่งกาย', defaultVal: 0, freq: 'monthly', type: 'wants' },
+                    { id: 'cosmetics_salon', name: 'เครื่องสำอาง / สกินแคร์ / ค่าตัดผม-เสริมสวย', defaultVal: 0, freq: 'monthly', type: 'wants' },
+                    { id: 'streaming_services', name: 'ค่าบริการรายเดือน (Netflix, Spotify, YouTube Premium)', defaultVal: 0, freq: 'monthly', type: 'wants' },
+                    { id: 'gym_sports', name: 'ค่าสมาชิกฟิตเนส / กิจกรรมกีฬา / สปอร์ตคลับ', defaultVal: 0, freq: 'monthly', type: 'wants' },
+                    { id: 'gadget_upgrade', name: 'ค่าผ่อนโทรศัพท์มือถือใหม่ / อุปกรณ์ไอที', defaultVal: 0, freq: 'monthly', type: 'wants' },
+                    { id: 'annual_travel', name: 'งบท่องเที่ยวประจำปี / พักร้อนต่างประเทศ', defaultVal: 0, freq: 'annual', type: 'wants' }
+                ]
+            },
+            health_insurance: {
+                id: 'health_insurance',
+                name: 'สุขภาพ & ประกันชีวิต',
+                desc: 'เกราะป้องกันความเสี่ยง และเรื่องจำเป็นเมื่อเจ็บป่วย',
+                icon: 'heart-pulse',
+                color: '#ef4444', // Red
+                items: [
+                    { id: 'health_life_insurance', name: 'ค่าเบี้ยประกันสุขภาพ / ประกันชีวิตรายปี', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'medical_medicine', name: 'ค่ายาประจำตัว / ทุนรักษาพยาบาลเบื้องต้น', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'dental_care', name: 'ค่าทำฟันประจำปี (ขูดหินปูน / ตรวจสุขภาพช่องปาก)', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'social_security', name: 'ค่าประกันสังคม (สำหรับผู้จ่ายมาตรา 39/40 หรือหักสำรอง)', defaultVal: 0, freq: 'monthly', type: 'needs' }
+                ]
+            },
+            family_dependents: {
+                id: 'family_dependents',
+                name: 'ครอบครัว & สัตว์เลี้ยง',
+                desc: 'ดูแลบุคคลที่คุณรัก รวมถึงเพื่อนสี่ขาที่แสนดี',
+                icon: 'users',
+                color: '#8b5cf6', // Purple
+                items: [
+                    { id: 'parents_allowance', name: 'เงินส่งเสียให้คุณพ่อคุณแม่ / ครอบครัว', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'child_tuition', name: 'ค่าเทอมลูก / สถาบันกวดวิชา', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'child_pocket_money', name: 'เงินค่าขนมรายวันให้ลูก / เสื้อผ้าเด็ก', defaultVal: 0, freq: 'monthly', type: 'needs' },
+                    { id: 'pet_food_vet', name: 'อาหารสัตว์เลี้ยง / ทรายแมว / พาน้องหาหมอ', defaultVal: 0, freq: 'monthly', type: 'needs' }
+                ]
+            },
+            saving_investment: {
+                id: 'saving_investment',
+                name: 'เงินออม & การลงทุน',
+                desc: 'รายจ่ายที่ถือเป็นสินทรัพย์ เพื่อชีวิตวัยเกษียณที่สบาย',
+                icon: 'trending-up',
+                color: '#f59e0b', // Amber
+                items: [
+                    { id: 'emergency_saving', name: 'เงินออมเผื่อฉุกเฉินประจำเดือน', defaultVal: 0, freq: 'monthly', type: 'savings' },
+                    { id: 'stock_funds', name: 'ตัดยอดซื้อกองทุน / หุ้น / ตราสารหนี้ (DCA)', defaultVal: 0, freq: 'monthly', type: 'savings' },
+                    { id: 'pvd_rmf_ssf', name: 'กองทุนสำรองเลี้ยงชีพ / RMF / SSF ลดหย่อนภาษี', defaultVal: 0, freq: 'monthly', type: 'savings' },
+                    { id: 'gold_crypto', name: 'ออมทองคำ / สินทรัพย์อื่นๆ', defaultVal: 0, freq: 'monthly', type: 'savings' }
+                ]
+            },
+            taxes_gifts: {
+                id: 'taxes_gifts',
+                name: 'ภาษี & สังคม',
+                desc: 'หน้าที่พลเมืองดี และค่าใช้จ่ายเพื่อเชื่อมสายสัมพันธ์',
+                icon: 'gift',
+                color: '#06b6d4', // Cyan
+                items: [
+                    { id: 'personal_tax', name: 'ภาษีเงินได้บุคคลธรรมดาประจำปี', defaultVal: 0, freq: 'annual', type: 'needs' },
+                    { id: 'wedding_funeral_gift', name: 'ซองงานแต่ง / งานบวช / งานศพ / งานปีใหม่', defaultVal: 0, freq: 'annual', type: 'wants' },
+                    { id: 'donation_merit', name: 'เงินทำบุญ / บริจาคเพื่อสังคม', defaultVal: 0, freq: 'monthly', type: 'wants' }
+                ]
+            }
+        };
+
+        // Standard user profiles templates for ease of use
+        const userProfiles = {
+            'first-jobber': {
+                income: 25000,
+                expenses: {
+                    rent_mortgage: 6000,
+                    electricity: 1200,
+                    water: 150,
+                    internet: 400,
+                    phone_bill: 499,
+                    public_transport: 1800,
+                    daily_meals: 6000,
+                    groceries: 1000,
+                    coffee_snacks: 800,
+                    dining_out: 1500,
+                    streaming_services: 350,
+                    social_security: 750,
+                    emergency_saving: 2000,
+                    annual_travel: 12000
+                }
+            },
+            'family': {
+                income: 80000,
+                expenses: {
+                    rent_mortgage: 18000,
+                    electricity: 3500,
+                    water: 400,
+                    internet: 600,
+                    phone_bill: 1200,
+                    condo_fee: 15000,
+                    car_mortgage: 11000,
+                    fuel: 4000,
+                    car_insurance: 18000,
+                    car_maintenance: 8000,
+                    car_tax: 3500,
+                    daily_meals: 15000,
+                    groceries: 4000,
+                    dining_out: 4000,
+                    health_life_insurance: 36000,
+                    parents_allowance: 10000,
+                    child_tuition: 50000,
+                    child_pocket_money: 3000,
+                    emergency_saving: 5000,
+                    personal_tax: 25000
+                }
+            },
+            'freelance': {
+                income: 45000,
+                expenses: {
+                    rent_mortgage: 8000,
+                    electricity: 2500,
+                    water: 250,
+                    internet: 700,
+                    phone_bill: 699,
+                    public_transport: 1000,
+                    daily_meals: 7500,
+                    groceries: 1500,
+                    coffee_snacks: 1200,
+                    dining_out: 2500,
+                    streaming_services: 450,
+                    health_life_insurance: 24000,
+                    social_security: 432, // มาตรา 39
+                    emergency_saving: 5000,
+                    stock_funds: 3000,
+                    personal_tax: 15000
+                }
+            },
+            'student': {
+                income: 9000,
+                expenses: {
+                    rent_mortgage: 4000,
+                    electricity: 800,
+                    water: 100,
+                    phone_bill: 299,
+                    public_transport: 800,
+                    daily_meals: 4000,
+                    groceries: 500,
+                    coffee_snacks: 400,
+                    streaming_services: 150,
+                    emergency_saving: 500
+                }
+            }
+        };
+
+        // State variables
+        let activeCategoryId = 'housing';
+        let customItems = []; // List of custom-added items
+        let userExpensesState = {}; // Key-value pairs of item_id: value (always stored as monthly amount)
+        let userIncome = 0;
+        let expenseChart = null;
+
+        // Initialize Application
+        window.onload = function() {
+            lucide.createIcons();
+            initTabs();
+            renderActiveCategory();
+            initChart();
+            renderForgottenChecklist();
+            populateCategorySelect();
+        };
+
+        // Initialize Navigation Tabs
+        function initTabs() {
+            const container = document.getElementById('category-tabs');
+            container.innerHTML = '';
+            
+            Object.values(expenseCategories).forEach(cat => {
+                const button = document.createElement('button');
+                button.id = `tab-${cat.id}`;
+                button.className = `flex-none flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-all duration-200 outline-none`;
+                button.onclick = () => switchCategory(cat.id);
+                
+                // Set default style for inactive
+                button.classList.add('bg-transparent', 'text-slate-500', 'hover:bg-slate-100');
+                
+                button.innerHTML = `
+                    <i data-lucide="${cat.icon}" class="w-4 h-4" style="color: ${cat.color}"></i>
+                    <span>${cat.name}</span>
+                `;
+                
+                container.appendChild(button);
+            });
+            
+            // Activate the first tab
+            switchCategory('housing');
+            lucide.createIcons();
+        }
+
+        // Switch active category tab
+        function switchCategory(catId) {
+            // Remove active classes from old tab
+            const prevTab = document.getElementById(`tab-${activeCategoryId}`);
+            if (prevTab) {
+                prevTab.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'border-slate-200');
+                prevTab.classList.add('bg-transparent', 'text-slate-500', 'hover:bg-slate-100');
+            }
+            
+            activeCategoryId = catId;
+            
+            // Add active classes to new tab
+            const activeTab = document.getElementById(`tab-${catId}`);
+            if (activeTab) {
+                activeTab.classList.remove('bg-transparent', 'text-slate-500', 'hover:bg-slate-100');
+                activeTab.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'border-slate-200', 'border');
+            }
+            
+            renderActiveCategory();
+        }
+
+        // Populate Category select inside Custom Item Modal
+        function populateCategorySelect() {
+            const selectEl = document.getElementById('custom-item-cat');
+            selectEl.innerHTML = '';
+            Object.values(expenseCategories).forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                selectEl.appendChild(opt);
+            });
+        }
+
+        // Render input items of current category
+        function renderActiveCategory() {
+            const cat = expenseCategories[activeCategoryId];
+            document.getElementById('active-cat-name').textContent = cat.name;
+            document.getElementById('active-cat-desc').textContent = cat.desc;
+            
+            const listContainer = document.getElementById('expense-inputs-container');
+            listContainer.innerHTML = '';
+            
+            // Combine default items and custom items for this category
+            const mergedItems = [
+                ...cat.items,
+                ...customItems.filter(item => item.catId === activeCategoryId)
+            ];
+
+            if (mergedItems.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i data-lucide="folder-open" class="w-12 h-12 mx-auto stroke-1 mb-2"></i>
+                        <p class="text-sm">ไม่มีรายการในหมวดหมู่นี้ ลองเพิ่มรายการใหม่ได้ทันที</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            mergedItems.forEach(item => {
+                const currentVal = userExpensesState[item.id] || 0;
+                
+                // Fixed calculation logic: 
+                // Since userExpensesState is ALWAYS stored as "monthly amount", 
+                // monthlyPlaceholder should be the monthly value itself, and annualPlaceholder should be multiplied by 12.
+                const monthlyPlaceholder = currentVal ? Math.round(currentVal) : '';
+                const annualPlaceholder = currentVal ? Math.round(currentVal * 12) : '';
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-50 border border-slate-200/50 rounded-2xl transition hover:shadow-sm gap-3`;
+                
+                // Label part
+                const labelColorClass = item.type === 'needs' ? 'text-rose-600 bg-rose-50' : item.type === 'wants' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50';
+                const labelText = item.type === 'needs' ? 'จำเป็น' : item.type === 'wants' ? 'ความสุข' : 'เงินออม';
+                
+                itemDiv.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2 flex-wrap gap-y-1">
+                            <span class="text-xs font-bold text-slate-700">${item.name}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${labelColorClass}">${labelText}</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">ความถี่หลัก: ${item.freq === 'monthly' ? 'รายเดือน' : 'รายปี'}</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                        <!-- Monthly Input -->
+                        <div class="flex-1 sm:flex-initial">
+                            <div class="relative">
+                                <input type="number" 
+                                       id="input-m-${item.id}" 
+                                       placeholder="รายเดือน" 
+                                       value="${monthlyPlaceholder}" 
+                                       oninput="handleExpenseInput('${item.id}', 'monthly', this.value)"
+                                       class="w-full sm:w-28 pl-6 pr-2 py-1.5 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-emerald-500">
+                                <span class="absolute left-2.5 top-2.5 text-[10px] text-slate-400">฿</span>
+                                <span class="absolute right-2.5 top-2 text-[8px] text-slate-400 bg-slate-100 px-1 py-0.5 rounded">/ ด.</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-slate-400 text-xs flex-none hidden sm:block"><i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i></div>
+                        
+                        <!-- Annual Input -->
+                        <div class="flex-1 sm:flex-initial">
+                            <div class="relative">
+                                <input type="number" 
+                                       id="input-y-${item.id}" 
+                                       placeholder="รายปี" 
+                                       value="${annualPlaceholder}" 
+                                       oninput="handleExpenseInput('${item.id}', 'annual', this.value)"
+                                       class="w-full sm:w-28 pl-6 pr-2 py-1.5 text-xs bg-white border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-emerald-500">
+                                <span class="absolute left-2.5 top-2.5 text-[10px] text-slate-400">฿</span>
+                                <span class="absolute right-2.5 top-2 text-[8px] text-slate-400 bg-slate-100 px-1 py-0.5 rounded">/ ปี</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                listContainer.appendChild(itemDiv);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // Handle user input changes
+        function handleExpenseInput(itemId, type, value) {
+            const numericVal = parseFloat(value) || 0;
+            const targetMonthlyInput = document.getElementById(`input-m-${itemId}`);
+            const targetAnnualInput = document.getElementById(`input-y-${itemId}`);
+
+            if (type === 'monthly') {
+                userExpensesState[itemId] = numericVal; // internally saved as standard monthly
+                if (targetAnnualInput) {
+                    targetAnnualInput.value = numericVal > 0 ? Math.round(numericVal * 12) : '';
+                }
+            } else {
+                userExpensesState[itemId] = numericVal / 12; // internally saved as standard monthly
+                if (targetMonthlyInput) {
+                    targetMonthlyInput.value = numericVal > 0 ? Math.round(numericVal / 12) : '';
+                }
+            }
+            
+            // Recalculate totals and charts
+            calculateBudget();
+        }
+
+        // Add a Forgotten Checklist
+        function renderForgottenChecklist() {
+            const container = document.getElementById('annual-forgotten-checklist');
+            container.innerHTML = '';
+            
+            // Find all items with freq 'annual' that haven't been filled
+            const annualItems = [];
+            Object.values(expenseCategories).forEach(cat => {
+                cat.items.forEach(item => {
+                    if (item.freq === 'annual') {
+                        annualItems.push(item);
+                    }
+                });
+            });
+
+            annualItems.slice(0, 6).forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex items-center space-x-2 p-1.5 bg-white rounded-lg border border-amber-100';
+                itemDiv.innerHTML = `
+                    <input type="checkbox" id="check-${item.id}" onchange="toggleForgottenItem('${item.id}', '${item.name}')" class="rounded text-amber-600 focus:ring-amber-500 w-3.5 h-3.5">
+                    <label for="check-${item.id}" class="select-none text-[11px] font-medium text-slate-700 cursor-pointer hover:text-slate-900">${item.name}</label>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        // Toggle focus/value on forgotten check item
+        function toggleForgottenItem(itemId, itemName) {
+            const checkbox = document.getElementById(`check-${itemId}`);
+            // Find which category this item belongs to
+            let foundCatId = 'housing';
+            Object.values(expenseCategories).forEach(cat => {
+                if (cat.items.some(i => i.id === itemId)) {
+                    foundCatId = cat.id;
+                }
+            });
+
+            if (checkbox.checked) {
+                // Switch to that category to highlight it
+                switchCategory(foundCatId);
+                // Highlight input field
+                setTimeout(() => {
+                    const input = document.getElementById(`input-y-${itemId}`);
+                    if (input) {
+                        input.focus();
+                        input.classList.add('ring-2', 'ring-amber-400');
+                        setTimeout(() => input.classList.remove('ring-2', 'ring-amber-400'), 2000);
+                    }
+                }, 100);
+            }
+        }
+
+        // Manage Profile Templates Loading
+        function loadProfile(profileKey) {
+            const profile = userProfiles[profileKey];
+            if (!profile) return;
+
+            // Reset state first
+            userExpensesState = {};
+            customItems = [];
+            
+            // Set income
+            document.getElementById('monthly-income').value = profile.income;
+            
+            // Set expenses
+            Object.entries(profile.expenses).forEach(([itemId, val]) => {
+                // Profile values are defined in their original frequency (either monthly or annual)
+                // Let's determine the item to find its frequency
+                let itemMeta = null;
+                Object.values(expenseCategories).forEach(cat => {
+                    const found = cat.items.find(i => i.id === itemId);
+                    if (found) itemMeta = found;
+                });
+
+                if (itemMeta) {
+                    if (itemMeta.freq === 'annual') {
+                        userExpensesState[itemId] = val / 12; // save internally as monthly
+                    } else {
+                        userExpensesState[itemId] = val;
+                    }
+                }
+            });
+
+            // Update UI elements
+            renderActiveCategory();
+            calculateBudget();
+
+            // Highlight buttons
+            document.querySelectorAll('.profile-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-emerald-400', 'bg-white/20'));
+            event.currentTarget.classList.add('ring-2', 'ring-emerald-400', 'bg-white/20');
+        }
+
+        // Custom Items Handling
+        function openCustomItemModal() {
+            document.getElementById('custom-item-modal').classList.remove('hidden');
+        }
+
+        function closeCustomItemModal() {
+            document.getElementById('custom-item-modal').classList.add('hidden');
+            // Clear inputs
+            document.getElementById('custom-item-name').value = '';
+            document.getElementById('custom-item-val').value = '';
+        }
+
+        function submitCustomItem() {
+            const name = document.getElementById('custom-item-name').value.trim();
+            const catId = document.getElementById('custom-item-cat').value;
+            const type = document.getElementById('custom-item-type').value;
+            const val = parseFloat(document.getElementById('custom-item-val').value) || 0;
+            const freq = document.getElementById('custom-item-freq').value;
+
+            if (!name) {
+                alert('กรุณากรอกชื่อรายการค่าใช้จ่าย');
+                return;
+            }
+
+            const uniqueId = 'custom_' + Date.now();
+            const newItem = { id: uniqueId, name, catId, type, freq, defaultVal: 0 };
+            
+            // Store item definition
+            customItems.push(newItem);
+            
+            // Store immediate value
+            if (freq === 'annual') {
+                userExpensesState[uniqueId] = val / 12;
+            } else {
+                userExpensesState[uniqueId] = val;
+            }
+
+            closeCustomItemModal();
+            renderActiveCategory();
+            calculateBudget();
+        }
+
+        // Initialize empty charts
+        function initChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            expenseChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ฿${context.raw.toLocaleString()}/ด.`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Main Calculation Engine
+        function calculateBudget() {
+            userIncome = parseFloat(document.getElementById('monthly-income').value) || 0;
+            document.getElementById('annual-income-disp').textContent = `฿${(userIncome * 12).toLocaleString()} / ปี`;
+            
+            let totalMonthly = 0;
+            let totalAnnual = 0;
+            
+            // Sum per category for charting
+            const categorySums = {};
+            Object.keys(expenseCategories).forEach(catId => {
+                categorySums[catId] = 0;
+            });
+
+            // Iterate state
+            Object.entries(userExpensesState).forEach(([itemId, monthlyVal]) => {
+                if (monthlyVal > 0) {
+                    totalMonthly += monthlyVal;
+                    
+                    // Match with category
+                    let matchedCatId = null;
+                    // Check defaults
+                    Object.values(expenseCategories).forEach(cat => {
+                        if (cat.items.some(i => i.id === itemId)) {
+                            matchedCatId = cat.id;
+                        }
+                    });
+                    // Check customs
+                    if (!matchedCatId) {
+                        const customItem = customItems.find(i => i.id === itemId);
+                        if (customItem) matchedCatId = customItem.catId;
+                    }
+
+                    if (matchedCatId) {
+                        categorySums[matchedCatId] += monthlyVal;
+                    }
+                }
+            });
+
+            totalAnnual = totalMonthly * 12;
+
+            // Render Results Display
+            document.getElementById('total-monthly-disp').textContent = `฿${Math.round(totalMonthly).toLocaleString()}`;
+            document.getElementById('total-annual-disp').textContent = `฿${Math.round(totalAnnual).toLocaleString()}`;
+
+            // Handle Empty / Active state for Chart
+            const chartEmptyState = document.getElementById('chart-empty-state');
+            if (totalMonthly > 0) {
+                chartEmptyState.classList.add('hidden');
+            } else {
+                chartEmptyState.classList.remove('hidden');
+            }
+
+            // Update Chart.js Data
+            updateChartData(categorySums);
+
+            // Update visual legend breakdowns
+            renderCategoryLegend(categorySums, totalMonthly);
+
+            // Update 50/30/20 breakdown
+            analyzeFinancialHealth(totalMonthly);
+        }
+
+        // Update Chart values
+        function updateChartData(categorySums) {
+            const labels = [];
+            const data = [];
+            const colors = [];
+
+            Object.entries(categorySums).forEach(([catId, sum]) => {
+                if (sum > 0) {
+                    labels.push(expenseCategories[catId].name);
+                    data.push(Math.round(sum));
+                    colors.push(expenseCategories[catId].color);
+                }
+            });
+
+            expenseChart.data.labels = labels;
+            expenseChart.data.datasets[0].data = data;
+            expenseChart.data.datasets[0].backgroundColor = colors;
+            expenseChart.update();
+        }
+
+        // Render Sidebar Breakdown Legend
+        function renderCategoryLegend(categorySums, grandTotal) {
+            const container = document.getElementById('chart-legend-container');
+            container.innerHTML = '';
+
+            Object.entries(categorySums).forEach(([catId, sum]) => {
+                if (sum > 0) {
+                    const pct = grandTotal > 0 ? Math.round((sum / grandTotal) * 100) : 0;
+                    const cat = expenseCategories[catId];
+                    
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between text-xs py-1.5 border-b border-slate-50';
+                    row.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${cat.color}"></span>
+                            <span class="text-slate-600 font-medium">${cat.name}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-bold text-slate-800">฿${Math.round(sum).toLocaleString()}</span>
+                            <span class="text-[10px] text-slate-400 ml-1">(${pct}%)</span>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                }
+            });
+        }
+
+        // 50-30-20 Rule Advisor logic
+        function analyzeFinancialHealth(totalExpense) {
+            const container = document.getElementById('financial-advice-box');
+            if (userIncome <= 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+
+            // Categorise expenses by Needs, Wants, Savings
+            let needsTotal = 0;
+            let wantsTotal = 0;
+            let savingsTotal = 0;
+
+            Object.entries(userExpensesState).forEach(([itemId, val]) => {
+                let itemType = 'needs';
+                // Check default
+                Object.values(expenseCategories).forEach(cat => {
+                    const found = cat.items.find(i => i.id === itemId);
+                    if (found) itemType = found.type;
+                });
+                // Check custom
+                const custom = customItems.find(i => i.id === itemId);
+                if (custom) itemType = custom.type;
+
+                if (itemType === 'needs') needsTotal += val;
+                else if (itemType === 'wants') wantsTotal += val;
+                else if (itemType === 'savings') savingsTotal += val;
+            });
+
+            // Ratios based on total Income
+            const needsPct = Math.round((needsTotal / userIncome) * 100);
+            const wantsPct = Math.round((wantsTotal / userIncome) * 100);
+            const savingsPct = Math.round((savingsTotal / userIncome) * 100);
+
+            // Update UI elements
+            document.getElementById('needs-ratio').textContent = `${needsPct}% / 50%`;
+            document.getElementById('needs-bar').style.width = `${Math.min(needsPct, 100)}%`;
+            if (needsPct > 50) {
+                document.getElementById('needs-bar').className = 'bg-rose-500 h-2 rounded-full';
+            } else {
+                document.getElementById('needs-bar').className = 'bg-emerald-500 h-2 rounded-full';
+            }
+
+            document.getElementById('wants-ratio').textContent = `${wantsPct}% / 30%`;
+            document.getElementById('wants-bar').style.width = `${Math.min(wantsPct, 100)}%`;
+            if (wantsPct > 30) {
+                document.getElementById('wants-bar').className = 'bg-rose-500 h-2 rounded-full';
+            } else {
+                document.getElementById('wants-bar').className = 'bg-emerald-500 h-2 rounded-full';
+            }
+
+            document.getElementById('savings-ratio').textContent = `${savingsPct}% / 20%`;
+            document.getElementById('savings-bar').style.width = `${Math.min(savingsPct, 100)}%`;
+            if (savingsPct < 20) {
+                document.getElementById('savings-bar').className = 'bg-amber-500 h-2 rounded-full';
+            } else {
+                document.getElementById('savings-bar').className = 'bg-emerald-500 h-2 rounded-full';
+            }
+
+            // Text Assessment
+            let feedback = '';
+            const balanceLeft = userIncome - totalExpense;
+
+            if (balanceLeft < 0) {
+                feedback = `⚠️ <strong class="text-rose-600">รายจ่ายสูงกว่ารายได้!</strong> ปัจจุบันคุณติดลบอยู่ ฿${Math.abs(Math.round(balanceLeft)).toLocaleString()} ต่อเดือน แนะนำให้ลดสัดส่วน "ความสุขส่วนตัว (Wants)" ด่วนเพื่อความปลอดภัยทางการเงินครับ`;
+            } else {
+                feedback = `🎉 <strong>คุณมีเงินคงเหลือคงเหลือเก็บ ฿${Math.round(balanceLeft).toLocaleString()} ต่อเดือน</strong>`;
+                if (needsPct > 50) {
+                    feedback += ` อย่างไรก็ตาม รายจ่ายจำเป็น (Needs) สูงเกิน 50% เล็กน้อย ลองตรวจสอบการใช้จ่ายประเภทค่าบริการ หรือค่าเดินทางเพื่อประหยัดเพิ่มได้ครับ`;
+                } else if (savingsPct < 20) {
+                    feedback += ` แต่คุณยังมีอัตราออมต่ำกว่าเป้าหมาย 20% แนะนำให้นำเงินเหลือไปเข้าสู่หมวดหมู่ออมเงินให้ใกล้ 20% ขึ้นเพื่อความมั่นคงระยะยาว`;
+                } else {
+                    feedback += ` ยอดเยี่ยมมาก! สัดส่วนการจัดสรรงบประมาณของคุณมีความเหมาะสมและปลอดภัยอย่างยิ่ง`;
+                }
+            }
+
+            document.getElementById('rule-assessment').innerHTML = feedback;
+        }
+
+        // Reset all active inputs
+        function resetAllData() {
+            if (confirm('ต้องการล้างค่าที่กรอกไว้ทั้งหมดเพื่อประเมินใหม่หรือไม่?')) {
+                userExpensesState = {};
+                customItems = [];
+                document.getElementById('monthly-income').value = '';
+                
+                // Clear active inputs from UI
+                renderActiveCategory();
+                calculateBudget();
+                
+                // Reset profiles selection
+                document.querySelectorAll('.profile-btn').forEach(btn => btn.classList.remove('ring-2', 'ring-emerald-400', 'bg-white/20'));
+            }
+        }
+
+        // Print/Export Summary Layout
+        function exportToPrint() {
+            // Populate data for printing
+            document.getElementById('print-date').textContent = `วันที่ออกเอกสาร: ${new Date().toLocaleDateString('th-TH')} เวลา ${new Date().toLocaleTimeString('th-TH')}`;
+            document.getElementById('print-income-monthly').textContent = `฿${userIncome.toLocaleString()}`;
+            document.getElementById('print-income-annual').textContent = `฿${(userIncome * 12).toLocaleString()}`;
+            
+            let totalMonthly = 0;
+            Object.values(userExpensesState).forEach(val => totalMonthly += val);
+            
+            document.getElementById('print-expense-monthly').textContent = `฿${Math.round(totalMonthly).toLocaleString()}`;
+            document.getElementById('print-expense-annual').textContent = `฿${Math.round(totalMonthly * 12).toLocaleString()}`;
+            
+            const printList = document.getElementById('print-categories-list');
+            printList.innerHTML = '';
+
+            Object.values(expenseCategories).forEach(cat => {
+                // Find filled items
+                const categoryFilledItems = [];
+                
+                // Gather default items with value
+                cat.items.forEach(item => {
+                    const val = userExpensesState[item.id] || 0;
+                    if (val > 0) {
+                        categoryFilledItems.push({ name: item.name, monthly: val, annual: val * 12 });
+                    }
+                });
+
+                // Gather custom items with value
+                customItems.forEach(item => {
+                    if (item.catId === cat.id) {
+                        const val = userExpensesState[item.id] || 0;
+                        if (val > 0) {
+                            categoryFilledItems.push({ name: item.name, monthly: val, annual: val * 12 });
+                        }
+                    }
+                });
+
+                if (categoryFilledItems.length > 0) {
+                    const catBlock = document.createElement('div');
+                    catBlock.className = 'border rounded-xl p-4 bg-white space-y-2';
+                    catBlock.innerHTML = `
+                        <h4 class="font-bold text-slate-800 text-sm border-b pb-1 flex items-center justify-between">
+                            <span>${cat.name}</span>
+                        </h4>
+                        <table class="w-full text-xs text-left">
+                            <thead>
+                                <tr class="text-slate-500 border-b">
+                                    <th class="py-1">ชื่อรายการ</th>
+                                    <th class="py-1 text-right">ต่อเดือน (฿)</th>
+                                    <th class="py-1 text-right">ต่อปี (฿)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${categoryFilledItems.map(item => `
+                                    <tr class="border-b last:border-0 text-slate-700">
+                                        <td class="py-1.5">${item.name}</td>
+                                        <td class="py-1.5 text-right">${Math.round(item.monthly).toLocaleString()}</td>
+                                        <td class="py-1.5 text-right">${Math.round(item.annual).toLocaleString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    printList.appendChild(catBlock);
+                }
+            });
+
+            if (printList.innerHTML === '') {
+                printList.innerHTML = '<div class="text-slate-400 text-sm py-4 text-center">ไม่มีข้อมูลที่กรอกไว้เพื่อจัดทำตารางประเมิน</div>';
+            }
+
+            // Print Action
+            const originalContent = document.body.innerHTML;
+            const printContent = document.getElementById('print-area').innerHTML;
+            
+            // Temporary replace body for printing or open new window
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Smart Expense Estimator Summary</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+                    <style>
+                        body { font-family: 'Sarabun', sans-serif; }
+                        @media print {
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body class="bg-white text-slate-800 p-6" onload="window.print(); window.close();">
+                    ${printContent}
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    </script>
+</body>
+</html>
