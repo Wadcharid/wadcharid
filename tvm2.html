@@ -90,21 +90,27 @@
 
     function getInputs() {
       const freq = parseInt(document.getElementById('freq').value);
-      const pctAnnual = parseFloat(document.getElementById('pct').value) / 100 || 0;
+      const pctAnnual = parseFloat(unformat(document.getElementById('pct').value)) / 100 || 0;  //แก้ไข 27022026
       const g = pctAnnual / freq;
-      const cfr = parseFloat(document.getElementById('cfr').value) / 100 || 0;
+      const cfr = parseFloat(unformat(document.getElementById('cfr').value)) / 100 || 0;    //แก้ไข 27022026
       return {
         pv0: parseFloat(unformat(document.getElementById('pv').value)) || 0,
         pmt0: parseFloat(unformat(document.getElementById('pmt').value)) || 0,
         g: g,
         cfr: cfr,
         fv0: parseFloat(unformat(document.getElementById('fv').value)) || 0,
-        rateA: parseFloat(document.getElementById('rate').value) / 100 || 0,
+        rateA: parseFloat(unformat(document.getElementById('rate').value)) / 100 || 0,   //แก้ไข 27022026
         nper: parseInt(unformat(document.getElementById('nper').value)) || 0,
         freq: freq,
         type: +document.querySelector('input[name="type"]:checked').value
       };
     }
+
+
+
+
+
+    
 
     function fvTotal(r, n, p0, g, type, pv0) {
       let bal = pv0;
