@@ -181,47 +181,66 @@
 function calcNper() {
   const { pv0, pmt0, g, fv0, rateA, freq, type } = getInputs();
   const r = rateA / freq;
-  const target = -fv0;
-  
-  let low = 0, high = 1, limit = 0;
-  
-  // 1. ตรวจสอบทิศทางของกระแสเงินสด (เงินโตขึ้น หรือ เงินลดลง)
-  const fv1 = fvTotal(r, 1, pmt0, g, type, pv0);
-  const fv2 = fvTotal(r, 2, pmt0, g, type, pv0);
-  const isIncreasing = fv2 > fv1;
 
-  // 2. ขยายขอบเขตการค้นหา (พร้อมดักจับ Infinite Loop ไม่ให้เว็บค้าง)
-  if (isIncreasing) {
-    while (fvTotal(r, high, pmt0, g, type, pv0) < target && limit < 100) { 
-      high *= 2; limit++; 
+  // 1. เปลี่ยนมาใช้สมการแทนลูป for (รองรับเลขทศนิยมในการทำ Bisection ได้แม่นยำ)
+  let bal_n = function(n) {
+    if (n === 0) return pv0;
+    if (Math.abs(r - g) < 1e-8) {
+      return pv0 * Math.pow(1 + r, n) + pmt0 * (1 + r * type) * n * Math.pow(1 + r, n - 1);
     }
-  } else {
-    while (fvTotal(r, high, pmt0, g, type, pv0) > target && limit < 100) { 
-      high *= 2; limit++; 
+    const denom = (1 + r * type) * (Math.pow(1 + r, n) - Math.pow(1 + g, n)) / (r - g);
+    return pv0 * Math.pow(1 + r, n) + pmt0 * denom;
+  };
+
+  let target = -fv0;
+  let b0 = pv0;
+  let b1 = bal_n(1);
+  let dir = b1 - b0;
+
+  // 2. ระบบ Auto-Correct เครื่องหมาย 
+  // หากกรอกตัวเลขเป็นบวกทั้งหมด ระบบจะรู้ว่าตั้งใจให้เป้าหมายเป็นบวกและสลับให้เอง
+  if (dir !== 0 && target !== b0) {
+    if (Math.sign(dir) !== Math.sign(target - b0)) {
+      if (Math.sign(dir) === Math.sign(fv0 - b0)) {
+        target = fv0;
+      }
     }
   }
 
-  // ถ้าลูปทำงานเกิน 100 รอบ แสดงว่ากระแสเงินสดไปไม่ถึงเป้าหมาย (เช่น ถอนมากกว่าดอกเบี้ยและเงินต้นรวมกัน)
-  if (limit >= 100) {
-    alert("กระแสเงินสดไม่สอดคล้องกับเป้าหมาย (เช่น เป็นไปไม่ได้ที่จะถึงยอด FV ที่ตั้งไว้) ไม่สามารถคำนวณจำนวนงวดได้");
+  // 3. เริ่มขยายขอบเขตค้นหา (พร้อมตัวป้องกันเว็บค้าง)
+  let low = 0, high = 1, limit = 0;
+  let isIncreasing = dir > 0;
+
+  if (isIncreasing) {
+    while (bal_n(high) < target && limit < 1000) {
+      high *= 2; limit++;
+    }
+  } else {
+    while (bal_n(high) > target && limit < 1000) {
+      high *= 2; limit++;
+    }
+  }
+
+  if (limit >= 1000) {
+    alert("ไม่สามารถคำนวณจำนวนงวดได้ กระแสเงินสดขัดแย้งกับเป้าหมาย (เช่น ยอดจ่ายน้อยกว่าดอกเบี้ยที่เพิ่มขึ้น)");
     return;
   }
 
-  // 3. แบ่งครึ่งหาค่า (Bisection) โดยสลับเงื่อนไขตามทิศทางกระแสเงินสด
+  // 4. บีบหาคำตอบด้วย Bisection อย่างละเอียด
   for (let i = 0; i < 100; i++) {
-    const mid = (low + high) / 2;
-    const currentFV = fvTotal(r, mid, pmt0, g, type, pv0);
-    
+    let mid = (low + high) / 2;
+    let currentBal = bal_n(mid);
+
     if (isIncreasing) {
-      if (currentFV > target) high = mid;
+      if (currentBal > target) high = mid;
       else low = mid;
     } else {
-      if (currentFV < target) high = mid; // สลับเครื่องหมายสำหรับเคสที่เงินลดลง
+      if (currentBal < target) high = mid;
       else low = mid;
     }
   }
-  
-  // 4. แสดงผลลัพธ์พร้อมใส่คอมมา
+
+  // 5. แสดงผลลัพธ์ ปัดเศษขึ้นเป็นงวดเต็ม และใส่ลูกน้ำ (Comma)
   document.getElementById('nper').value = formatNum(Math.ceil((low + high) / 2));
 }
 
