@@ -178,19 +178,52 @@
       document.getElementById('pmt').value = formatNum(pmt.toFixed(2));
     }
 
-    function calcNper() {
-      const { pv0, pmt0, g, fv0, rateA, freq, type } = getInputs();
-      const r = rateA / freq;
-      const target = -fv0;
-      let low = 0, high = 1;
-      while (fvTotal(r, high, pmt0, g, type, pv0) < target) high *= 2;
-      for (let i = 0; i < 100; i++) {
-        const mid = (low + high) / 2;
-        if (fvTotal(r, mid, pmt0, g, type, pv0) > target) high = mid;
-        else low = mid;
-      }
-      document.getElementById('nper').value = Math.ceil((low + high) / 2);
+function calcNper() {
+  const { pv0, pmt0, g, fv0, rateA, freq, type } = getInputs();
+  const r = rateA / freq;
+  const target = -fv0;
+  
+  let low = 0, high = 1, limit = 0;
+  
+  // 1. ตรวจสอบทิศทางของกระแสเงินสด (เงินโตขึ้น หรือ เงินลดลง)
+  const fv1 = fvTotal(r, 1, pmt0, g, type, pv0);
+  const fv2 = fvTotal(r, 2, pmt0, g, type, pv0);
+  const isIncreasing = fv2 > fv1;
+
+  // 2. ขยายขอบเขตการค้นหา (พร้อมดักจับ Infinite Loop ไม่ให้เว็บค้าง)
+  if (isIncreasing) {
+    while (fvTotal(r, high, pmt0, g, type, pv0) < target && limit < 100) { 
+      high *= 2; limit++; 
     }
+  } else {
+    while (fvTotal(r, high, pmt0, g, type, pv0) > target && limit < 100) { 
+      high *= 2; limit++; 
+    }
+  }
+
+  // ถ้าลูปทำงานเกิน 100 รอบ แสดงว่ากระแสเงินสดไปไม่ถึงเป้าหมาย (เช่น ถอนมากกว่าดอกเบี้ยและเงินต้นรวมกัน)
+  if (limit >= 100) {
+    alert("กระแสเงินสดไม่สอดคล้องกับเป้าหมาย (เช่น เป็นไปไม่ได้ที่จะถึงยอด FV ที่ตั้งไว้) ไม่สามารถคำนวณจำนวนงวดได้");
+    return;
+  }
+
+  // 3. แบ่งครึ่งหาค่า (Bisection) โดยสลับเงื่อนไขตามทิศทางกระแสเงินสด
+  for (let i = 0; i < 100; i++) {
+    const mid = (low + high) / 2;
+    const currentFV = fvTotal(r, mid, pmt0, g, type, pv0);
+    
+    if (isIncreasing) {
+      if (currentFV > target) high = mid;
+      else low = mid;
+    } else {
+      if (currentFV < target) high = mid; // สลับเครื่องหมายสำหรับเคสที่เงินลดลง
+      else low = mid;
+    }
+  }
+  
+  // 4. แสดงผลลัพธ์พร้อมใส่คอมมา
+  document.getElementById('nper').value = formatNum(Math.ceil((low + high) / 2));
+}
 
     function calcRate() {
       const { pv0, pmt0, g, fv0, nper, freq, type } = getInputs();
