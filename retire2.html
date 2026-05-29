@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรแกรมคำนวณเงินต้นเพื่อการเกษียณอายุ (Retirement Capital Calculator)</title>
+    <!-- Tailwind CSS for UI styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Sarabun -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-teal-600 to-emerald-600 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <h1 class="text-2xl font-bold">Retirement Wealth Planner</h1>
+                    <p class="text-xs text-teal-100">วางแผนคำนวณเงินต้นสำหรับเป้าหมายเกษียณสุขใจ</p>
+                </div>
+            </div>
+            <div class="bg-white/10 px-4 py-2 rounded-lg text-sm backdrop-blur-sm">
+                "เกษียณอย่างมั่นใจ ด้วยเงินทุนที่เพียงพอ"
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Inputs Form -->
+        <section class="lg:col-span-5 bg-white rounded-2xl shadow-xl p-6 border border-gray-100 flex flex-col justify-between">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-3 border-gray-100">
+                    <span class="p-2 bg-teal-50 text-teal-600 rounded-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    </span>
+                    กำหนดตัวแปรเกษียณอายุ
+                </h2>
+
+                <div class="space-y-5">
+                    <!-- 1. Average Expenses Input with toggle -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-semibold text-gray-700">ค่าใช้จ่ายเฉลี่ยทั่วไป</label>
+                            <div class="inline-flex rounded-md shadow-sm" role="group">
+                                <button id="btnMonth" type="button" onclick="setExpenseType('month')" class="px-3 py-1 text-xs font-medium rounded-l-md border transition-all duration-200 bg-teal-600 text-white border-teal-600">
+                                    ต่อเดือน
+                                </button>
+                                <button id="btnYear" type="button" onclick="setExpenseType('year')" class="px-3 py-1 text-xs font-medium rounded-r-md border transition-all duration-200 bg-white text-gray-700 border-gray-300 hover:bg-gray-50">
+                                    ต่อปี
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative rounded-lg shadow-sm">
+                            <input type="number" id="avgExpenseInput" value="30000" class="w-full pl-4 pr-16 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition text-lg font-semibold text-gray-800">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-gray-500 text-sm font-medium" id="expenseUnitText">บาท/เดือน</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Special Annual Expenses -->
+                    <div>
+                        <label for="specialExpense" class="block text-sm font-semibold text-gray-700 mb-2">ค่าใช้จ่ายพิเศษเพิ่มเติม (ต่อปี)</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <input type="number" id="specialExpense" value="50000" class="w-full pl-4 pr-16 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition text-lg font-semibold text-gray-800">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-gray-500 text-sm font-medium">บาท/ปี</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">เช่น ค่ารักษาพยาบาล, ท่องเที่ยวประจำปี หรือค่าบำรุงรักษาบ้าน/รถ</p>
+                    </div>
+
+                    <!-- 3. Inflation Rate -->
+                    <div>
+                        <label for="inflationRate" class="block text-sm font-semibold text-gray-700 mb-2">อัตราเงินเฟ้อคาดการณ์ (ต่อปี)</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <input type="number" step="0.1" id="inflationRate" value="3.0" class="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition text-lg font-semibold text-gray-800">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-gray-500 text-sm font-semibold">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Investment Return Rate -->
+                    <div>
+                        <label for="returnRate" class="block text-sm font-semibold text-gray-700 mb-2">ผลตอบแทนการลงทุนหลังเกษียณ (ต่อปี)</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <input type="number" step="0.1" id="returnRate" value="4.0" class="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition text-lg font-semibold text-gray-800">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-gray-500 text-sm font-semibold">%</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">ผลตอบแทนเฉลี่ยจากพอร์ตการลงทุนที่มีความเสี่ยงต่ำ-ปานกลาง</p>
+                    </div>
+
+                    <!-- 5. Lifespan after retirement -->
+                    <div>
+                        <label for="retirementYears" class="block text-sm font-semibold text-gray-700 mb-2">จำนวนปีที่จะใช้ชีวิตหลังเกษียณ</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <input type="number" id="retirementYears" value="25" class="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition text-lg font-semibold text-gray-800">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <span class="text-gray-500 text-sm font-medium">ปี</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">เช่น เกษียณอายุ 60 ปี คาดว่าจะมีอายุขัยถึง 85 ปี ให้กรอก 25 ปี</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="calculateRetirement()" class="w-full mt-8 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition duration-200 transform active:scale-95 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                คำนวณเงินเกษียณใหม่
+            </button>
+        </section>
+
+        <!-- Right Column: Results & Visualizations -->
+        <section class="lg:col-span-7 space-y-6">
+            <!-- Summary Card -->
+            <div class="bg-gradient-to-br from-gray-900 to-teal-955 text-white rounded-2xl shadow-xl p-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-teal-500/20 rounded-full blur-2xl"></div>
+                
+                <h3 class="text-teal-400 text-sm font-semibold uppercase tracking-wider mb-2">เงินต้นรวมที่ควรมี ณ วันเกษียณ</h3>
+                <div class="flex flex-col md:flex-row md:items-baseline gap-2 mb-4">
+                    <span id="totalCapitalRequired" class="text-4xl md:text-5xl font-extrabold tracking-tight text-white">-</span>
+                    <span class="text-teal-300 text-lg">บาท</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-6 border-t border-gray-800">
+                    <div>
+                        <span class="text-gray-400 text-xs block">ค่าใช้จ่ายรวมปีแรกหลังเกษียณ</span>
+                        <span id="firstYearExpense" class="text-lg font-bold text-gray-200">-</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 text-xs block">เงินเฟ้อเฉลี่ย / ผลตอบแทน</span>
+                        <span id="ratesSummary" class="text-lg font-bold text-gray-200">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Card -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="p-1.5 bg-indigo-50 text-indigo-600 rounded-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    </span>
+                    กราฟจำลองการเปลี่ยนแปลงของเงินทุนสะสม (คงเหลือ ณ สิ้นปี)
+                </h3>
+                <div class="relative h-[280px] w-full">
+                    <canvas id="capitalChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Table Section (Full Width Below) -->
+    <section class="max-w-6xl mx-auto px-4 pb-16">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <div class="px-6 py-5 bg-gray-50 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">ตารางวิเคราะห์เงินรายปีอย่างละเอียด (Financial Runout Table)</h3>
+                    <p class="text-xs text-gray-500 mt-1">แสดงการไหลเวียนของกระแสเงินสดตามระดับเงินเฟ้อและผลตอบแทนการลงทุนจริง</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="px-3 py-1 bg-teal-50 text-teal-700 text-xs rounded-full font-medium border border-teal-100">เงินหมดเป็น 0 ณ ปีสุดท้าย</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100/50 text-gray-700 text-xs font-semibold uppercase tracking-wider border-b border-gray-200">
+                            <th class="py-4 px-6 text-center">ปีที่</th>
+                            <th class="py-4 px-6 text-right">เงินต้นคงเหลือ (ต้นปี)</th>
+                            <th class="py-4 px-6 text-right text-emerald-700">ผลตอบแทนที่ได้รับระหว่างปี (+)</th>
+                            <th class="py-4 px-6 text-right text-rose-700">ค่าใช้จ่ายรวมปรับเงินเฟ้อ (-)</th>
+                            <th class="py-4 px-6 text-right bg-teal-50/50 text-teal-850 font-bold">เงินต้นคงเหลือ (สิ้นปี)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="breakdownTableBody" class="divide-y divide-gray-100 text-sm text-gray-600">
+                        <!-- Data will be injected here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-8 border-t border-gray-750 text-center text-sm">
+        <p class="max-w-md mx-auto px-4 leading-relaxed">
+            ตัวเลขนี้อ้างอิงจากการคำนวณทางคณิตศาสตร์แบบสมมติ ควรวางแผนเผื่อค่าความเสี่ยงและการเปลี่ยนแปลงในชีวิตจริงด้วยความระมัดระวัง
+        </p>
+        <p class="mt-4 text-xs text-gray-500">© 2026 Retirement Wealth Planner. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript logic -->
+    <script>
+        // Global variables for configuration
+        let expenseType = 'month'; // 'month' or 'year'
+        let myChart = null;
+
+        // Number formatter helper function
+        function formatNumber(number) {
+            return new Intl.NumberFormat('th-TH', { 
+                minimumFractionDigits: 0, 
+                maximumFractionDigits: 0 
+            }).format(number);
+        }
+
+        // Toggle Expense Type Month vs Year
+        function setExpenseType(type) {
+            expenseType = type;
+            const btnMonth = document.getElementById('btnMonth');
+            const btnYear = document.getElementById('btnYear');
+            const unitText = document.getElementById('expenseUnitText');
+            const input = document.getElementById('avgExpenseInput');
+
+            if (type === 'month') {
+                btnMonth.className = 'px-3 py-1 text-xs font-medium rounded-l-md border transition-all duration-200 bg-teal-600 text-white border-teal-600';
+                btnYear.className = 'px-3 py-1 text-xs font-medium rounded-r-md border transition-all duration-200 bg-white text-gray-700 border-gray-300 hover:bg-gray-50';
+                unitText.innerText = 'บาท/เดือน';
+                
+                // Convert value for smoother UX
+                const currentVal = parseFloat(input.value);
+                if (!isNaN(currentVal) && currentVal > 150000) {
+                    input.value = Math.round(currentVal / 12);
+                }
+            } else {
+                btnMonth.className = 'px-3 py-1 text-xs font-medium rounded-l-md border transition-all duration-200 bg-white text-gray-700 border-gray-300 hover:bg-gray-50';
+                btnYear.className = 'px-3 py-1 text-xs font-medium rounded-r-md border transition-all duration-200 bg-teal-600 text-white border-teal-600';
+                unitText.innerText = 'บาท/ปี';
+                
+                // Convert value for smoother UX
+                const currentVal = parseFloat(input.value);
+                if (!isNaN(currentVal) && currentVal <= 150000) {
+                    input.value = Math.round(currentVal * 12);
+                }
+            }
+            calculateRetirement();
+        }
+
+        // Calculation Algorithm
+        // To find the exact required capital at the start of retirement so that after N years,
+        // accounting for inflation compounding on expenses, and investment return compounding on 
+        // the remaining balance, the balance becomes exactly 0 at the end of Year N.
+        // Formula/Simulation is computed dynamically.
+        function calculateRetirement() {
+            // Read inputs
+            const avgExpenseValue = parseFloat(document.getElementById('avgExpenseInput').value) || 0;
+            const specialExpense = parseFloat(document.getElementById('specialExpense').value) || 0;
+            const inflationRate = (parseFloat(document.getElementById('inflationRate').value) || 0) / 100;
+            const returnRate = (parseFloat(document.getElementById('returnRate').value) || 0) / 100;
+            const years = parseInt(document.getElementById('retirementYears').value) || 1;
+
+            // Normalize annual base expenses
+            const baseAnnualExpense = expenseType === 'month' ? avgExpenseValue * 12 : avgExpenseValue;
+            const totalFirstYearExpense = baseAnnualExpense + specialExpense;
+
+            // We need to calculate the initial required capital (P)
+            // Let expenses in year t (t from 1 to N) be E_t = E_0 * (1 + inflation)^(t-1)
+            // Let the balance dynamics be: 
+            // Balance_start_year_t = Balance_end_year_prev
+            // Interest_t = Balance_start_year_t * returnRate
+            // Balance_end_year_t = Balance_start_year_t + Interest_t - E_t
+            // For a simpler and highly accurate model, we assume expenses happen at the end of each year
+            // Or if we assume mid-year/continuous, but the industry standard is expenses paid at end of year/beginning of year.
+            // Let's assume expenses are paid at the END of each year to allow the capital to generate returns first,
+            // or paid at the BEGINNING of the year. Let's design the standard scenario:
+            // "Expenses are paid at the BEGINNING of each year (safer), and the remaining balance receives return during the year."
+            // Under this safer model (Capital - Expenses) * (1 + r) = End_Balance.
+            
+            // Let's back-calculate using Discounting (NPV of Cash Flows):
+            // We want End_Balance_N = 0
+            // Since Balance_t = (Balance_{t-1} - Expense_t) * (1 + r)
+            // We can work backwards from Year N:
+            // Balance_start_N = Expense_N (so after spending, balance is 0, and 0 * (1+r) = 0)
+            // For year t, Balance_start_t = Expense_t + Balance_end_t / (1 + r)
+            // Let's perform a backward induction to find the exact initial capital!
+
+            let expenses = [];
+            // Calculate inflated expenses for each year (t = 1 to N)
+            for (let t = 1; t <= years; t++) {
+                // Year 1 expense has 0 inflation (current purchasing power)
+                const yearlyExpense = totalFirstYearExpense * Math.pow(1 + inflationRate, t - 1);
+                expenses.push(yearlyExpense);
+            }
+
+            // Backward pass to find required capital at the start of each year
+            let capitalNeededAtStart = new Array(years);
+            
+            // Year N (last year)
+            capitalNeededAtStart[years - 1] = expenses[years - 1]; // needs to have exactly the expense amount at start of year, so balance becomes 0 after payment.
+
+            for (let t = years - 2; t >= 0; t--) {
+                // To have capitalNeededAtStart[t+1] at the start of next year:
+                // (capitalNeededAtStart[t] - expense_t) * (1 + returnRate) = capitalNeededAtStart[t+1]
+                // Therefore: capitalNeededAtStart[t] - expense_t = capitalNeededAtStart[t+1] / (1 + returnRate)
+                // capitalNeededAtStart[t] = expense_t + (capitalNeededAtStart[t+1] / (1 + returnRate))
+                capitalNeededAtStart[t] = expenses[t] + (capitalNeededAtStart[t + 1] / (1 + returnRate));
+            }
+
+            const initialCapitalRequired = capitalNeededAtStart[0];
+
+            // Forward simulation to double-check, log details, and prepare data for display/charts
+            let currentBalance = initialCapitalRequired;
+            let tableRowsData = [];
+            let chartLabels = [];
+            let chartBalances = [];
+
+            for (let t = 0; t < years; t++) {
+                const yearNum = t + 1;
+                const startBalance = currentBalance;
+                const expenseThisYear = expenses[t];
+                
+                // Remaining capital that will generate return
+                const netCapitalForReturn = Math.max(0, startBalance - expenseThisYear);
+                const returnEarned = netCapitalForReturn * returnRate;
+                const endBalance = Math.max(0, netCapitalForReturn + returnEarned);
+
+                tableRowsData.push({
+                    year: yearNum,
+                    start: startBalance,
+                    earned: returnEarned,
+                    expense: expenseThisYear,
+                    end: endBalance
+                });
+
+                chartLabels.push(`ปีที่ ${yearNum}`);
+                chartBalances.push(Math.round(endBalance));
+
+                currentBalance = endBalance;
+            }
+
+            // Update UI
+            document.getElementById('totalCapitalRequired').innerText = formatNumber(initialCapitalRequired);
+            document.getElementById('firstYearExpense').innerText = `${formatNumber(totalFirstYearExpense)} บาท/ปี`;
+            document.getElementById('ratesSummary').innerText = `เฟ้อ ${inflationRate * 100}% | โต ${(returnRate * 100).toFixed(1)}%`;
+
+            // Render Table
+            renderTable(tableRowsData);
+
+            // Update Chart
+            updateChart(chartLabels, chartBalances);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('breakdownTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition duration-150';
+                
+                // Highlight the final year row slightly
+                if (row.end < 1) {
+                    tr.className += ' bg-amber-50/40';
+                }
+
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-center font-bold text-gray-700">${row.year}</td>
+                    <td class="py-4 px-6 text-right font-medium">${formatNumber(row.start)} บาท</td>
+                    <td class="py-4 px-6 text-right text-emerald-600 font-medium">+${formatNumber(row.earned)} บาท</td>
+                    <td class="py-4 px-6 text-right text-rose-500 font-medium">-${formatNumber(row.expense)} บาท</td>
+                    <td class="py-4 px-6 text-right font-bold text-gray-900 ${row.end < 1 ? 'text-teal-600' : 'bg-teal-50/30'}">${formatNumber(row.end)} บาท</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateChart(labels, data) {
+            const ctx = document.getElementById('capitalChart').getContext('2d');
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'เงินต้นคงเหลือปลายปี',
+                        data: data,
+                        borderColor: '#0d9488', // teal-600
+                        backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0f766e',
+                        pointBorderColor: '#ffffff',
+                        pointHoverRadius: 7,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f2937',
+                            titleFont: { family: 'Sarabun', size: 13 },
+                            bodyFont: { family: 'Sarabun', size: 14, weight: 'bold' },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` เงินคงเหลือ: ${formatNumber(context.raw)} บาท`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: { family: 'Sarabun', size: 11 }
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: { family: 'Sarabun', size: 11 },
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + ' ล้าน';
+                                    return formatNumber(value);
+                                }
+                            },
+                            grid: {
+                                color: '#f3f4f6'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Calculation on Load
+        window.onload = function() {
+            calculateRetirement();
+        };
+    </script>
+</body>
+</html>
