@@ -435,24 +435,26 @@
             }
         }
 
-        // ----------------- CORE LOGIC & MATHEMATICS -----------------
+// ----------------- CORE LOGIC & MATHEMATICS -----------------
         function calculateRetirement() {
-            // 1. Read Inputs
-            const currentAge = Math.max(0, parseInt(document.getElementById('currentAge').value) || 30);
-            const deathAge = Math.max(currentAge + 1, parseInt(document.getElementById('deathAge').value) || 85);
+            // 1. Read Inputs (ดึงค่าจากช่องกรอกมาก่อน)
+            const currentAgeInput = parseInt(document.getElementById('currentAge').value) || 0;
+            const deathAgeInput = parseInt(document.getElementById('deathAge').value) || 0;
 
-// ตรวจสอบความถูกต้องของอายุก่อนเริ่มคำนวณ
-    if (deathAgeInput <= currentAgeInput) {
-        alert("⚠️ อายุก่อนเสียชีวิต (อายุขัย) ต้องมากกว่าอายุปัจจุบันนะครับ รบกวนแก้ตัวเลขใหม่น้า");
-        return; // หยุดการทำงาน ไม่ต้องคำนวณต่อ
-    }
+            // ตรวจสอบความถูกต้องของอายุก่อนเริ่มคำนวณ
+            if (deathAgeInput <= currentAgeInput) {
+                alert("⚠️ อายุก่อนเสียชีวิต (อายุขัย) ต้องมากกว่าอายุปัจจุบันนะครับ รบกวนแก้ตัวเลขใหม่น้า");
+                return; // หยุดการทำงาน ไม่ต้องคำนวณต่อ
+            }
 
-    const currentAge = Math.max(0, currentAgeInput);
-    const deathAge = Math.max(currentAge + 1, deathAgeInput);
+            // เมื่อตัวเลขถูกต้อง ค่อยนำมาเก็บในตัวแปรหลัก
+            const currentAge = Math.max(0, currentAgeInput);
+            const deathAge = Math.max(currentAge + 1, deathAgeInput);
 
-            
             const avgExpenseVal = Math.max(0, parseFloat(document.getElementById('avgExpenseInput').value) || 0);
             const specialExpense = Math.max(0, parseFloat(document.getElementById('specialExpense').value) || 0);
+            
+            
             
             const initialSavings = Math.max(0, parseFloat(document.getElementById('initialSavings').value) || 0);
             const monthlySavings = Math.max(0, parseFloat(document.getElementById('monthlySavings').value) || 0);
