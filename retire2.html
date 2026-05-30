@@ -59,6 +59,12 @@
                     ตั้งค่าเป้าหมายและตัวแปร
                 </h2>
 
+<input type="number" id="currentAge" value="30" min="0" max="99" oninput="validateAge()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none text-center font-bold">
+
+<input type="number" id="deathAge" value="85" min="1" max="120" oninput="validateAge()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none text-center font-bold">
+
+
+                
                 <!-- 1. Personal Timeline -->
                 <div class="bg-gray-50 p-4 rounded-xl space-y-4">
                     <h3 class="text-sm font-bold text-teal-800 flex items-center gap-1.5">
@@ -68,11 +74,11 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">อายุปัจจุบัน</label>
-                            <input type="number" id="currentAge" value="30" min="0" max="99" oninput="validateAndCalculate()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none text-center font-bold">
+<input type="number" id="currentAge" value="30" min="0" max="99" oninput="validateAge()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none text-center font-bold">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1">อายุก่อนเสียชีวิต (อายุขัย)</label>
-                            <input type="number" id="deathAge" value="85" min="1" max="120" oninput="validateAndCalculate()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none text-center font-bold">
+<input type="number" id="deathAge" value="85" min="1" max="120" oninput="validateAge()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none text-center font-bold">
                         </div>
                     </div>
                 </div>
@@ -332,19 +338,19 @@
             }).format(number);
         }
 
-        // Event for inputs to avoid negative/empty bounds
-        function validateAndCalculate() {
-            const currentAgeInput = document.getElementById('currentAge');
-            const deathAgeInput = document.getElementById('deathAge');
-            
-            let curAge = parseInt(currentAgeInput.value) || 0;
-            let dAge = parseInt(deathAgeInput.value) || 0;
-            
-            if (curAge < 0) currentAgeInput.value = 0;
-            if (dAge <= curAge) deathAgeInput.value = curAge + 1;
+// เปลี่ยนจาก validateAndCalculate เป็น validateAge
+function validateAge() {
+    const currentAgeInput = document.getElementById('currentAge');
+    const deathAgeInput = document.getElementById('deathAge');
+    
+    let curAge = parseInt(currentAgeInput.value) || 0;
+    let dAge = parseInt(deathAgeInput.value) || 0;
+    
+    if (curAge < 0) currentAgeInput.value = 0;
+    if (dAge <= curAge) deathAgeInput.value = curAge + 1;
 
-            calculateRetirement();
-        }
+    // ลบ calculateRetirement(); ออกจากตรงนี้ เพื่อรอให้ผู้ใช้กดปุ่มคำนวณเอง
+}
 
         // Toggle Expense Options
         function setExpenseType(type) {
