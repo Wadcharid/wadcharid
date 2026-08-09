@@ -88,16 +88,16 @@ iframe.active{ display:block }
 <button class="tab-btn" role="tab" id="tab-race" aria-selected="false" data-target="page-race">Race Predict</button>
 <button class="tab-btn" role="tab" id="tab-train" aria-selected="false" data-target="page-train">Training Pace</button>
 <button class="tab-btn" role="tab" id="tab-time" aria-selected="false" data-target="page-time">Pace Table</button>
-
 <button class="tab-btn" role="tab" id="tab-interval" aria-selected="false" data-target="page-interval">Interval Cal</button>
-
+<button class="tab-btn" role="tab" id="tab-tl" aria-selected="false" data-target="page-tl">TL Calculator</button>
 </div>
 <div class="note">เลือกการคำนวณ</div>
 </div>
 </header>
 
 <main class="view">
-<!-- Each page is the original file embedded intact via iframe srcdoc -->
+<!-- แต่ละหน้า (Pages) -->
+
 <iframe id="page-time" title="Time, Pace, Distance" srcdoc="<!DOCTYPE html><html lang=&quot;en&quot;><head>    <meta charset=&quot;UTF-8&quot; />    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot; />    <title&gt;Pace Calculator</title>    <style>        body {
            max-width: 800px;
            margin: 0 auto;
@@ -210,6 +210,7 @@ iframe.active{ display:block }
        });
    }
 </script></body></html>"></iframe>
+
 <iframe id="page-race" title="Race Predict" srcdoc="<!DOCTYPE html><html lang=&quot;th&quot;><head>  <meta charset=&quot;UTF-8&quot;>  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>  <title&gt;Race Predict (Race Pace) Calculator - Reverse LT Pace</title>  <style>    /* Reset พื้นฐาน */
    * { box-sizing: border-box; }
    body {
@@ -474,6 +475,7 @@ iframe.active{ display:block }
      document.getElementById(&quot;standardResults&quot;).innerHTML = standardHTML + ltPacePercentHTML ;
    }
  </script></body></html>"></iframe>
+
 <iframe id="page-train" title="Training Pace" srcdoc="<!DOCTYPE html><html lang=&quot;th&quot;><head>  <meta charset=&quot;UTF-8&quot;>  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>  <title&gt;Training Pace Calculator from LT Pace</title>  <style>    /* Reset พื้นฐาน */
    * { box-sizing: border-box; }
    body {
@@ -715,6 +717,7 @@ iframe.active{ display:block }
      document.getElementById(&quot;training-paces&quot;).innerHTML = trainingHTML;
    }
  </script></body></html>"></iframe>
+
 <iframe id="page-pace" class="active" title="Pace Table" srcdoc="<!DOCTYPE html><html lang=&quot;en&quot;><head>    <meta charset=&quot;UTF-8&quot;>    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>    <title&gt;Time, Pace, Distance Calculator</title>    <style>        body {
            font-family: Arial, sans-serif;
            margin: 20px;
@@ -905,10 +908,6 @@ iframe.active{ display:block }
            document.querySelector(&#x27;.calculator&#x27;).scrollIntoView({ behavior: &#x27;smooth&#x27;, block: &#x27;start&#x27; });
        }
    </script></body></html>"></iframe>
-
-
-
-
 
 <iframe id="page-interval" title="Interval Calculator" srcdoc="
 <!DOCTYPE html>
@@ -1135,7 +1134,353 @@ iframe.active{ display:block }
 </html>
 "></iframe>
 
+<iframe id="page-tl" title="TL Calculator" srcdoc="<!DOCTYPE html>
+<html lang=&quot;th&quot;>
+<head>
+  <meta charset=&quot;UTF-8&quot; />
+  <title>TL Calculator with Immediate TL Update</title>
 
+  <!-- สำหรับ Mobile Responsive -->
+  <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1, shrink-to-fit=no&quot; />
+
+  <!-- เรียกใช้ Bootstrap 5 CSS -->
+  <link
+    rel=&quot;stylesheet&quot;
+    href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css&quot;
+  />
+  <style>
+    thead tr {
+      background-color: #007bff;
+      color: #fff;
+    }
+    tfoot td {
+      font-weight: bold;
+      background: #f8f9fa;
+    }
+    
+    /* กำหนดให้ input มีความกว้างขั้นต่ำ
+       และใช้ word-wrap: normal ไม่ให้ตัวเลขโดนตัด */
+    input[type=&quot;number&quot;] {
+      min-width: 80px;
+      /* ถ้าอยากให้ใหญ่กว่านี้ เพิ่มตามต้องการ */
+      word-wrap: normal;
+      text-align: right; /* ใส่ขวาถ้าชอบ */
+    }    
+
+    /* สำหรับจอเล็กมาก (ต่ำกว่า 576px) เพิ่มเติมได้ตามต้องการ */
+    @media (max-width: 576px) {
+      input[type=&quot;number&quot;] {
+        min-width: 100px;
+        font-size: 1.2rem; /* ขยายตัวอักษรให้เห็นชัดขึ้น */
+      }
+    }
+    
+  </style>
+</head>
+<body>
+  <div class=&quot;container my-4&quot; style=&quot;max-width: 800px;&quot;>
+    <h2 class=&quot;mb-4 text-center&quot;>TL Calculator</h2>
+
+    <!-- ส่วนฟอร์มกรอก LT Pace -->
+    <div class=&quot;row mb-3&quot;>
+      <label for=&quot;ltPaceMin&quot; class=&quot;col-sm-2 col-form-label fw-bold&quot;>LT Pace:</label>
+      <div class=&quot;col-sm-10 d-flex gap-2&quot;>
+        <input
+          type=&quot;number&quot;
+          class=&quot;form-control&quot;
+          id=&quot;ltPaceMin&quot;
+          placeholder=&quot;Min&quot;
+          min=&quot;0&quot;
+          aria-label=&quot;LT Pace Min&quot;
+        />
+        <input
+          type=&quot;number&quot;
+          class=&quot;form-control&quot;
+          id=&quot;ltPaceSec&quot;
+          placeholder=&quot;Sec&quot;
+          min=&quot;0&quot;
+          aria-label=&quot;LT Pace Sec&quot;
+        />
+      </div>
+    </div>
+
+    <!-- ตารางหลัก (responsive) -->
+    <div class=&quot;table-responsive mb-3&quot;>
+      <table class=&quot;table table-bordered align-middle text-center&quot; id=&quot;myTable&quot;>
+        <thead>
+          <tr>
+            <th scope=&quot;col&quot;>Pace (Min)</th>
+            <th scope=&quot;col&quot;>Pace (Sec)</th>
+            <th scope=&quot;col&quot;>Duration (Mins)</th>
+            <th scope=&quot;col&quot;>TL</th>
+            <th scope=&quot;col&quot;>Distance (km)</th>
+            <th scope=&quot;col&quot;>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- แถวตัวอย่างเริ่มต้น 1 แถว -->
+          <tr>
+            <td>
+              <input
+                class=&quot;paceMin form-control&quot;
+                type=&quot;number&quot;
+                min=&quot;0&quot;
+              />
+            </td>
+            <td>
+              <input
+                class=&quot;paceSec form-control&quot;
+                type=&quot;number&quot;
+                min=&quot;0&quot;
+              />
+            </td>
+            <td>
+              <input
+                class=&quot;duration form-control&quot;
+                type=&quot;number&quot;
+                min=&quot;0&quot;
+              />
+            </td>
+            <td>
+              <input
+                class=&quot;tl form-control&quot;
+                type=&quot;number&quot;
+                min=&quot;0&quot;
+              />
+            </td>
+            <td class=&quot;distance&quot;>0</td>
+            <td>
+              <button class=&quot;btn btn-danger removeBtn&quot;>Remove</button>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <!-- Pace รวม (คำนวณจาก Duration รวม / Distance รวม) -->
+            <td id=&quot;footerPace&quot; colspan=&quot;2&quot; class=&quot;text-primary&quot;>
+              Pace: 00:00
+            </td>
+            <!-- Duration รวม -->
+            <td id=&quot;footerDuration&quot; class=&quot;text-primary&quot;>0</td>
+            <!-- TL รวม -->
+            <td id=&quot;footerTL&quot; class=&quot;text-primary&quot;>0</td>
+            <!-- Distance รวม -->
+            <td id=&quot;footerDistance&quot; class=&quot;text-primary&quot;>0</td>
+            <td>รวม</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- ปุ่ม Add Row -->
+    <div class=&quot;text-end&quot;>
+      <button class=&quot;btn btn-primary&quot; id=&quot;addRowBtn&quot;>Add Row</button>
+    </div>
+  </div>
+
+  <!-- เรียกใช้ Bootstrap 5 JS (รวม Popper) -->
+  <script
+    src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js&quot;>
+  </script>
+
+  <script>
+    /**
+     * สมการคำนวณ TL
+     *  TL = 0.0699 * exp(0.0407 * X) * Duration
+     *  X  = (LT_Pace_in_sec * 100) / paceInSec
+     */
+    function computeTL(ltPaceInSec, paceInSec, duration) {
+      if (ltPaceInSec <= 0 || paceInSec <= 0 || duration <= 0) return 0;
+      const X = (ltPaceInSec * 100) / paceInSec;
+      const intensity = 0.0699 * Math.exp(0.0407 * X);
+      return intensity * duration;
+    }
+
+    /**
+     * เมื่อค่าในแถวใดแถวหนึ่งถูกเปลี่ยน => recalcRow
+     * @param {HTMLElement} tr  แถวที่มีการเปลี่ยนค่า
+     * @param {String} changedClass  className หลักของ input ที่เปลี่ยน
+     */
+    function recalcRow(tr, changedClass) {
+      // อ่านค่า LT Pace
+      const ltPaceMin = parseInt(document.getElementById(&quot;ltPaceMin&quot;).value) || 0;
+      const ltPaceSec = parseInt(document.getElementById(&quot;ltPaceSec&quot;).value) || 0;
+      const ltPaceInSec = ltPaceMin * 60 + ltPaceSec;
+
+      // ดึง input ในแถว
+      const paceMinInput   = tr.querySelector(&quot;.paceMin&quot;);
+      const paceSecInput   = tr.querySelector(&quot;.paceSec&quot;);
+      const durationInput  = tr.querySelector(&quot;.duration&quot;);
+      const tlInput        = tr.querySelector(&quot;.tl&quot;);
+      const distField      = tr.querySelector(&quot;.distance&quot;);
+
+      let paceMin   = parseInt(paceMinInput.value)   || 0;
+      let paceSec   = parseInt(paceSecInput.value)   || 0;
+      let duration  = parseFloat(durationInput.value)  || 0;
+      let tl        = parseFloat(tlInput.value)        || 0;
+
+      // paceInSec
+      const paceInSec = paceMin * 60 + paceSec;
+
+      // 1) กรณีผู้ใช้แก้ไข Pace หรือ Duration => เราคำนวณ TL ใหม่ทันที
+      if (changedClass === &quot;paceMin&quot; || changedClass === &quot;paceSec&quot; || changedClass === &quot;duration&quot;) {
+        if (paceInSec > 0 && duration > 0 && ltPaceInSec > 0) {
+          // คำนวณ TL ใหม่ (ทับของเดิม)
+          tl = computeTL(ltPaceInSec, paceInSec, duration);
+          tlInput.value = tl.toFixed(0);
+        }
+      }
+
+      // 2) กรณีผู้ใช้แก้ไข TL => คำนวณ Duration ใหม่ (ถ้ามี paceInSec)
+      else if (changedClass === &quot;tl&quot;) {
+        if (paceInSec > 0 && ltPaceInSec > 0) {
+          // จากสูตร TL = intensity * duration
+          // => duration = TL / intensity
+          const newTL = parseFloat(tlInput.value) || 0;
+          if (newTL > 0) {
+            const X = (ltPaceInSec * 100) / paceInSec;
+            const intensity = 0.0699 * Math.exp(0.0407 * X);
+            if (intensity > 0) {
+              duration = newTL / intensity;
+              durationInput.value = duration.toFixed(0);
+            }
+          }
+        }
+      }
+
+      // 3) คำนวณ Distance = duration (นาที) / pace (นาที/กม.)
+      let distance = 0;
+      if (paceInSec > 0 && duration > 0) {
+        const paceInMin = paceInSec / 60;
+        distance = duration / paceInMin;
+      }
+      distField.textContent = distance.toFixed(2);
+
+      // 4) อัปเดต Footer
+      updateFooterTotals();
+    }
+
+    /**
+     * ฟังก์ชันรวมค่าจากทุกแถว (Duration, TL, Distance)
+     * และคำนวณ pace (จาก Duration รวม / Distance รวม)
+     * แสดงผลใน Footer
+     */
+    function updateFooterTotals() {
+      const rows = document.querySelectorAll(&quot;#myTable tbody tr&quot;);
+
+      let totalDuration = 0;
+      let totalTL = 0;
+      let totalDistance = 0;
+
+      rows.forEach((tr) => {
+        const durationVal = parseFloat(tr.querySelector(&quot;.duration&quot;)?.value) || 0;
+        const tlVal       = parseFloat(tr.querySelector(&quot;.tl&quot;)?.value)       || 0;
+        const distVal     = parseFloat(tr.querySelector(&quot;.distance&quot;)?.textContent) || 0;
+
+        totalDuration += durationVal;
+        totalTL       += tlVal;
+        totalDistance += distVal;
+      });
+
+      // อัปเดตลงใน tfoot
+      document.getElementById(&quot;footerDuration&quot;).textContent = totalDuration.toFixed(0);
+      document.getElementById(&quot;footerTL&quot;).textContent       = totalTL.toFixed(0);
+      document.getElementById(&quot;footerDistance&quot;).textContent = totalDistance.toFixed(2);
+
+      // pace รวม = totalDuration / totalDistance
+      // แปลงเป็น mm:ss
+      let footerPaceText = &quot;Pace: 00:00&quot;;
+      if (totalDistance > 0 && totalDuration > 0) {
+        const paceMinPerKm = totalDuration / totalDistance;
+        const paceMin = Math.floor(paceMinPerKm);
+        const paceSec = Math.round((paceMinPerKm - paceMin) * 60);
+        const paceSecStr = paceSec < 10 ? &quot;0&quot; + paceSec : paceSec;
+        footerPaceText = `Pace: ${paceMin}:${paceSecStr}`;
+      }
+      document.getElementById(&quot;footerPace&quot;).textContent = footerPaceText;
+    }
+
+    /**
+     * ผูก event ให้ input ทุกช่องในแถวนั้น
+     */
+    function attachEventsToRow(tr) {
+      const inputs = tr.querySelectorAll(&quot;input&quot;);
+      inputs.forEach((input) => {
+        input.addEventListener(&quot;change&quot;, (e) => {
+          // e.target.classList อาจมีหลาย class
+          // เราจะดึงชื่อหลักมาใช้ เช่น paceMin, paceSec, duration, tl
+          if (e.target.classList.contains(&quot;paceMin&quot;)) {
+            recalcRow(tr, &quot;paceMin&quot;);
+          } 
+          else if (e.target.classList.contains(&quot;paceSec&quot;)) {
+            recalcRow(tr, &quot;paceSec&quot;);
+          }
+          else if (e.target.classList.contains(&quot;duration&quot;)) {
+            recalcRow(tr, &quot;duration&quot;);
+          }
+          else if (e.target.classList.contains(&quot;tl&quot;)) {
+            recalcRow(tr, &quot;tl&quot;);
+          }
+        });
+      });
+
+      // ปุ่ม remove
+      const removeBtn = tr.querySelector(&quot;.removeBtn&quot;);
+      removeBtn.addEventListener(&quot;click&quot;, () => {
+        tr.parentNode.removeChild(tr);
+        updateFooterTotals(); // ลบเสร็จให้อัปเดต Footer ด้วย
+      });
+    }
+
+    /**
+     * เพิ่มแถวใหม่
+     */
+    function addRow() {
+      const tbody = document.querySelector(&quot;#myTable tbody&quot;);
+      const newRow = document.createElement(&quot;tr&quot;);
+      newRow.innerHTML = `
+        <td><input class=&quot;paceMin form-control&quot; type=&quot;number&quot; min=&quot;0&quot; /></td>
+        <td><input class=&quot;paceSec form-control&quot; type=&quot;number&quot; min=&quot;0&quot; /></td>
+        <td><input class=&quot;duration form-control&quot; type=&quot;number&quot; min=&quot;0&quot; /></td>
+        <td><input class=&quot;tl form-control&quot; type=&quot;number&quot; min=&quot;0&quot; /></td>
+        <td class=&quot;distance&quot;>0</td>
+        <td><button class=&quot;btn btn-danger removeBtn&quot;>Remove</button></td>
+      `;
+      tbody.appendChild(newRow);
+      attachEventsToRow(newRow);
+    }
+
+    // ---------- เมื่อหน้าโหลด ----------
+    document.addEventListener(&quot;DOMContentLoaded&quot;, () => {
+      // ผูก event ให้แถวแรกที่มีอยู่แล้ว
+      const firstRow = document.querySelector(&quot;#myTable tbody tr&quot;);
+      attachEventsToRow(firstRow);
+
+      // ปุ่ม Add Row
+      document.getElementById(&quot;addRowBtn&quot;).addEventListener(&quot;click&quot;, addRow);
+
+      // ถ้าปรับค่า LT Pace => ให้รีคำนวณทุกแถวใหม่
+      const ltPaceInputs = [
+        document.getElementById(&quot;ltPaceMin&quot;),
+        document.getElementById(&quot;ltPaceSec&quot;)
+      ];
+      ltPaceInputs.forEach((ip) => {
+        ip.addEventListener(&quot;change&quot;, () => {
+          const rows = document.querySelectorAll(&quot;#myTable tbody tr&quot;);
+          rows.forEach((row) => {
+            // ในการเปลี่ยน LT Pace ไม่รู้ว่าค่าไหนเปลี่ยนก่อน
+            // ให้สมมติว่าเป็น paceMin เปลี่ยน -> recalcRow
+            recalcRow(row, &quot;paceMin&quot;);
+          });
+        });
+      });
+
+      // อัปเดต Footer ตอนต้น
+      updateFooterTotals();
+    });
+  </script>
+</body>
+</html>"></iframe>
 
 
 </main>
