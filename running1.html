@@ -21,7 +21,7 @@ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetic
 color:var(--text)
 }
 
-/* Header เตี้ยลง */
+/* Header */
 header{
 position:sticky; top:0; z-index:10;
 background:var(--card);
@@ -29,34 +29,36 @@ border-bottom:1px solid #e6eef8;
 }
 .wrap{
 max-width:1000px; margin:0 auto;
-padding:6px 12px;                   /* เดิม 10px 16px → ลดลง */
-display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+padding:10px 12px;
+display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:space-between;
 }
 h1{
-font-size:14px;                     /* เดิม 18px → ลดลง */
+font-size:16px;
 margin:0; white-space:nowrap;
 }
 
-/* ปุ่มเมนูแบบกระชับ */
-.tabs{ display:flex; gap:6px; flex:1; flex-wrap:wrap }
-.tab-btn{
-appearance:none; cursor:pointer; transition:.2s;
-border:1px solid #d6e2f3; background:#fff;
-padding:6px 10px;                   /* เดิม 10px 14px → ลดลง */
-border-radius:999px; font-weight:600; font-size:14px; /* เดิม ~16px */
-text-align:center;
-flex:1 1 140px;                     /* เดิม 160px → ลดลง */
+/* สไตล์สำหรับ Dropdown */
+.nav-select {
+flex: 1;
+max-width: 300px;
+padding: 8px 12px;
+border: 1px solid #d6e2f3;
+border-radius: 8px;
+font-size: 14px;
+font-weight: 600;
+color: var(--text);
+background-color: #fff;
+cursor: pointer;
+outline: none;
+transition: border-color 0.2s;
 }
-.tab-btn[aria-selected="true"]{
-background:var(--primary); color:#fff; border-color:var(--primary);
+.nav-select:focus {
+border-color: var(--primary);
+box-shadow: 0 0 0 3px var(--ring);
 }
-.tab-btn:focus-visible{ outline:3px solid var(--ring) }
 
-/* ซ่อนคำอธิบายเพื่อประหยัดพื้นที่ */
-.note{ display:none; }
-
-/* พื้นที่แสดงผลสูงขึ้นตาม header ที่เตี้ยลง */
-.view{ height:calc(100vh - 48px) }    /* เดิม 68px → 48px */
+/* พื้นที่แสดงผล */
+.view{ height:calc(100vh - 56px) }
 
 iframe{
 display:none; border:0; width:100%; height:100%;
@@ -64,17 +66,11 @@ background:#fff; border-radius:0;
 }
 iframe.active{ display:block }
 
-/* ให้ปุ่มมีขนาดคงที่บนจอใหญ่ */
-@media (min-width: 900px) {
-.tab-btn{ flex:0 0 auto; min-width:140px } /* เดิม 160px → 140px */
-}
-
-/* โหมดจอเล็กมาก: ลดระยะห่างเพิ่มอีกนิด */
+/* โหมดจอเล็กมาก */
 @media (max-width: 360px) {
-.wrap{ padding:4px 8px; gap:4px }
-.tabs{ gap:4px }
-.tab-btn{ padding:5px 8px; font-size:13px; min-width:120px }
-.view{ height:calc(100vh - 42px) }
+.wrap{ padding:8px; gap:8px; flex-direction:column; align-items:stretch; }
+.nav-select{ max-width: 100%; }
+.view{ height:calc(100vh - 80px) }
 }
 </style>
 
@@ -83,15 +79,15 @@ iframe.active{ display:block }
 <header>
 <div class="wrap">
 <h1>🏃‍♂️ Running Calculator</h1>
-<div class="tabs" role="tablist" aria-label="Calculator pages">
-<button class="tab-btn" role="tab" id="tab-pace" aria-selected="true" data-target="page-pace">Time/Pace/Distance</button>
-<button class="tab-btn" role="tab" id="tab-race" aria-selected="false" data-target="page-race">Race Predict</button>
-<button class="tab-btn" role="tab" id="tab-train" aria-selected="false" data-target="page-train">Training Pace</button>
-<button class="tab-btn" role="tab" id="tab-time" aria-selected="false" data-target="page-time">Pace Table</button>
-<button class="tab-btn" role="tab" id="tab-interval" aria-selected="false" data-target="page-interval">Interval Cal</button>
-<button class="tab-btn" role="tab" id="tab-tl" aria-selected="false" data-target="page-tl">TL Calculator</button>
-</div>
-<div class="note">เลือกการคำนวณ</div>
+<!-- เปลี่ยนเป็น Dropdown -->
+<select id="page-selector" class="nav-select" aria-label="เลือกเครื่องมือคำนวณ">
+  <option value="page-pace" selected>Time/Pace/Distance</option>
+  <option value="page-race">Race Predict</option>
+  <option value="page-train">Training Pace</option>
+  <option value="page-time">Pace Table</option>
+  <option value="page-interval">Interval Cal</option>
+  <option value="page-tl">TL Calculator</option>
+</select>
 </div>
 </header>
 
@@ -1486,20 +1482,23 @@ iframe.active{ display:block }
 </main>
 
 <script>
-const buttons = document.querySelectorAll('.tab-btn');
+// สคริปต์สำหรับการเปลี่ยนหน้าผ่าน Dropdown
+const pageSelector = document.getElementById('page-selector');
 const frames = document.querySelectorAll('iframe');
-buttons.forEach(btn => {
-btn.addEventListener('click', () => {
-// switch active button
-buttons.forEach(b => b.setAttribute('aria-selected', 'false'));
-btn.setAttribute('aria-selected', 'true');
-// switch visible iframe
-frames.forEach(f => f.classList.remove('active'));
-const id = btn.dataset.target;
-document.getElementById(id).classList.add('active');
-// Move focus to frame for accessibility
-document.getElementById(id).focus({preventScroll:true});
-});
+
+pageSelector.addEventListener('change', (e) => {
+  const targetId = e.target.value;
+  
+  // ซ่อน iframe ทั้งหมด
+  frames.forEach(f => f.classList.remove('active'));
+  
+  // แสดง iframe ที่ตรงกับค่า value ของ option ที่ถูกเลือก
+  const activeFrame = document.getElementById(targetId);
+  if (activeFrame) {
+    activeFrame.classList.add('active');
+    // โฟกัสไปที่เฟรมเพื่อการเข้าถึง (Accessibility)
+    activeFrame.focus({preventScroll:true});
+  }
 });
 </script>
 </body>
