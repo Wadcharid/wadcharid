@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PaceMaster - คำนวณเพซซ้อมวิ่ง ฉบับเข้าใจง่าย</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Kanit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kanit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Kanit', 'Inter', 'sans-serif'],
+            mono: ['SFMono-Regular', 'Menlo', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#0d9488',
+              600: '#0f766e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: #0b1120;
+      color: #f1f5f9;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    .gradient-border-active {
+      border-color: #38bdf8;
+      box-shadow: 0 0 20px -3px rgba(56, 189, 248, 0.3);
+    }
+    .zone-card {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .zone-card:hover {
+      transform: translateY(-3px);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+  <!-- Toast Notification Box -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-150%] opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-slate-800 border border-slate-700 text-white px-5 py-3 rounded-2xl shadow-2xl">
+    <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+    <span id="toastMsg" class="text-sm font-medium">คัดลอกข้อมูลเรียบร้อยแล้ว</span>
+  </div>
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 via-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-xl">
+          <i data-lucide="zap" class="w-5 h-5 fill-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-200 bg-clip-text text-transparent">
+              PaceMaster
+            </h1>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 font-semibold">ฉบับเข้าใจง่าย</span>
+          </div>
+          <p class="text-[11px] text-slate-400">คำนวณความเร็วซ้อมวิ่ง 3 ระดับ จากสถิติของคุณ</p>
+        </div>
+      </div>
+      
+      <!-- Preset Quick Buttons -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="hidden md:flex items-center gap-1.5 text-xs">
+          <span class="text-slate-400 text-xs mr-1">ลองดูตัวอย่าง:</span>
+          <button onclick="applyPreset('5k_30m')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">5K 30นาที</button>
+          <button onclick="applyPreset('10k_60m')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">10K 1ชม.</button>
+          <button onclick="applyPreset('10k_50m')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">10K 50นาที</button>
+          <button onclick="applyPreset('21k_2h')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">ฮาล์ฟ 2ชม.</button>
+        </div>
+        <button onclick="copyPaceSummary()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-md shadow-cyan-500/20 transition active:scale-95">
+          <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">คัดลอกสรุป</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+
+    <!-- STEP 1 & 2: Intuitive Input Wizard Card -->
+    <section class="bg-gradient-to-b from-slate-900 to-slate-900/95 border border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xl shadow-black/40">
+      
+      <!-- Section Title -->
+      <div class="flex items-center gap-2.5 pb-4 border-b border-slate-800">
+        <span class="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xs">1</span>
+        <div>
+          <h2 class="text-base font-bold text-white">บอกสถิติการวิ่งล่าสุดที่คุณเคยทำได้</h2>
+          <p class="text-xs text-slate-400">เลือก ระยะทาง และ เวลาที่วิ่งเข้าเส้นชัย (สถิติที่ดีที่สุดช่วงนี้)</p>
+        </div>
+      </div>
+
+      <!-- Distance Quick Pills + Time Input Row -->
+      <div class="mt-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+        
+        <!-- Distance Selector -->
+        <div class="lg:col-span-6 space-y-2">
+          <label class="block text-xs font-bold text-slate-300">
+            เลือกระยะทางที่คุณมีสถิติ:
+          </label>
+          <div class="grid grid-cols-4 gap-2">
+            <button type="button" onclick="setQuickDistance(5, this)" class="dist-pill py-2.5 px-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-950 text-slate-300 hover:border-cyan-500 transition text-center">
+              5 กม. (5K)
+            </button>
+            <button type="button" onclick="setQuickDistance(10, this)" class="dist-pill py-2.5 px-2 rounded-xl text-xs font-semibold border-2 border-cyan-500 bg-cyan-500/10 text-cyan-300 font-bold shadow-sm transition text-center">
+              10 กม. (10K)
+            </button>
+            <button type="button" onclick="setQuickDistance(21.0975, this)" class="dist-pill py-2.5 px-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-950 text-slate-300 hover:border-cyan-500 transition text-center">
+              21.1K (ฮาล์ฟ)
+            </button>
+            <button type="button" onclick="setQuickDistance(42.195, this)" class="dist-pill py-2.5 px-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-950 text-slate-300 hover:border-cyan-500 transition text-center">
+              42.2K (ฟูล)
+            </button>
+          </div>
+          <!-- Custom distance collapsible if needed -->
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[11px] text-slate-500">หรือระยะอื่นๆ:</span>
+            <select id="distanceSelect" onchange="onCustomDropdownChange()" class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 outline-none">
+              <option value="1.60934">1 ไมล์ (1.61 กม.)</option>
+              <option value="3">3 กิโลเมตร</option>
+              <option value="5">5 กิโลเมตร</option>
+              <option value="10" selected>10 กิโลเมตร</option>
+              <option value="21.0975">21.0975 กม. (ฮาล์ฟมาราธอน)</option>
+              <option value="42.195">42.195 กม. (มาราธอน)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Time Input Form -->
+        <div class="lg:col-span-6 space-y-2">
+          <label class="block text-xs font-bold text-slate-300">
+            เวลาที่ใช้ (ชั่วโมง : นาที : วินาที):
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="relative bg-slate-950 rounded-2xl border border-slate-800 p-2 text-center focus-within:border-cyan-500">
+              <span class="text-[10px] text-slate-400 block mb-0.5 font-medium">ชั่วโมง (ชม.)</span>
+              <input type="number" id="inputHours" min="0" max="24" value="0" oninput="calculateAllPaces()" class="w-full bg-transparent text-xl font-bold text-center text-white outline-none font-mono">
+            </div>
+            <div class="relative bg-slate-950 rounded-2xl border border-slate-800 p-2 text-center focus-within:border-cyan-500">
+              <span class="text-[10px] text-slate-400 block mb-0.5 font-medium">นาที (น.)</span>
+              <input type="number" id="inputMinutes" min="0" max="59" value="50" oninput="calculateAllPaces()" class="w-full bg-transparent text-xl font-bold text-center text-white outline-none font-mono">
+            </div>
+            <div class="relative bg-slate-950 rounded-2xl border border-slate-800 p-2 text-center focus-within:border-cyan-500">
+              <span class="text-[10px] text-slate-400 block mb-0.5 font-medium">วินาที (วิ.)</span>
+              <input type="number" id="inputSeconds" min="0" max="59" value="0" oninput="calculateAllPaces()" class="w-full bg-transparent text-xl font-bold text-center text-white outline-none font-mono">
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 px-1">
+            <span>ความเร็วเฉลี่ยในวันนั้น:</span>
+            <span id="quickAveragePace" class="text-cyan-400 font-mono font-bold">5:00 นาที/กม.</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- STEP 2: Goal Selector -->
+      <div class="mt-6 pt-5 border-t border-slate-800">
+        <div class="flex items-center gap-2.5 mb-3">
+          <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">2</span>
+          <div>
+            <h2 class="text-base font-bold text-white">ตอนนี้คุณกำลังฝึกซ้อมเพื่อเป้าหมายอะไร?</h2>
+            <p class="text-xs text-slate-400">ระบบจะจัดสัดส่วน วิ่งสบาย : วิ่งเร่ง : วิ่งเร็ว ให้เหมาะสมกับเป้าหมายนี้</p>
+          </div>
+        </div>
+
+        <!-- Easy Goal Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="goalContainer">
+          
+          <button type="button" onclick="selectGoal('health', this)" class="goal-card p-3 rounded-2xl border border-slate-800 bg-slate-950/70 text-left hover:border-slate-700 transition relative">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xl">🏃</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-medium">เพื่อสุขภาพ</span>
+            </div>
+            <div class="text-xs font-bold text-white">วิ่งเพื่อสุขภาพ / ลดไขมัน</div>
+            <p class="text-[10px] text-slate-400 mt-1">เน้นวิ่งสบายๆ สม่ำเสมอ ไม่เหนื่อยล้า</p>
+          </button>
+
+          <button type="button" onclick="selectGoal('5k_10k', this)" class="goal-card p-3 rounded-2xl border border-slate-800 bg-slate-950/70 text-left hover:border-slate-700 transition relative">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xl">⚡</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 font-medium">เน้นความเร็ว</span>
+            </div>
+            <div class="text-xs font-bold text-white">เป้าหมาย 5K - 10K</div>
+            <p class="text-[10px] text-slate-400 mt-1">เน้นฝึกรอบขา สปีด และความเร็วสูง</p>
+          </button>
+
+          <button type="button" onclick="selectGoal('half', this)" class="goal-card p-3 rounded-2xl border border-slate-800 bg-slate-950/70 text-left hover:border-slate-700 transition relative">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xl">🔥</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-medium">ยืนเพซได้นาน</span>
+            </div>
+            <div class="text-xs font-bold text-white">ฮาล์ฟมาราธอน (21.1K)</div>
+            <p class="text-[10px] text-slate-400 mt-1">เน้น Tempo ขจัดกรดเมื่อยล้า</p>
+          </button>
+
+          <button type="button" onclick="selectGoal('marathon', this)" class="goal-card p-3 rounded-2xl border-2 border-cyan-500 bg-cyan-500/10 text-left transition relative ring-1 ring-cyan-500/40">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xl">🏅</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">มาราธอน</span>
+            </div>
+            <div class="text-xs font-bold text-white">ฟูลมาราธอน (42.2K)</div>
+            <p class="text-[10px] text-slate-400 mt-1">เน้นอึดทน วิ่งยาว และประหยัดพลังงาน</p>
+          </button>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RESULT SECTION: The 3 Main Pace Cards (Big, Visual, Human-friendly) -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-black text-white flex items-center gap-2">
+            <i data-lucide="gauge" class="w-5 h-5 text-cyan-400"></i>
+            เพซที่คุณควรใช้ซ้อม (Training Paces)
+          </h2>
+          <p class="text-xs text-slate-400">แบ่งตามความรู้สึกและระดับความเหนื่อย 3 ระดับ</p>
+        </div>
+        <div id="fitnessBadge" class="px-3 py-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-cyan-400">
+          ความฟิต: กำลังดีเยี่ยม 👍
+        </div>
+      </div>
+
+      <!-- 3 Big Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <!-- CARD 1: Light Pace (Green) -->
+        <div class="zone-card bg-gradient-to-b from-emerald-950/40 via-slate-900 to-slate-900 border-2 border-emerald-500/40 rounded-3xl p-5 shadow-lg relative flex flex-col justify-between overflow-hidden">
+          <div class="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                🟢 ระดับ 1: วิ่งสบายๆ
+              </span>
+              <span id="ratioTagLight" class="text-xs font-mono font-bold text-emerald-400">80% ของการซ้อม</span>
+            </div>
+
+            <div class="my-3">
+              <span class="text-[11px] text-slate-400 block font-medium">เพซเป้าหมาย (นาที/กิโลเมตร):</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span id="displayLightPace" class="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">5:56 - 6:38</span>
+              </div>
+              <span class="text-[11px] text-emerald-400 font-mono" id="displayLightMile">9:32 - 10:41 min/mile</span>
+            </div>
+
+            <!-- Human Feeling & Talk Test Box -->
+            <div class="space-y-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div class="flex items-start gap-2 text-slate-300">
+                <i data-lucide="smile" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>ความรู้สึก:</strong> หายใจสบาย วิ่งไปคุยเป็นประโยคได้ ไม่เหนื่อยหอบ</span>
+              </div>
+              <div class="flex items-start gap-2 text-slate-400 text-[11px]">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                <span><strong>ใช้สำหรับ:</strong> วิ่งเบา (Easy Run), วิ่งฟื้นฟู (Recovery) และวิ่งยาว (Long Run)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>โซนหัวใจแนะนำ:</span>
+            <span id="lightHRDisplay" class="font-semibold text-emerald-300">Zone 2 (120-145 bpm)</span>
+          </div>
+        </div>
+
+        <!-- CARD 2: Moderate Pace (Yellow/Amber) -->
+        <div class="zone-card bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-5 shadow-lg relative flex flex-col justify-between overflow-hidden">
+          <div class="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                🟡 ระดับ 2: วิ่งตึงๆ กำลังดี
+              </span>
+              <span id="ratioTagMod" class="text-xs font-mono font-bold text-amber-400">15% ของการซ้อม</span>
+            </div>
+
+            <div class="my-3">
+              <span class="text-[11px] text-slate-400 block font-medium">เพซเป้าหมาย (นาที/กิโลเมตร):</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span id="displayModPace" class="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">5:06 - 5:29</span>
+              </div>
+              <span class="text-[11px] text-amber-400 font-mono" id="displayModSub">Tempo 5:06 | Marathon 5:29</span>
+            </div>
+
+            <!-- Human Feeling & Talk Test Box -->
+            <div class="space-y-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div class="flex items-start gap-2 text-slate-300">
+                <i data-lucide="flame" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                <span><strong>ความรู้สึก:</strong> เหนื่อยตึงๆ คุยได้แค่ประโยคสั้นๆ ต้องตั้งสมาธิคุมความเร็ว</span>
+              </div>
+              <div class="flex items-start gap-2 text-slate-400 text-[11px]">
+                <i data-lucide="check" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                <span><strong>ใช้สำหรับ:</strong> วิ่งเทมโป้ (Tempo 20-30 น.) และเพซแข่งมาราธอน (M-Pace)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>โซนหัวใจแนะนำ:</span>
+            <span id="modHRDisplay" class="font-semibold text-amber-300">Zone 3 - Zone 4 ต่ำ</span>
+          </div>
+        </div>
+
+        <!-- CARD 3: Hard Pace (Rose/Red) -->
+        <div class="zone-card bg-gradient-to-b from-rose-950/40 via-slate-900 to-slate-900 border-2 border-rose-500/40 rounded-3xl p-5 shadow-lg relative flex flex-col justify-between overflow-hidden">
+          <div class="absolute top-0 right-0 transform translate-x-3 -translate-y-3 w-24 h-24 bg-rose-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                🔴 ระดับ 3: วิ่งเร็ว / หอบแฮ่ก
+              </span>
+              <span id="ratioTagHard" class="text-xs font-mono font-bold text-rose-400">5% ของการซ้อม</span>
+            </div>
+
+            <div class="my-3">
+              <span class="text-[11px] text-slate-400 block font-medium">เพซเป้าหมาย (นาที/กิโลเมตร):</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span id="displayHardPace" class="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">4:20 - 4:42</span>
+              </div>
+              <span class="text-[11px] text-rose-400 font-mono" id="displayHardSub">Interval 4:42 | Repetition 4:20</span>
+            </div>
+
+            <!-- Human Feeling & Talk Test Box -->
+            <div class="space-y-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+              <div class="flex items-start gap-2 text-slate-300">
+                <i data-lucide="zap" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                <span><strong>ความรู้สึก:</strong> เหนื่อยจัด พูดไม่ไหว ขยายปอด วิ่งรอบสั้นๆ สลับพัก</span>
+              </div>
+              <div class="flex items-start gap-2 text-slate-400 text-[11px]">
+                <i data-lucide="check" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                <span><strong>ใช้สำหรับ:</strong> วิ่งคอร์ท (Interval 400m-1km), วิ่งสปีดสั้น (Repetition/Strides)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>โซนหัวใจแนะนำ:</span>
+            <span id="hardHRDisplay" class="font-semibold text-rose-300">Zone 4 ปลาย - Zone 5</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- WEEKLY ROUTINE: Sample 1-Week Schedule Card -->
+    <section class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-7 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="calendar-days" class="w-5 h-5 text-cyan-400"></i>
+            ตัวอย่างการจัดตารางซ้อมใน 1 สัปดาห์ (Weekly Plan)
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5" id="scheduleSubtitle">จัดตารางให้เหมาะกับเป้าหมายที่คุณเลือก</p>
+        </div>
+        <!-- Weekly Volume Input -->
+        <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-2xl px-3 py-1.5 self-start sm:self-auto">
+          <span class="text-xs text-slate-400">ระยะรวมต่อสัปดาห์:</span>
+          <input type="number" id="inputWeeklyKm" min="10" max="200" value="40" oninput="calculateAllPaces()" class="w-12 bg-transparent text-sm font-bold text-cyan-400 font-mono text-center outline-none">
+          <span class="text-xs text-slate-500 font-medium">กม.</span>
+        </div>
+      </div>
+
+      <!-- DAY SELECTOR TOOLBAR: Presets + 7-Day Chips -->
+      <div class="bg-slate-950/70 p-3.5 sm:p-4 rounded-2xl border border-slate-800/80 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+            <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+            เลือกวันที่สะดวกซ้อมของคุณ:
+          </span>
+          <!-- Quick Presets -->
+          <div class="flex items-center gap-1 text-[11px]">
+            <span class="text-slate-400 mr-1 hidden sm:inline">จัดให้อัตโนมัติ:</span>
+            <button type="button" onclick="setDaysPreset(3)" class="preset-day-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">3 วัน</button>
+            <button type="button" onclick="setDaysPreset(4)" class="preset-day-btn px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30 transition">4 วัน (แนะนำ)</button>
+            <button type="button" onclick="setDaysPreset(5)" class="preset-day-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">5 วัน</button>
+            <button type="button" onclick="setDaysPreset(6)" class="preset-day-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">6 วัน</button>
+          </div>
+        </div>
+
+        <!-- 7-Day Toggle Buttons -->
+        <div class="grid grid-cols-7 gap-1.5 sm:gap-2 pt-1" id="dayToggleContainer">
+          <button type="button" onclick="toggleDay(0)" id="dayBtn-0" class="day-chip py-2 px-1 rounded-xl text-xs font-semibold border text-center transition flex flex-col items-center">
+            <span class="text-[10px] opacity-70">จ.</span>
+            <span class="font-bold text-xs sm:text-sm">จันทร์</span>
+          </button>
+          <button type="button" onclick="toggleDay(1)" id="dayBtn-1" class="day-chip py-2 px-1 rounded-xl text-xs font-semibold border text-center transition flex flex-col items-center">
+            <span class="text-[10px] opacity-70">อ.</span>
+            <span class="font-bold text-xs sm:text-sm">อังคาร</span>
+          </button>
+          <button type="button" onclick="toggleDay(2)" id="dayBtn-2" class="day-chip py-2 px-1 rounded-xl text-xs font-semibold border text-center transition flex flex-col items-center">
+            <span class="text-[10px] opacity-70">พ.</span>
+            <span class="font-bold text-xs sm:text-sm">พุธ</span>
+          </button>
+          <button type="button" onclick="toggleDay(3)" id="dayBtn-3" class="day-chip py-2 px-1 rounded-xl text-xs font-semibold border text-center transition flex flex-col items-center">
+            <span class="text-[10px] opacity-70">พฤ.</span>
+            <span class="font-bold text-xs sm:text-sm">พฤหัส</span>
+          </button>
+          <button type="button" onclick="toggleDay(4)" id="dayBtn-4" class="day-chip py-2 px-1 rounded-xl text-xs font-semibold border text-center transition flex flex-col items-center">
+            <span class="text-[10px] opacity-70">ศ.</span>
+            <span class="font-bold text-xs sm:text-sm">ศุกร์</span>
+          </button>
+          <button type="button" onclick="toggleDay(5)" id="dayBtn-5" class="day-chip py-2 px-1 rounded-xl text-xs font-semibold border text-center transition flex flex-col items-center">
+            <span class="text-[10px] opacity-70">ส.</span>
+            <span class="font-bold text-xs sm:text-sm">เสาร์</span>
+          </button>
+          <button type="button" onclick="toggleDay(6)" id="dayBtn-6" class="day-chip py-2 px-1 rounded-xl text-xs font-semibold border text-center transition flex flex-col items-center">
+            <span class="text-[10px] opacity-70">อา.</span>
+            <span class="font-bold text-xs sm:text-sm">อาทิตย์</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Visual Distribution Bar -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>สัดส่วนการซ้อมสัปดาห์นี้:</span>
+          <span id="summaryRatioText" class="font-mono text-cyan-300 font-bold">วิ่งสบาย 32 กม. | วิ่งตึงๆ 6 กม. | วิ่งเร็ว 2 กม.</span>
+        </div>
+        <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden flex border border-slate-800">
+          <div id="barLight" style="width: 80%;" class="h-full bg-emerald-500 transition-all duration-500"></div>
+          <div id="barMod" style="width: 15%;" class="h-full bg-amber-500 transition-all duration-500"></div>
+          <div id="barHard" style="width: 5%;" class="h-full bg-rose-500 transition-all duration-500"></div>
+        </div>
+      </div>
+
+      <!-- 7-Day Calendar Grid (Workout Days & Rest Days) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 text-xs" id="weeklyScheduleGrid">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Coach Tip Box -->
+      <div id="coachTipBox" class="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/20 text-xs text-cyan-200 flex items-start gap-2.5">
+        <i data-lucide="lightbulb" class="w-4 h-4 text-cyan-400 shrink-0 mt-0.5"></i>
+        <span id="coachTipText">
+          <strong>คำแนะนำสำคัญ:</strong> สำหรับนักวิ่งส่วนใหญ่ เคล็ดลับของการวิ่งให้เร็วขึ้นคือ <strong>"ต้องวิ่งช้าให้เป็น"</strong> อย่าวิ่งเหนื่อยเกินไปในวันที่เป็น Easy Run เพื่อเก็บแรงไว้ใส่เต็มที่ในวันซ้อมความเร็วครับ!
+        </span>
+      </div>
+    </section>
+
+    <!-- PREDICTED RACE TIMES & DETAILS (Collapsible / Clean) -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      
+      <!-- Equivalent Race Time Card -->
+      <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+              เวลาที่คุณน่าจะทำได้ในระยะอื่นๆ (Race Predictions)
+            </h3>
+          </div>
+          <p class="text-xs text-slate-400 mb-4">คำนวณจากความฟิตปัจจุบันของคุณ (หากซ้อมตรงตามระยะ)</p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <span class="text-[11px] text-slate-400 block">5 กิโลเมตร</span>
+              <span id="pred5k" class="text-base font-bold text-white font-mono mt-1 block">24:08</span>
+              <span class="text-[10px] text-slate-500">นาที</span>
+            </div>
+
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <span class="text-[11px] text-slate-400 block">10 กิโลเมตร</span>
+              <span id="pred10k" class="text-base font-bold text-white font-mono mt-1 block">50:03</span>
+              <span class="text-[10px] text-slate-500">นาที</span>
+            </div>
+
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <span class="text-[11px] text-slate-400 block">21.1K (ฮาล์ฟ)</span>
+              <span id="predHalf" class="text-base font-bold text-amber-400 font-mono mt-1 block">1:50:59</span>
+              <span class="text-[10px] text-slate-500">ชม.:นาที</span>
+            </div>
+
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <span class="text-[11px] text-slate-400 block">42.2K (ฟูล)</span>
+              <span id="predFull" class="text-base font-bold text-cyan-400 font-mono mt-1 block">3:49:45</span>
+              <span class="text-[10px] text-slate-500">ชม.:นาที</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+          <span>ความฟิตเทียบเท่า VDOT: <strong id="vdotValueText" class="text-white">40.0</strong></span>
+          <span class="text-slate-500">*อ้างอิงสูตรมาตรฐาน Jack Daniels</span>
+        </div>
+      </div>
+
+      <!-- Pro / Track Lap Splits (Expandable) -->
+      <div class="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i data-lucide="stopwatch" class="w-4 h-4 text-cyan-400"></i>
+            เวลาซ้อมในลู่วิ่ง 400 เมตร (Track Splits)
+          </h3>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">สำหรับวันลงคอร์ท</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">เวลาต่อรอบสำหรับฝึกซ้อมในสนามกรีฑา 400m</p>
+
+        <div class="space-y-2 text-xs">
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-emerald-500/20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <span class="text-slate-200">วิ่งสบาย (Easy Pace)</span>
+            </div>
+            <div class="font-mono text-slate-300">
+              400m: <span id="lapEasy400" class="text-emerald-400 font-bold">2:24</span> น.
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-amber-500/20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              <span class="text-slate-200">วิ่งเทมโป้ (Tempo / T-Pace)</span>
+            </div>
+            <div class="font-mono text-slate-300">
+              400m: <span id="lapTempo400" class="text-amber-400 font-bold">2:02</span> น.
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-rose-500/20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+              <span class="text-slate-200">วิ่งคอร์ท Interval (I-Pace 400m)</span>
+            </div>
+            <div class="font-mono text-slate-300">
+              400m: <span id="lapInterval400" class="text-rose-400 font-bold">1:52</span> น.
+            </div>
+          </div>
+
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-purple-500/20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+              <span class="text-slate-200">สปีดสั้น Repetition (200m)</span>
+            </div>
+            <div class="font-mono text-slate-300">
+              200m: <span id="lapRep200" class="text-purple-400 font-bold">52</span> วิ.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-400">
+    <p>ระบบคำนวณ Pace ซ้อมวิ่งเชิงวิทยาศาสตร์การกีฬา (3-Zone Model & Jack Daniels' VDOT)</p>
+    <p class="mt-1 text-[11px] text-slate-400">ออกแบบให้อ่านและนำไปใช้งานได้ง่ายสำหรับนักวิ่งทุกระดับ</p>
+  </footer>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // State
+    let currentData = {
+      distanceKm: 10,
+      hours: 0,
+      minutes: 50,
+      seconds: 0,
+      weeklyKm: 40,
+      goal: 'marathon',
+      activeDays: [false, true, false, true, false, true, true], // Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6 (Default 4 days)
+      vdot: 40.0,
+      lightMin: '5:56',
+      lightMax: '6:38',
+      mPace: '5:29',
+      tPace: '5:06',
+      iPace: '4:42',
+      rPace: '4:20',
+      secLightFast: 356,
+      secLightSlow: 398,
+      secT: 306,
+      secI: 282,
+      secR: 260
+    };
+
+    const DAY_NAMES = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+    const DAY_NAMES_SHORT = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+
+    // Goal Configurations
+    const GOAL_DATA = {
+      'health': {
+        name: 'วิ่งเพื่อสุขภาพ & ลดไขมัน (Health & Base)',
+        ratio: { light: 90, mod: 5, hard: 5 },
+        subtitle: 'เน้นวิ่งสบายๆ เป็นหลักเพื่อความปลอดภัย หัวใจแข็งแรง และไม่บาดเจ็บ',
+        tip: '<strong>คำแนะนำ:</strong> การวิ่งเพื่อสุขภาพหัวใจและลดไขมัน ควรวิ่งในระดับ 🟢 วิ่งสบาย (Zone 2) อย่างน้อย 30-45 นาทีต่อครั้ง ร่างกายจะดึงไขมันมาใช้เป็นพลังงานได้ดีที่สุดครับ'
+      },
+      '5k_10k': {
+        name: 'เป้าหมาย 5K - 10K (เน้นสปีด & เร่งความเร็ว)',
+        ratio: { light: 75, mod: 5, hard: 20 },
+        subtitle: 'เน้นฝึกหัวใจและรอบขาเพื่อเพิ่มความเร็วในการวิ่ง 5K-10K',
+        tip: '<strong>คำแนะนำสำหรับ 5K-10K:</strong> วันที่วิ่งเร็ว 🔴 (Interval) ควรวอร์มอัพ 10-15 นาทีก่อนเสมอ และควบคุมความเร็วให้สม่ำเสมอทุกเซ็ต อย่าใส่หมดตั้งแต่รอบแรกนะครับ'
+      },
+      'half': {
+        name: 'ฮาล์ฟมาราธอน 21.1K (เน้นยืนระยะความเร็ว)',
+        ratio: { light: 75, mod: 15, hard: 10 },
+        subtitle: 'เน้นความทนทานต่อกรดแลกเตท เพื่อให้ยืนความเร็วได้ตลอด 21.1 กม.',
+        tip: '<strong>คำแนะนำสำหรับฮาล์ฟ:</strong> หัวใจสำคัญคือการซ้อม 🟡 วิ่งตึงๆ (Tempo / T-Pace) สัปดาห์ละ 1 ครั้ง จะช่วยให้คุณวิ่งฮาล์ฟได้โดยขาไม่หมดแรงช่วง 5 กม. ท้าย'
+      },
+      'marathon': {
+        name: 'ฟูลมาราธอน 42.2K (เน้นความอึด & ถังพลังงาน)',
+        ratio: { light: 80, mod: 15, hard: 5 },
+        subtitle: 'เน้นสะสมระยะทางและวิ่งยาว เพื่อไม่ให้ชนกำแพงที่กิโลเมตร 30+',
+        tip: '<strong>คำแนะนำสำหรับมาราธอน:</strong> อย่าวิ่งเร็วเกินไปในวันวิ่งยาว! ให้เน้นวิ่งในระดับ 🟢 วิ่งสบาย และฝึกจิบน้ำ/เติมเจลพลังงานทุกๆ 30-40 นาที เพื่อให้ชินกับวันแข่งจริง'
+      }
+    };
+
+    // Day Selection Handlers
+    function toggleDay(dayIndex) {
+      // Check how many are active
+      const activeCount = currentData.activeDays.filter(Boolean).length;
+      if (currentData.activeDays[dayIndex] && activeCount <= 1) {
+        showToast('กรุณาเลือกวันซ้อมอย่างน้อย 1 วันครับ');
+        return;
+      }
+      currentData.activeDays[dayIndex] = !currentData.activeDays[dayIndex];
+      updateDayChipsUI();
+      calculateAllPaces();
+    }
+
+    function setDaysPreset(numDays) {
+      if (numDays === 3) {
+        currentData.activeDays = [false, true, false, true, false, false, true]; // Tue, Thu, Sun
+      } else if (numDays === 4) {
+        currentData.activeDays = [false, true, false, true, false, true, true]; // Tue, Thu, Sat, Sun
+      } else if (numDays === 5) {
+        currentData.activeDays = [false, true, true, true, false, true, true]; // Tue, Wed, Thu, Sat, Sun
+      } else if (numDays === 6) {
+        currentData.activeDays = [true, true, true, true, false, true, true]; // Mon, Tue, Wed, Thu, Sat, Sun
+      }
+      updateDayChipsUI();
+      calculateAllPaces();
+      showToast(`ปรับตารางซ้อมเป็น ${numDays} วัน/สัปดาห์ เรียบร้อย`);
+    }
+
+    function updateDayChipsUI() {
+      currentData.activeDays.forEach((isActive, idx) => {
+        const btn = document.getElementById(`dayBtn-${idx}`);
+        if (!btn) return;
+        if (isActive) {
+          btn.className = 'day-chip py-2 px-1 rounded-xl text-xs font-semibold border-2 border-cyan-400 bg-cyan-500/20 text-cyan-200 text-center transition flex flex-col items-center shadow-md shadow-cyan-500/10';
+        } else {
+          btn.className = 'day-chip py-2 px-1 rounded-xl text-xs font-semibold border border-slate-800 bg-slate-950 text-slate-500 text-center transition flex flex-col items-center hover:border-slate-700';
+        }
+      });
+    }
+
+    // VDOT & Daniels Formulas
+    function calculateVO2(velocityMPerMin) {
+      return -4.60 + (0.182258 * velocityMPerMin) + (0.000104 * Math.pow(velocityMPerMin, 2));
+    }
+
+    function calculatePercentMax(timeMinutes) {
+      return 0.8 + (0.1894393 * Math.exp(-0.012778 * timeMinutes)) + (0.2989558 * Math.exp(-0.1932605 * timeMinutes));
+    }
+
+    function calculateVDOT(distanceMeters, timeMinutes) {
+      if (timeMinutes <= 0 || distanceMeters <= 0) return 30;
+      const velocity = distanceMeters / timeMinutes;
+      const vo2 = calculateVO2(velocity);
+      const percent = calculatePercentMax(timeMinutes);
+      const vdot = vo2 / percent;
+      return Math.max(20, Math.min(85, vdot));
+    }
+
+    function getVelocityFromTargetVO2(targetVO2) {
+      const a = 0.000104;
+      const b = 0.182258;
+      const c = -(4.60 + targetVO2);
+      const discriminant = Math.pow(b, 2) - (4 * a * c);
+      if (discriminant < 0) return 150;
+      return (-b + Math.sqrt(discriminant)) / (2 * a);
+    }
+
+    function getPaceSecPerKm(velocityMPerMin) {
+      if (velocityMPerMin <= 0) return 360;
+      return (1000 / velocityMPerMin) * 60;
+    }
+
+    function formatTimeSec(seconds) {
+      const s = Math.round(seconds);
+      const mins = Math.floor(s / 60);
+      const remSecs = s % 60;
+      return `${mins}:${remSecs < 10 ? '0' : ''}${remSecs}`;
+    }
+
+    function formatHoursMinsSecs(totalSeconds) {
+      const s = Math.round(totalSeconds);
+      const hrs = Math.floor(s / 3600);
+      const mins = Math.floor((s % 3600) / 60);
+      const secs = s % 60;
+      if (hrs > 0) {
+        return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      }
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function convertKmToMilePace(secPerKm) {
+      return formatTimeSec(secPerKm * 1.60934);
+    }
+
+    function predictRaceTime(distanceMeters, vdot) {
+      let low = 1, high = 500;
+      for (let i = 0; i < 25; i++) {
+        const mid = (low + high) / 2;
+        const vel = distanceMeters / mid;
+        const estVDOT = calculateVO2(vel) / calculatePercentMax(mid);
+        if (estVDOT < vdot) high = mid;
+        else low = mid;
+      }
+      return ((low + high) / 2) * 60;
+    }
+
+    // Preset Handler
+    function applyPreset(presetKey) {
+      if (presetKey === '5k_30m') {
+        setQuickDistance(5);
+        document.getElementById('inputHours').value = '0';
+        document.getElementById('inputMinutes').value = '30';
+        document.getElementById('inputSeconds').value = '0';
+        selectGoal('5k_10k');
+      } else if (presetKey === '10k_60m') {
+        setQuickDistance(10);
+        document.getElementById('inputHours').value = '1';
+        document.getElementById('inputMinutes').value = '0';
+        document.getElementById('inputSeconds').value = '0';
+        selectGoal('marathon');
+      } else if (presetKey === '10k_50m') {
+        setQuickDistance(10);
+        document.getElementById('inputHours').value = '0';
+        document.getElementById('inputMinutes').value = '50';
+        document.getElementById('inputSeconds').value = '0';
+        selectGoal('marathon');
+      } else if (presetKey === '21k_2h') {
+        setQuickDistance(21.0975);
+        document.getElementById('inputHours').value = '2';
+        document.getElementById('inputMinutes').value = '0';
+        document.getElementById('inputSeconds').value = '0';
+        selectGoal('half');
+      }
+      calculateAllPaces();
+      showToast('โหลดตัวอย่างเรียบร้อยแล้ว!');
+    }
+
+    function setQuickDistance(km, btnEl) {
+      currentData.distanceKm = km;
+      const select = document.getElementById('distanceSelect');
+      select.value = km.toString();
+
+      // Update pills
+      document.querySelectorAll('.dist-pill').forEach(btn => {
+        btn.classList.remove('border-2', 'border-cyan-500', 'bg-cyan-500/10', 'text-cyan-300', 'font-bold');
+        btn.classList.add('border-slate-700', 'bg-slate-950', 'text-slate-300');
+      });
+
+      if (btnEl) {
+        btnEl.classList.remove('border-slate-700', 'bg-slate-950', 'text-slate-300');
+        btnEl.classList.add('border-2', 'border-cyan-500', 'bg-cyan-500/10', 'text-cyan-300', 'font-bold');
+      } else {
+        // Find matching pill
+        document.querySelectorAll('.dist-pill').forEach(btn => {
+          if (btn.innerText.includes(`${km} `) || (km > 20 && km < 22 && btn.innerText.includes('21.1')) || (km > 40 && btn.innerText.includes('42.2'))) {
+            btn.classList.remove('border-slate-700', 'bg-slate-950', 'text-slate-300');
+            btn.classList.add('border-2', 'border-cyan-500', 'bg-cyan-500/10', 'text-cyan-300', 'font-bold');
+          }
+        });
+      }
+
+      calculateAllPaces();
+    }
+
+    function onCustomDropdownChange() {
+      const val = parseFloat(document.getElementById('distanceSelect').value);
+      setQuickDistance(val);
+    }
+
+    function selectGoal(goalKey, btnEl) {
+      if (!GOAL_DATA[goalKey]) return;
+      currentData.goal = goalKey;
+
+      document.querySelectorAll('.goal-card').forEach(card => {
+        card.classList.remove('border-2', 'border-cyan-500', 'bg-cyan-500/10', 'ring-1', 'ring-cyan-500/40');
+        card.classList.add('border-slate-800', 'bg-slate-950/70');
+      });
+
+      const target = btnEl || document.querySelector(`[onclick*="'${goalKey}'"]`);
+      if (target) {
+        target.classList.remove('border-slate-800', 'bg-slate-950/70');
+        target.classList.add('border-2', 'border-cyan-500', 'bg-cyan-500/10', 'ring-1', 'ring-cyan-500/40');
+      }
+
+      calculateAllPaces();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-[-150%]', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2400);
+    }
+
+    function copyPaceSummary() {
+      const goalConfig = GOAL_DATA[currentData.goal];
+      const activeDaysNames = currentData.activeDays
+        .map((active, idx) => active ? DAY_NAMES_SHORT[idx] : null)
+        .filter(Boolean)
+        .join(', ');
+
+      const summaryText = `🏃‍♂️ สรุป Pace ซ้อมวิ่งของฉัน (PaceMaster)\n` +
+        `🎯 เป้าหมาย: ${goalConfig.name}\n` +
+        `📅 วันที่ซ้อม (${currentData.activeDays.filter(Boolean).length} วัน/สัปดาห์): ${activeDaysNames}\n` +
+        `-----------------------------------------\n` +
+        `🟢 1. วิ่งสบาย (Easy/Long Run): ${currentData.lightMin} - ${currentData.lightMax} /กม.\n` +
+        `🟡 2. วิ่งตึงๆ (Tempo/Marathon): ${currentData.tPace} - ${currentData.mPace} /กม.\n` +
+        `🔴 3. วิ่งเร็ว (Interval/คอร์ท): ${currentData.rPace} - ${currentData.iPace} /กม.\n` +
+        `-----------------------------------------\n` +
+        `📊 สถิติอ้างอิง: ${currentData.distanceKm} กม. ในเวลา ${currentData.hours}:${currentData.minutes}:${currentData.seconds}\n` +
+        `💡 ระยะซ้อมแนะนำสัปดาห์นี้: ${currentData.weeklyKm} กม.`;
+
+      const el = document.createElement('textarea');
+      el.value = summaryText;
+      document.body.appendChild(el);
+      el.select();
+      try {
+        document.execCommand('copy');
+        showToast('คัดลอกสรุปเพซซ้อมลงคลิปบอร์ดแล้ว!');
+      } catch (e) {
+        showToast('ไม่สามารถคัดลอกได้');
+      }
+      document.body.removeChild(el);
+    }
+
+    function calculateAllPaces() {
+      const hrs = parseInt(document.getElementById('inputHours').value) || 0;
+      const mins = parseInt(document.getElementById('inputMinutes').value) || 0;
+      const secs = parseInt(document.getElementById('inputSeconds').value) || 0;
+      const weekly = parseFloat(document.getElementById('inputWeeklyKm').value) || 40;
+      
+      currentData.hours = hrs;
+      currentData.minutes = mins;
+      currentData.seconds = secs;
+      currentData.weeklyKm = weekly;
+
+      const totalMins = (hrs * 60) + mins + (secs / 60);
+      const totalSecs = (hrs * 3600) + (mins * 60) + secs;
+
+      if (totalSecs <= 0 || currentData.distanceKm <= 0) return;
+
+      // Calculate Average Pace of the race
+      const avgPaceSec = totalSecs / currentData.distanceKm;
+      document.getElementById('quickAveragePace').textContent = `${formatTimeSec(avgPaceSec)} นาที/กม.`;
+
+      // 1. Calculate VDOT
+      const distMeters = currentData.distanceKm * 1000;
+      const vdot = calculateVDOT(distMeters, totalMins);
+      currentData.vdot = vdot;
+      document.getElementById('vdotValueText').textContent = vdot.toFixed(1);
+
+      // Fitness Badge Text
+      let fitnessBadge = "นักวิ่งระดับเริ่มต้น 🌱";
+      if (vdot >= 58) fitnessBadge = "นักวิ่งระดับแนวหน้า / อีลีท 🏆";
+      else if (vdot >= 48) fitnessBadge = "นักวิ่งระดับพัฒนาสูง (Advanced) 🚀";
+      else if (vdot >= 38) fitnessBadge = "นักวิ่งระดับทั่วไป (กำลังเยี่ยม!) 👍";
+      document.getElementById('fitnessBadge').textContent = `ระดับความฟิต: ${fitnessBadge}`;
+
+      // 2. Calculate Paces
+      const vLightSlow = getVelocityFromTargetVO2(vdot * 0.62);
+      const vLightFast = getVelocityFromTargetVO2(vdot * 0.74);
+      const secLightSlow = getPaceSecPerKm(vLightSlow);
+      const secLightFast = getPaceSecPerKm(vLightFast);
+
+      const vM = getVelocityFromTargetVO2(vdot * 0.79);
+      const vT = getVelocityFromTargetVO2(vdot * 0.86);
+      const secM = getPaceSecPerKm(vM);
+      const secT = getPaceSecPerKm(vT);
+
+      const vI = getVelocityFromTargetVO2(vdot * 0.97);
+      const vR = getVelocityFromTargetVO2(vdot * 1.07);
+      const secI = getPaceSecPerKm(vI);
+      const secR = getPaceSecPerKm(vR);
+
+      currentData.lightMin = formatTimeSec(secLightFast);
+      currentData.lightMax = formatTimeSec(secLightSlow);
+      currentData.mPace = formatTimeSec(secM);
+      currentData.tPace = formatTimeSec(secT);
+      currentData.iPace = formatTimeSec(secI);
+      currentData.rPace = formatTimeSec(secR);
+
+      currentData.secLightFast = secLightFast;
+      currentData.secLightSlow = secLightSlow;
+      currentData.secT = secT;
+      currentData.secI = secI;
+      currentData.secR = secR;
+
+      // 3. Update Big Pace Cards
+      document.getElementById('displayLightPace').textContent = `${currentData.lightMin} - ${currentData.lightMax}`;
+      document.getElementById('displayLightMile').textContent = `${convertKmToMilePace(secLightFast)} - ${convertKmToMilePace(secLightSlow)} min/mile`;
+
+      document.getElementById('displayModPace').textContent = `${currentData.tPace} - ${currentData.mPace}`;
+      document.getElementById('displayModSub').textContent = `เพซแข่งมาราธอน ${currentData.mPace} | เพซเทมโป้ ${currentData.tPace}`;
+
+      document.getElementById('displayHardPace').textContent = `${currentData.rPace} - ${currentData.iPace}`;
+      document.getElementById('displayHardSub').textContent = `Interval (1K) ${currentData.iPace} | Rep (สปีดสั้น) ${currentData.rPace}`;
+
+      // 4. Update Goal Ratios & Weekly Schedule
+      const goalConfig = GOAL_DATA[currentData.goal] || GOAL_DATA['marathon'];
+      const pLight = goalConfig.ratio.light;
+      const pMod = goalConfig.ratio.mod;
+      const pHard = goalConfig.ratio.hard;
+
+      document.getElementById('ratioTagLight').textContent = `${pLight}% ของระยะซ้อม`;
+      document.getElementById('ratioTagMod').textContent = `${pMod}% ของระยะซ้อม`;
+      document.getElementById('ratioTagHard').textContent = `${pHard}% ของระยะซ้อม`;
+
+      document.getElementById('barLight').style.width = `${pLight}%`;
+      document.getElementById('barMod').style.width = `${pMod}%`;
+      document.getElementById('barHard').style.width = `${pHard}%`;
+
+      const kmLight = (weekly * (pLight / 100)).toFixed(1);
+      const kmMod = (weekly * (pMod / 100)).toFixed(1);
+      const kmHard = (weekly * (pHard / 100)).toFixed(1);
+
+      document.getElementById('summaryRatioText').innerHTML = 
+        `<span class="text-emerald-400">วิ่งสบาย ${kmLight} กม.</span> | ` +
+        `<span class="text-amber-400">วิ่งตึงๆ ${kmMod} กม.</span> | ` +
+        `<span class="text-rose-400">วิ่งเร็ว ${kmHard} กม.</span>`;
+
+      document.getElementById('scheduleSubtitle').textContent = `ปรับตามเป้าหมาย: ${goalConfig.name} (${currentData.activeDays.filter(Boolean).length} วันซ้อม/สัปดาห์)`;
+      document.getElementById('coachTipText').innerHTML = goalConfig.tip;
+
+      // 5. Generate and Render 7-Day Schedule with selected days
+      renderWeeklyScheduleGrid();
+
+      // 6. Predict Equivalent Races
+      document.getElementById('pred5k').textContent = formatHoursMinsSecs(predictRaceTime(5000, vdot));
+      document.getElementById('pred10k').textContent = formatHoursMinsSecs(predictRaceTime(10000, vdot));
+      document.getElementById('predHalf').textContent = formatHoursMinsSecs(predictRaceTime(21097.5, vdot));
+      document.getElementById('predFull').textContent = formatHoursMinsSecs(predictRaceTime(42195, vdot));
+
+      // 7. Track Splits
+      document.getElementById('lapEasy400').textContent = formatTimeSec(secLightSlow * 0.4);
+      document.getElementById('lapTempo400').textContent = formatTimeSec(secT * 0.4);
+      document.getElementById('lapInterval400').textContent = formatTimeSec(secI * 0.4);
+      document.getElementById('lapRep200').textContent = `${Math.round(secR * 0.2)} วิ.`;
+
+      lucide.createIcons();
+    }
+
+    // Dynamic 7-day schedule generator
+    function renderWeeklyScheduleGrid() {
+      const container = document.getElementById('weeklyScheduleGrid');
+      container.innerHTML = '';
+
+      const activeIndices = [];
+      currentData.activeDays.forEach((isActive, idx) => {
+        if (isActive) activeIndices.push(idx);
+      });
+
+      const count = activeIndices.length;
+      const d = currentData;
+      const totalKm = d.weeklyKm;
+
+      // Assign workouts to active days based on count and goal
+      const assignments = {};
+
+      if (count === 1) {
+        assignments[activeIndices[0]] = {
+          type: 'วิ่งสบาย + ซ้อมตามเป้าหมาย',
+          badge: 'วิ่งสบาย 🟢',
+          badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+          pace: `@ เพซ ${d.lightMin} - ${d.lightMax}`,
+          dist: `${totalKm} กม.`,
+          desc: 'วิ่งสบายๆ สะสมความฟิต'
+        };
+      } else if (count === 2) {
+        assignments[activeIndices[0]] = {
+          type: d.goal === '5k_10k' ? 'วิ่งคอร์ท/สปีด (Quality)' : 'วิ่งแช่เพซตึงๆ (Tempo)',
+          badge: d.goal === '5k_10k' ? 'วิ่งเร็ว 🔴' : 'วิ่งตึง 🟡',
+          badgeBg: d.goal === '5k_10k' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+          pace: d.goal === '5k_10k' ? `@ เพซ ${d.iPace}` : `@ เพซ ${d.tPace}`,
+          dist: `${Math.round(totalKm * 0.4)} กม.`,
+          desc: 'พัฒนาความเร็ว/ความอึด'
+        };
+        assignments[activeIndices[1]] = {
+          type: 'วิ่งยาวประจำสัปดาห์ (Long Run)',
+          badge: 'วิ่งยาว 🟢',
+          badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+          pace: `@ เพซ ${d.lightMax}`,
+          dist: `${Math.round(totalKm * 0.6)} กม.`,
+          desc: 'สร้างความทนทานแอโรบิก'
+        };
+      } else if (count === 3) {
+        assignments[activeIndices[0]] = {
+          type: 'วิ่งเบาเรียกเหงื่อ',
+          badge: 'วิ่งสบาย 🟢',
+          badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+          pace: `@ เพซ ${d.lightMin} - ${d.lightMax}`,
+          dist: `${Math.round(totalKm * 0.25)} กม.`,
+          desc: 'วิ่งไปคุยไป ไม่เหนื่อยหอบ'
+        };
+        assignments[activeIndices[1]] = {
+          type: d.goal === '5k_10k' ? 'ลงคอร์ทฝึกความเร็ว (I-Pace)' : (d.goal === 'half' ? 'วิ่งเทมโป้ตึงๆ (Tempo)' : 'วิ่งแทรกเพซมาราธอน'),
+          badge: d.goal === '5k_10k' ? 'วิ่งเร็ว 🔴' : 'วิ่งตึง 🟡',
+          badgeBg: d.goal === '5k_10k' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+          pace: d.goal === '5k_10k' ? `5 x 800m @ เพซ ${d.iPace}` : (d.goal === 'half' ? `20-25 นาที @ เพซ ${d.tPace}` : `@ เพซ ${d.mPace}`),
+          dist: `${Math.round(totalKm * 0.35)} กม.`,
+          desc: 'ซ้อมคุณภาพประจำสัปดาห์'
+        };
+        assignments[activeIndices[2]] = {
+          type: 'วิ่งยาวสร้างฐานความอึด (LSD)',
+          badge: 'วิ่งยาว 🟢',
+          badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+          pace: `@ เพซ ${d.lightMax}`,
+          dist: `${Math.round(totalKm * 0.40)} กม.`,
+          desc: 'ฝึกถังพลังงานและความอึด'
+        };
+      } else {
+        // 4, 5, 6, 7 days
+        const lastIdx = activeIndices[activeIndices.length - 1];
+        const midIdx1 = activeIndices[Math.floor(count / 2)];
+        const midIdx2 = activeIndices[1];
+
+        activeIndices.forEach((dayIdx, i) => {
+          if (dayIdx === lastIdx) {
+            // Long run on the last active day (e.g. Sunday or Saturday)
+            assignments[dayIdx] = {
+              type: 'วิ่งยาวสะสมความอึด (Long Run)',
+              badge: 'วิ่งยาว 🟢',
+              badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+              pace: d.goal === 'marathon' ? `@ เพซ ${d.lightMax} + แทรก ${d.mPace}` : `@ เพซ ${d.lightMax}`,
+              dist: `${Math.round(totalKm * 0.35)} กม.`,
+              desc: 'ฝึกความทนทานของกล้ามเนื้อ'
+            };
+          } else if (dayIdx === midIdx1) {
+            // Primary Quality Key Workout
+            if (d.goal === '5k_10k') {
+              assignments[dayIdx] = {
+                type: 'ลงคอร์ทฝึกความเร็ว (Interval)',
+                badge: 'วิ่งเร็ว 🔴',
+                badgeBg: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+                pace: `5 x 800m @ เพซ ${d.iPace}`,
+                dist: `${Math.round(totalKm * 0.22)} กม.`,
+                desc: 'พักจ็อกระหว่างรอบ 2-3 นาที'
+              };
+            } else if (d.goal === 'half') {
+              assignments[dayIdx] = {
+                type: 'ซ้อมตึงๆ Cruise Intervals',
+                badge: 'วิ่งตึง 🟡',
+                badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                pace: `3 x 2K @ เพซ ${d.tPace}`,
+                dist: `${Math.round(totalKm * 0.25)} กม.`,
+                desc: 'พักจ็อกสั้นๆ 1-2 นาทีต่อเซ็ต'
+              };
+            } else if (d.goal === 'marathon') {
+              assignments[dayIdx] = {
+                type: 'วิ่งแช่เพซ Tempo (Threshold)',
+                badge: 'วิ่งตึง 🟡',
+                badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                pace: `25-30 นาที @ เพซ ${d.tPace}`,
+                dist: `${Math.round(totalKm * 0.25)} กม.`,
+                desc: 'ฝึกความแกร่งให้กล้ามเนื้อ'
+              };
+            } else {
+              assignments[dayIdx] = {
+                type: 'วิ่งสบายเพิ่มระยะ',
+                badge: 'วิ่งสบาย 🟢',
+                badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                pace: `@ เพซ ${d.lightMin} - ${d.lightMax}`,
+                dist: `${Math.round(totalKm * 0.25)} กม.`,
+                desc: 'คุมหัวใจโซน 2 สบายๆ'
+              };
+            }
+          } else if (count >= 5 && dayIdx === midIdx2 && d.goal !== 'health') {
+            // Secondary Speed / Strides Workout
+            assignments[dayIdx] = {
+              type: d.goal === '5k_10k' ? 'วิ่งเทมโป้ตึงๆ (Tempo)' : 'วิ่งเบา + เร่งสั้น (Strides)',
+              badge: d.goal === '5k_10k' ? 'วิ่งตึง 🟡' : 'วิ่งสบาย 🟢',
+              badgeBg: d.goal === '5k_10k' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+              pace: d.goal === '5k_10k' ? `@ เพซ ${d.tPace}` : `@ เพซ ${d.lightMin} + เร่ง 100m`,
+              dist: `${Math.round(totalKm * 0.18)} กม.`,
+              desc: 'ฝึกรอบขาและความคล่องตัว'
+            };
+          } else {
+            // Easy / Recovery runs
+            const isRecovery = i === 0 || i === activeIndices.length - 2;
+            const remainingDist = Math.max(3, Math.round((totalKm * 0.4) / (count - 2)));
+            assignments[dayIdx] = {
+              type: isRecovery ? 'วิ่งฟื้นฟูกล้ามเนื้อ (Recovery)' : 'วิ่งสบายเสริมฐานแอโรบิก',
+              badge: 'วิ่งสบาย 🟢',
+              badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+              pace: `@ เพซ ${d.lightMax}`,
+              dist: `${remainingDist} กม.`,
+              desc: 'วิ่งไปคุยเป็นประโยคได้'
+            };
+          }
+        });
+      }
+
+      // Render all 7 days (Monday through Sunday)
+      for (let day = 0; day < 7; day++) {
+        const isActive = currentData.activeDays[day];
+        const dayCard = document.createElement('div');
+
+        if (isActive && assignments[day]) {
+          const item = assignments[day];
+          dayCard.className = 'bg-slate-950 p-3.5 rounded-2xl border-2 border-slate-700/80 hover:border-cyan-500/60 transition flex flex-col justify-between shadow-lg shadow-black/40';
+          dayCard.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between font-semibold mb-1.5">
+                <span class="text-white text-xs font-extrabold flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  ${DAY_NAMES[day]}
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full border font-bold ${item.badgeBg}">${item.badge}</span>
+              </div>
+              <div class="text-[11px] font-bold text-slate-200 mt-1">${item.type}</div>
+              <div class="text-cyan-300 font-mono font-bold text-xs mt-1 bg-slate-900 px-2 py-1 rounded-lg border border-slate-800/80">${item.pace}</div>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-900 flex items-center justify-between text-[10px] text-slate-400">
+              <span class="truncate mr-1">${item.desc}</span>
+              <span class="text-white font-mono font-bold text-xs shrink-0">${item.dist}</span>
+            </div>
+          `;
+        } else {
+          // Rest Day Card
+          dayCard.className = 'bg-slate-950/40 p-3.5 rounded-2xl border border-dashed border-slate-800 text-slate-500 flex flex-col justify-between hover:border-slate-700 transition opacity-80';
+          dayCard.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between font-semibold mb-1.5">
+                <span class="text-slate-400 text-xs font-semibold">${DAY_NAMES[day]}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">วันพัก 💤</span>
+              </div>
+              <div class="text-[11px] font-medium text-slate-400 mt-1">พักฟื้นกล้ามเนื้อ (Rest Day)</div>
+              <p class="text-[10px] text-slate-400 mt-1.5 leading-relaxed">พักผ่อนเต็มที่ นอนหลับให้เพียงพอ หรือยืดเหยียดเบาๆ</p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-slate-900/60 flex items-center justify-between text-[10px] text-slate-400">
+              <span>ฟื้นฟูร่างกาย</span>
+              <span class="font-mono text-slate-400">0 กม.</span>
+            </div>
+          `;
+        }
+        container.appendChild(dayCard);
+      }
+    }
+
+    // Initialize on ready
+    window.addEventListener('DOMContentLoaded', () => {
+      updateDayChipsUI();
+      lucide.createIcons();
+      calculateAllPaces();
+    });
+  </script>
+</body>
+</html>
